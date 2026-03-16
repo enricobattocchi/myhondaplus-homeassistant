@@ -27,6 +27,12 @@ BUTTON_DESCRIPTIONS: list[HondaButtonDescription] = [
         action="lock",
     ),
     HondaButtonDescription(
+        key="unlock",
+        translation_key="unlock",
+        icon="mdi:car-door",
+        action="unlock",
+    ),
+    HondaButtonDescription(
         key="horn_lights",
         translation_key="horn_lights",
         icon="mdi:bullhorn",
@@ -95,6 +101,8 @@ class HondaButton(CoordinatorEntity[HondaDataUpdateCoordinator], ButtonEntity):
 
         if action == "lock":
             await self.coordinator.async_send_command(api.remote_lock, vin)
+        elif action == "unlock":
+            await self.coordinator.async_send_command(api.remote_unlock, vin)
         elif action == "horn_lights":
             await self.coordinator.async_send_command(api.remote_horn_lights, vin)
         elif action == "climate_start":

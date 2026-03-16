@@ -42,6 +42,7 @@
     },
     "button": {
       "lock": { "name": "Lock doors" },
+      "unlock": { "name": "Unlock doors" },
       "horn_lights": { "name": "Horn & lights" },
       "climate_start": { "name": "Climate start" },
       "climate_stop": { "name": "Climate stop" },
