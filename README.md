@@ -35,7 +35,7 @@ On first setup, Honda will send a verification email. Copy the link URL (don't c
 - Last updated
 
 ### Buttons
-- Lock doors, Horn & lights
+- Lock doors, Unlock doors, Horn & lights
 - Climate start/stop, Refresh from car
 
 ### Numbers
