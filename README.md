@@ -40,3 +40,12 @@ On first setup, Honda will send a verification email. Copy the link URL (don't c
 
 ### Numbers
 - Charge limit (home), Charge limit (away)
+
+## Disclaimer
+
+This project is **unofficial** and **not affiliated with, endorsed by, or connected to Honda Motor Co., Ltd.** in any way.
+
+- Use at your own risk. The authors accept no responsibility for any damage to your vehicle, account, or warranty.
+- Honda may change their API at any time, which could break this integration without notice.
+- Sending remote commands (lock, unlock, climate, charging) to your vehicle is your responsibility.
+- This integration does not store or transmit your credentials to any third party. Authentication is performed directly with Honda's servers.
