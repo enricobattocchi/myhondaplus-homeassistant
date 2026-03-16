@@ -17,8 +17,10 @@ Tested on Honda e. Should work with other Honda Connect Europe vehicles (e:Ny1, 
 
 HACS will track updates automatically, making it easy to upgrade.
 
+### Manual installation
+
 <details>
-<summary><h3>Manual installation</h3></summary>
+<summary>More details</summary>
 
 1. Download the `myhondaplus.zip` from the [latest release](https://github.com/enricobattocchi/myhondaplus/releases/latest)
 2. Extract the `custom_components/myhondaplus` folder into your Home Assistant `config/custom_components/` directory
