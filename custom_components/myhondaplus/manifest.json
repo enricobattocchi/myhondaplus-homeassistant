@@ -7,6 +7,6 @@
   "documentation": "https://github.com/enricobattocchi/myhondaplus",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/enricobattocchi/myhondaplus/issues",
-  "requirements": ["pymyhondaplus==1.0.0"],
+  "requirements": ["pymyhondaplus==1.0.1"],
   "version": "1.0.0"
 }
