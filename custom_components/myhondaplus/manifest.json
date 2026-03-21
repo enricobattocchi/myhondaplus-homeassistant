@@ -4,9 +4,9 @@
   "codeowners": [],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/enricobattocchi/myhondaplus",
+  "documentation": "https://github.com/enricobattocchi/myhondaplus-homeassistant",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/enricobattocchi/myhondaplus/issues",
+  "issue_tracker": "https://github.com/enricobattocchi/myhondaplus-homeassistant/issues",
   "requirements": ["pymyhondaplus==1.0.1"],
   "version": "1.0.0"
 }
