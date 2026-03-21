@@ -12,6 +12,7 @@ from .const import (
     CONF_PERSONAL_ID,
     CONF_REFRESH_TOKEN,
     CONF_USER_ID,
+    CONF_VEHICLE_NAME,
     CONF_VIN,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -21,7 +22,6 @@ from .const import (
 STEP_USER_DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_EMAIL): str,
     vol.Required(CONF_PASSWORD): str,
-    vol.Required(CONF_VIN): str,
     vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
 })
 
@@ -36,10 +36,12 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self):
         self._email = None
         self._password = None
-        self._vin = None
         self._scan_interval = DEFAULT_SCAN_INTERVAL
         self._device_key = None
         self._auth = None
+        self._tokens = None
+        self._api = None
+        self._vehicles = []
 
     async def async_step_user(self, user_input=None):
         errors = {}
@@ -47,17 +49,16 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._email = user_input[CONF_EMAIL]
             self._password = user_input[CONF_PASSWORD]
-            self._vin = user_input[CONF_VIN]
             self._scan_interval = user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
 
             self._device_key = DeviceKey()
             self._auth = HondaAuth(device_key=self._device_key)
 
             try:
-                tokens = await self.hass.async_add_executor_job(
+                self._tokens = await self.hass.async_add_executor_job(
                     self._auth.login, self._email, self._password,
                 )
-                return await self._create_entry(tokens)
+                return await self._fetch_vehicles_and_continue()
             except RuntimeError as e:
                 error_text = str(e)
                 if "device-authenticator-not-registered" in error_text:
@@ -107,10 +108,10 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
 
                 try:
-                    tokens = await self.hass.async_add_executor_job(
+                    self._tokens = await self.hass.async_add_executor_job(
                         self._auth.login, self._email, self._password,
                     )
-                    return await self._create_entry(tokens)
+                    return await self._fetch_vehicles_and_continue()
                 except RuntimeError as e:
                     LOGGER.error("Login after verification failed: %s", e)
                     errors["base"] = "verification_failed"
@@ -121,34 +122,103 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def _create_entry(self, tokens: dict):
-        user_id = HondaAuth.extract_user_id(tokens["access_token"])
+    async def _fetch_vehicles_and_continue(self):
+        """After login, fetch vehicles and go to selection or create entry."""
+        user_id = HondaAuth.extract_user_id(self._tokens["access_token"])
 
-        api = HondaAPI()
-        api.set_tokens(
-            access_token=tokens["access_token"],
-            refresh_token=tokens["refresh_token"],
+        self._api = HondaAPI()
+        self._api.set_tokens(
+            access_token=self._tokens["access_token"],
+            refresh_token=self._tokens["refresh_token"],
             user_id=user_id,
         )
+
+        try:
+            self._vehicles = await self.hass.async_add_executor_job(
+                self._api.get_vehicles,
+            )
+        except Exception:
+            LOGGER.exception("Failed to fetch vehicles")
+            self._vehicles = []
+
+        if len(self._vehicles) == 1:
+            return await self._create_entry(
+                self._vehicles[0]["vin"],
+                self._vehicles[0].get("name", ""),
+            )
+
+        if len(self._vehicles) > 1:
+            return await self.async_step_select_vehicle()
+
+        # No vehicles found — fall back to manual VIN entry
+        return await self.async_step_manual_vin()
+
+    async def async_step_select_vehicle(self, user_input=None):
+        """Let user pick a vehicle from their account."""
+        if user_input is not None:
+            vin = user_input[CONF_VIN]
+            vehicle = next((v for v in self._vehicles if v["vin"] == vin), {})
+            return await self._create_entry(vin, vehicle.get("name", ""))
+
+        options = {
+            v["vin"]: f"{v.get('name') or v['vin']} ({v['plate']})"
+            if v.get("plate")
+            else v.get("name") or v["vin"]
+            for v in self._vehicles
+        }
+
+        return self.async_show_form(
+            step_id="select_vehicle",
+            data_schema=vol.Schema({
+                vol.Required(CONF_VIN): vol.In(options),
+            }),
+        )
+
+    async def async_step_manual_vin(self, user_input=None):
+        """Fallback: manual VIN entry if vehicle discovery fails."""
+        if user_input is not None:
+            return await self._create_entry(user_input[CONF_VIN], "")
+
+        return self.async_show_form(
+            step_id="manual_vin",
+            data_schema=vol.Schema({
+                vol.Required(CONF_VIN): str,
+            }),
+        )
+
+    async def _create_entry(self, vin: str, vehicle_name: str):
+        user_id = HondaAuth.extract_user_id(self._tokens["access_token"])
+
+        if self._api is None:
+            self._api = HondaAPI()
+            self._api.set_tokens(
+                access_token=self._tokens["access_token"],
+                refresh_token=self._tokens["refresh_token"],
+                user_id=user_id,
+            )
+
         try:
             info = await self.hass.async_add_executor_job(
-                api.get_user_info, user_id,
+                self._api.get_user_info, user_id,
             )
             personal_id = str(info.get("personalId", ""))
         except Exception:
             personal_id = ""
 
-        await self.async_set_unique_id(self._vin)
+        await self.async_set_unique_id(vin)
         self._abort_if_unique_id_configured()
 
+        title = vehicle_name or f"Honda {vin[-6:]}"
+
         return self.async_create_entry(
-            title=f"Honda {self._vin[-6:]}",
+            title=title,
             data={
                 CONF_EMAIL: self._email,
-                CONF_VIN: self._vin,
+                CONF_VIN: vin,
+                CONF_VEHICLE_NAME: vehicle_name,
                 CONF_SCAN_INTERVAL: self._scan_interval,
-                CONF_ACCESS_TOKEN: tokens["access_token"],
-                CONF_REFRESH_TOKEN: tokens["refresh_token"],
+                CONF_ACCESS_TOKEN: self._tokens["access_token"],
+                CONF_REFRESH_TOKEN: self._tokens["refresh_token"],
                 CONF_USER_ID: user_id,
                 CONF_PERSONAL_ID: personal_id,
                 CONF_DEVICE_KEY_PEM: self._device_key.pem_bytes.decode(),
