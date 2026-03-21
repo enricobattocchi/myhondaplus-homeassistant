@@ -7,8 +7,21 @@
         "data": {
           "email": "Email",
           "password": "Password",
-          "vin": "Vehicle Identification Number (VIN)",
           "scan_interval": "Update interval (seconds)"
+        }
+      },
+      "select_vehicle": {
+        "title": "Select vehicle",
+        "description": "Multiple vehicles found on your account. Select which one to add.",
+        "data": {
+          "vin": "Vehicle"
+        }
+      },
+      "manual_vin": {
+        "title": "Enter VIN",
+        "description": "Could not auto-detect vehicles. Enter the VIN manually.",
+        "data": {
+          "vin": "Vehicle Identification Number (VIN)"
         }
       },
       "verify": {

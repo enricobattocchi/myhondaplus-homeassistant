@@ -6,7 +6,7 @@ from homeassistant.components.button import ButtonEntity, ButtonEntityDescriptio
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_VIN
+from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
 from .entity import MyHondaPlusEntity
 
@@ -76,8 +76,9 @@ async def async_setup_entry(
     """Set up My Honda+ buttons."""
     coordinator = entry.runtime_data.coordinator
     vin = entry.data[CONF_VIN]
+    vehicle_name = entry.data.get(CONF_VEHICLE_NAME, "")
     async_add_entities(
-        HondaButton(coordinator, description, vin)
+        HondaButton(coordinator, description, vin, vehicle_name)
         for description in BUTTON_DESCRIPTIONS
     )
 
