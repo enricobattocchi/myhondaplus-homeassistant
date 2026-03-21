@@ -45,6 +45,14 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         icon="mdi:map-marker-distance",
     ),
     HondaSensorDescription(
+        key="total_range_km",
+        translation_key="total_range",
+        native_unit_of_measurement=UnitOfLength.KILOMETERS,
+        device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:map-marker-distance",
+    ),
+    HondaSensorDescription(
         key="charge_status",
         translation_key="charge_status",
         icon="mdi:ev-station",
@@ -53,6 +61,11 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         key="plug_status",
         translation_key="plug_status",
         icon="mdi:power-plug",
+    ),
+    HondaSensorDescription(
+        key="home_away",
+        translation_key="home_away",
+        icon="mdi:home-map-marker",
     ),
     HondaSensorDescription(
         key="climate_active",
@@ -78,6 +91,11 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         key="doors_locked",
         translation_key="doors_locked",
         icon="mdi:car-door-lock",
+    ),
+    HondaSensorDescription(
+        key="all_doors_closed",
+        translation_key="doors_closed",
+        icon="mdi:car-door",
     ),
     HondaSensorDescription(
         key="all_windows_closed",
@@ -133,9 +151,29 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         icon="mdi:car-light-high",
     ),
     HondaSensorDescription(
+        key="headlights",
+        translation_key="headlights",
+        icon="mdi:car-light-high",
+    ),
+    HondaSensorDescription(
+        key="parking_lights",
+        translation_key="parking_lights",
+        icon="mdi:car-parking-lights",
+    ),
+    HondaSensorDescription(
         key="warning_lamps",
         translation_key="warnings",
         icon="mdi:alert",
+    ),
+    HondaSensorDescription(
+        key="latitude",
+        translation_key="latitude",
+        icon="mdi:crosshairs-gps",
+    ),
+    HondaSensorDescription(
+        key="longitude",
+        translation_key="longitude",
+        icon="mdi:crosshairs-gps",
     ),
     HondaSensorDescription(
         key="timestamp",

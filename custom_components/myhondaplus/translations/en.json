@@ -44,12 +44,15 @@
     "sensor": {
       "battery_level": { "name": "Battery" },
       "range": { "name": "Range" },
+      "total_range": { "name": "Total range" },
       "charge_status": { "name": "Charge status" },
       "plug_status": { "name": "Plug status" },
+      "home_away": { "name": "Home / Away" },
       "climate_active": { "name": "Climate active" },
       "cabin_temperature": { "name": "Cabin temperature" },
       "odometer": { "name": "Odometer" },
       "doors_locked": { "name": "Doors locked" },
+      "doors_closed": { "name": "Doors closed" },
       "windows_closed": { "name": "Windows closed" },
       "ignition": { "name": "Ignition" },
       "speed": { "name": "Speed" },
@@ -59,7 +62,11 @@
       "hood": { "name": "Hood" },
       "trunk": { "name": "Trunk" },
       "lights": { "name": "Lights" },
+      "headlights": { "name": "Headlights" },
+      "parking_lights": { "name": "Parking lights" },
       "warnings": { "name": "Warning lamps" },
+      "latitude": { "name": "Latitude" },
+      "longitude": { "name": "Longitude" },
       "last_updated": { "name": "Last updated" }
     },
     "button": {
