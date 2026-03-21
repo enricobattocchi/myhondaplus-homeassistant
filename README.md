@@ -8,7 +8,7 @@ Tested on Honda e. Should work with other Honda Connect Europe vehicles (e:Ny1, 
 
 ### HACS (recommended)
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=enricobattocchi&repository=myhondaplus&category=integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=enricobattocchi&repository=myhondaplus-homeassistant&category=integration)
 
 1. Click the button above, or search for "My Honda+" in HACS under Integrations
 2. Install "My Honda+"
@@ -22,7 +22,7 @@ HACS will track updates automatically, making it easy to upgrade.
 <details>
 <summary>More details</summary>
 
-1. Download the `myhondaplus.zip` from the [latest release](https://github.com/enricobattocchi/myhondaplus/releases/latest)
+1. Download the `myhondaplus.zip` from the [latest release](https://github.com/enricobattocchi/myhondaplus-homeassistant/releases/latest)
 2. Extract the `custom_components/myhondaplus` folder into your Home Assistant `config/custom_components/` directory
 3. Restart Home Assistant
 4. Add the integration via Settings > Integrations > Add Integration > "My Honda+"
@@ -34,21 +34,23 @@ HACS will track updates automatically, making it easy to upgrade.
 The integration will ask for:
 - **Email**: Your My Honda+ account email
 - **Password**: Your My Honda+ account password
-- **VIN**: Your vehicle identification number
+
+Vehicles on your account are auto-detected. If you have multiple vehicles, you'll be asked to pick one. The vehicle's Honda+ nickname is used as the device name in Home Assistant.
 
 On first setup, Honda will send a verification email. Copy the link URL (don't click it) and paste it in the verification step.
 
 ## Entities
 
 ### Sensors
-- Battery level, Range, Charge status, Plug status
-- Climate active, Cabin temperature
-- Odometer, Doors locked, Windows closed
-- Last updated
+- Battery level, Range, Charge status, Plug status, Charge mode, Time to full charge
+- Climate active, Cabin temperature, Interior temperature
+- Odometer, Speed, Ignition
+- Doors locked, Windows closed, Hood, Trunk, Lights
+- Warning lamps, Last updated
 
 ### Buttons
 - Lock doors, Unlock doors, Horn & lights
-- Climate start/stop, Refresh from car
+- Climate start/stop, Start/stop charging, Refresh from car
 
 ### Numbers
 - Charge limit (home), Charge limit (away)
