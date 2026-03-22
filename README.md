@@ -55,9 +55,10 @@ On first setup, Honda will send a verification email. Copy the link URL (don't c
 ### Numbers
 - Charge limit (home), Charge limit (away)
 
-## Underlying library
+## Related projects
 
-This integration uses [pymyhondaplus](https://github.com/enricobattocchi/pymyhondaplus) ([PyPI](https://pypi.org/project/pymyhondaplus/)), a Python library for interacting with the Honda Connect Europe API.
+- [pymyhondaplus](https://github.com/enricobattocchi/pymyhondaplus) — Python client library and CLI for the Honda Connect Europe API
+- [myhondaplus-desktop](https://github.com/enricobattocchi/myhondaplus-desktop) — Desktop GUI application
 
 ## Disclaimer
 
