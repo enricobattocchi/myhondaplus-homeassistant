@@ -12,5 +12,7 @@ CONF_VIN = "vin"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_DEVICE_KEY_PEM = "device_key_pem"
 CONF_VEHICLE_NAME = "vehicle_name"
+CONF_FUEL_TYPE = "fuel_type"
 
 DEFAULT_SCAN_INTERVAL = 600  # 10 minutes
+DEFAULT_TRIP_INTERVAL = 3600  # 1 hour

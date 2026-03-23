@@ -6,16 +6,18 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from pymyhondaplus.api import HondaAPI, HondaAPIError, parse_ev_status
+from pymyhondaplus.api import HondaAPI, HondaAPIError, compute_trip_stats, parse_ev_status
 
 from .const import (
     CONF_ACCESS_TOKEN,
+    CONF_FUEL_TYPE,
     CONF_PERSONAL_ID,
     CONF_REFRESH_TOKEN,
     CONF_SCAN_INTERVAL,
     CONF_USER_ID,
     CONF_VIN,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_TRIP_INTERVAL,
     DOMAIN,
     LOGGER,
 )
@@ -83,3 +85,44 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         result = await self.hass.async_add_executor_job(func, *args)
         self._persist_tokens_if_changed()
         return result
+
+
+class HondaTripCoordinator(DataUpdateCoordinator[dict]):
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry: ConfigEntry,
+        api: HondaAPI,
+        persist_tokens: callable,
+    ) -> None:
+        self.entry = entry
+        self.vin: str = entry.data[CONF_VIN]
+        self.api = api
+        self._persist_tokens = persist_tokens
+        self._fuel_type: str = entry.data.get(CONF_FUEL_TYPE, "")
+
+        super().__init__(
+            hass,
+            LOGGER,
+            name=f"{DOMAIN}_trips",
+            update_interval=timedelta(seconds=DEFAULT_TRIP_INTERVAL),
+        )
+
+    def _fetch_data(self) -> dict:
+        rows = self.api.get_all_trips(self.vin)
+        return compute_trip_stats(rows, "month", fuel_type=self._fuel_type)
+
+    async def _async_update_data(self) -> dict:
+        try:
+            data = await self.hass.async_add_executor_job(self._fetch_data)
+        except HondaAPIError as err:
+            self._persist_tokens()
+            if err.status_code == 401:
+                raise ConfigEntryAuthFailed from err
+            raise UpdateFailed(str(err)) from err
+        except Exception as err:
+            raise UpdateFailed(str(err)) from err
+
+        self._persist_tokens()
+        return data

@@ -47,6 +47,7 @@ On first setup, Honda will send a verification email. Copy the link URL (don't c
 - Odometer, Speed, Ignition
 - Doors locked, Windows closed, Hood, Trunk, Lights
 - Warning lamps, Last updated
+- Trips this month, Distance this month, Driving time this month, Avg consumption this month
 
 ### Buttons
 - Lock doors, Unlock doors, Horn & lights

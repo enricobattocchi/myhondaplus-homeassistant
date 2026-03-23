@@ -67,7 +67,11 @@
       "warnings": { "name": "Warning lamps" },
       "latitude": { "name": "Latitude" },
       "longitude": { "name": "Longitude" },
-      "last_updated": { "name": "Last updated" }
+      "last_updated": { "name": "Last updated" },
+      "trips_this_month": { "name": "Trips this month" },
+      "distance_this_month": { "name": "Distance this month" },
+      "driving_time_this_month": { "name": "Driving time this month" },
+      "avg_consumption_this_month": { "name": "Avg consumption this month" }
     },
     "button": {
       "lock": { "name": "Lock doors" },

@@ -9,6 +9,7 @@ from pymyhondaplus.auth import DeviceKey, HondaAuth
 from .const import (
     CONF_ACCESS_TOKEN,
     CONF_DEVICE_KEY_PEM,
+    CONF_FUEL_TYPE,
     CONF_PERSONAL_ID,
     CONF_REFRESH_TOKEN,
     CONF_USER_ID,
@@ -145,6 +146,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return await self._create_entry(
                 self._vehicles[0]["vin"],
                 self._vehicles[0].get("name", ""),
+                self._vehicles[0].get("fuel_type", ""),
             )
 
         if len(self._vehicles) > 1:
@@ -158,7 +160,9 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             vin = user_input[CONF_VIN]
             vehicle = next((v for v in self._vehicles if v["vin"] == vin), {})
-            return await self._create_entry(vin, vehicle.get("name", ""))
+            return await self._create_entry(
+                vin, vehicle.get("name", ""), vehicle.get("fuel_type", ""),
+            )
 
         options = {
             v["vin"]: f"{v.get('name') or v['vin']} ({v['plate']})"
@@ -177,7 +181,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_manual_vin(self, user_input=None):
         """Fallback: manual VIN entry if vehicle discovery fails."""
         if user_input is not None:
-            return await self._create_entry(user_input[CONF_VIN], "")
+            return await self._create_entry(user_input[CONF_VIN], "", "")
 
         return self.async_show_form(
             step_id="manual_vin",
@@ -186,7 +190,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             }),
         )
 
-    async def _create_entry(self, vin: str, vehicle_name: str):
+    async def _create_entry(self, vin: str, vehicle_name: str, fuel_type: str):
         user_id = HondaAuth.extract_user_id(self._tokens["access_token"])
 
         if self._api is None:
@@ -222,5 +226,6 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_USER_ID: user_id,
                 CONF_PERSONAL_ID: personal_id,
                 CONF_DEVICE_KEY_PEM: self._device_key.pem_bytes.decode(),
+                CONF_FUEL_TYPE: fuel_type,
             },
         )

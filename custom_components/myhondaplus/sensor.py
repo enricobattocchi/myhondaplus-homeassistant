@@ -183,6 +183,38 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
 ]
 
 
+TRIP_SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
+    HondaSensorDescription(
+        key="trips",
+        translation_key="trips_this_month",
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:car-multiple",
+    ),
+    HondaSensorDescription(
+        key="total_km",
+        translation_key="distance_this_month",
+        native_unit_of_measurement=UnitOfLength.KILOMETERS,
+        device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:map-marker-distance",
+    ),
+    HondaSensorDescription(
+        key="total_minutes",
+        translation_key="driving_time_this_month",
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:clock-outline",
+    ),
+    HondaSensorDescription(
+        key="avg_consumption",
+        translation_key="avg_consumption_this_month",
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:gas-station",
+    ),
+]
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: MyHondaPlusConfigEntry,
@@ -190,12 +222,18 @@ async def async_setup_entry(
 ) -> None:
     """Set up My Honda+ sensors."""
     coordinator = entry.runtime_data.coordinator
+    trip_coordinator = entry.runtime_data.trip_coordinator
     vin = entry.data[CONF_VIN]
     vehicle_name = entry.data.get(CONF_VEHICLE_NAME, "")
-    async_add_entities(
+    entities: list[SensorEntity] = [
         HondaSensor(coordinator, description, vin, vehicle_name)
         for description in SENSOR_DESCRIPTIONS
+    ]
+    entities.extend(
+        HondaTripSensor(trip_coordinator, description, vin, vehicle_name)
+        for description in TRIP_SENSOR_DESCRIPTIONS
     )
+    async_add_entities(entities)
 
 
 class HondaSensor(MyHondaPlusEntity, SensorEntity):
@@ -207,3 +245,19 @@ class HondaSensor(MyHondaPlusEntity, SensorEntity):
         if isinstance(value, list):
             return ", ".join(str(v) for v in value) if value else "none"
         return value
+
+
+class HondaTripSensor(MyHondaPlusEntity, SensorEntity):
+    """My Honda+ trip statistics sensor."""
+
+    @property
+    def native_value(self):
+        if not self.coordinator.data:
+            return None
+        return self.coordinator.data.get(self.entity_description.key)
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        if self.entity_description.key == "avg_consumption" and self.coordinator.data:
+            return self.coordinator.data.get("consumption_unit")
+        return self.entity_description.native_unit_of_measurement
