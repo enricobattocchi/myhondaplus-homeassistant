@@ -6,7 +6,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from pymyhondaplus.api import HondaAPI, HondaAPIError, compute_trip_stats, parse_ev_status
+from pymyhondaplus.api import (
+    HondaAPI,
+    HondaAPIError,
+    compute_trip_stats,
+    parse_ev_status,
+)
 
 from .const import (
     CONF_ACCESS_TOKEN,
