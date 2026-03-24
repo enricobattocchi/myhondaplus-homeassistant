@@ -59,11 +59,4 @@ class HondaButton(MyHondaPlusEntity, ButtonEntity):
             await self.coordinator.async_send_command(api.remote_horn_lights, vin)
         elif action == "refresh":
             await self.coordinator.async_refresh_from_car()
-            self.hass.async_create_task(
-                self._delayed_refresh()
-            )
-
-    async def _delayed_refresh(self) -> None:
-        import asyncio
-        await asyncio.sleep(30)
-        await self.coordinator.async_request_refresh()
+            self.hass.async_create_task(self._delayed_refresh())
