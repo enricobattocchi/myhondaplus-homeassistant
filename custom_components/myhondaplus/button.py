@@ -36,18 +36,6 @@ BUTTON_DESCRIPTIONS: list[HondaButtonDescription] = [
         action="horn_lights",
     ),
     HondaButtonDescription(
-        key="climate_start",
-        translation_key="climate_start",
-        icon="mdi:air-conditioner",
-        action="climate_start",
-    ),
-    HondaButtonDescription(
-        key="climate_stop",
-        translation_key="climate_stop",
-        icon="mdi:fan-off",
-        action="climate_stop",
-    ),
-    HondaButtonDescription(
         key="charge_start",
         translation_key="charge_start",
         icon="mdi:battery-charging",
@@ -97,10 +85,6 @@ class HondaButton(MyHondaPlusEntity, ButtonEntity):
             await self.coordinator.async_send_command(api.remote_unlock, vin)
         elif action == "horn_lights":
             await self.coordinator.async_send_command(api.remote_horn_lights, vin)
-        elif action == "climate_start":
-            await self.coordinator.async_send_command(api.remote_climate_start, vin)
-        elif action == "climate_stop":
-            await self.coordinator.async_send_command(api.remote_climate_stop, vin)
         elif action == "charge_start":
             await self.coordinator.async_send_command(api.remote_charge_start, vin)
         elif action == "charge_stop":

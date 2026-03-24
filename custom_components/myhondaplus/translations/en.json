@@ -77,11 +77,12 @@
       "lock": { "name": "Lock doors" },
       "unlock": { "name": "Unlock doors" },
       "horn_lights": { "name": "Horn & lights" },
-      "climate_start": { "name": "Climate start" },
-      "climate_stop": { "name": "Climate stop" },
       "charge_start": { "name": "Start charging" },
       "charge_stop": { "name": "Stop charging" },
       "refresh_data": { "name": "Refresh from car" }
+    },
+    "switch": {
+      "climate": { "name": "Climate" }
     },
     "number": {
       "charge_limit_home": { "name": "Charge limit (home)" },

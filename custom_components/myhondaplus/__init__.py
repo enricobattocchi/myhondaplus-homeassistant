@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant
 from .coordinator import HondaDataUpdateCoordinator, HondaTripCoordinator
 from .data import MyHondaPlusConfigEntry, MyHondaPlusData
 
-PLATFORMS = [Platform.SENSOR, Platform.BUTTON, Platform.NUMBER]
+PLATFORMS = [Platform.SENSOR, Platform.BUTTON, Platform.NUMBER, Platform.SWITCH]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> bool:
