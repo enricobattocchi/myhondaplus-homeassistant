@@ -1,5 +1,7 @@
 """Base entity for My Honda+."""
 
+import asyncio
+
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -48,3 +50,8 @@ class MyHondaPlusEntity(CoordinatorEntity[DataUpdateCoordinator[dict]]):
         if model:
             info["model"] = model
         return info
+
+    async def _delayed_refresh(self, delay: int = 30) -> None:
+        """Wait, then refresh coordinator data from the car."""
+        await asyncio.sleep(delay)
+        await self.coordinator.async_request_refresh()
