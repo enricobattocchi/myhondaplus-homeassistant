@@ -130,7 +130,7 @@ class TestHondaDataUpdateCoordinator:
     @pytest.mark.asyncio
     async def test_refresh_from_car_502(self, coordinator):
         coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(502, "Bad Gateway")
-        with pytest.raises(HomeAssistantError, match="Refresh failed"):
+        with pytest.raises(HomeAssistantError, match="Unable to refresh data"):
             await coordinator.async_refresh_from_car()
 
     @pytest.mark.asyncio
@@ -152,7 +152,7 @@ class TestHondaDataUpdateCoordinator:
     async def test_send_command_500(self, coordinator):
         func = MagicMock()
         coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(500, "Error")
-        with pytest.raises(HomeAssistantError, match="Command failed"):
+        with pytest.raises(HomeAssistantError, match="Unable to send command"):
             await coordinator.async_send_command(func)
 
 
