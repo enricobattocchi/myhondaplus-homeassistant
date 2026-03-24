@@ -60,6 +60,13 @@ class MyHondaPlusEntity(CoordinatorEntity[DataUpdateCoordinator[dict]]):
             self.hass, delay, self._do_refresh,
         )
 
+    async def async_will_remove_from_hass(self) -> None:
+        """Cancel pending refresh on removal."""
+        if self._refresh_unsub:
+            self._refresh_unsub()
+            self._refresh_unsub = None
+        await super().async_will_remove_from_hass()
+
     @callback
     def _do_refresh(self, _now) -> None:
         """Trigger coordinator refresh."""
