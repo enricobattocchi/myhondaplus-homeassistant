@@ -18,34 +18,10 @@ class HondaButtonDescription(ButtonEntityDescription):
 
 BUTTON_DESCRIPTIONS: list[HondaButtonDescription] = [
     HondaButtonDescription(
-        key="lock",
-        translation_key="lock",
-        icon="mdi:car-door-lock",
-        action="lock",
-    ),
-    HondaButtonDescription(
-        key="unlock",
-        translation_key="unlock",
-        icon="mdi:car-door",
-        action="unlock",
-    ),
-    HondaButtonDescription(
         key="horn_lights",
         translation_key="horn_lights",
         icon="mdi:bullhorn",
         action="horn_lights",
-    ),
-    HondaButtonDescription(
-        key="charge_start",
-        translation_key="charge_start",
-        icon="mdi:battery-charging",
-        action="charge_start",
-    ),
-    HondaButtonDescription(
-        key="charge_stop",
-        translation_key="charge_stop",
-        icon="mdi:battery-off",
-        action="charge_stop",
     ),
     HondaButtonDescription(
         key="refresh_data",
@@ -79,16 +55,8 @@ class HondaButton(MyHondaPlusEntity, ButtonEntity):
         api = self.coordinator.api
         vin = self._vin
 
-        if action == "lock":
-            await self.coordinator.async_send_command(api.remote_lock, vin)
-        elif action == "unlock":
-            await self.coordinator.async_send_command(api.remote_unlock, vin)
-        elif action == "horn_lights":
+        if action == "horn_lights":
             await self.coordinator.async_send_command(api.remote_horn_lights, vin)
-        elif action == "charge_start":
-            await self.coordinator.async_send_command(api.remote_charge_start, vin)
-        elif action == "charge_stop":
-            await self.coordinator.async_send_command(api.remote_charge_stop, vin)
         elif action == "refresh":
             await self.coordinator.async_refresh_from_car()
             self.hass.async_create_task(

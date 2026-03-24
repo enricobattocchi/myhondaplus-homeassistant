@@ -1,6 +1,6 @@
 """Switch platform for My Honda+."""
 
-from homeassistant.components.switch import SwitchEntity, SwitchDeviceClass
+from homeassistant.components.switch import SwitchEntity, SwitchDeviceClass, SwitchEntityDescription
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -18,7 +18,10 @@ async def async_setup_entry(
     coordinator = entry.runtime_data.coordinator
     vin = entry.data[CONF_VIN]
     vehicle_name = entry.data.get(CONF_VEHICLE_NAME, "")
-    async_add_entities([HondaClimateSwitch(coordinator, vin, vehicle_name)])
+    async_add_entities([
+        HondaClimateSwitch(coordinator, vin, vehicle_name),
+        HondaChargeSwitch(coordinator, vin, vehicle_name),
+    ])
 
 
 class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
@@ -29,9 +32,6 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
     _attr_translation_key = "climate"
 
     def __init__(self, coordinator, vin: str, vehicle_name: str) -> None:
-        """Initialize the climate switch."""
-        from homeassistant.components.switch import SwitchEntityDescription
-
         description = SwitchEntityDescription(
             key="climate",
             translation_key="climate",
@@ -60,4 +60,43 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
         """Stop climate pre-conditioning."""
         api = self.coordinator.api
         await self.coordinator.async_send_command(api.remote_climate_stop, self._vin)
+        self.async_write_ha_state()
+
+
+class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
+    """Switch to start/stop charging."""
+
+    _attr_device_class = SwitchDeviceClass.SWITCH
+    _attr_icon = "mdi:ev-station"
+    _attr_translation_key = "charging"
+
+    def __init__(self, coordinator, vin: str, vehicle_name: str) -> None:
+        description = SwitchEntityDescription(
+            key="charging",
+            translation_key="charging",
+        )
+        super().__init__(coordinator, description, vin, vehicle_name)
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return true if charging is active."""
+        value = self.coordinator.data.get("charge_status")
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.lower() in ("charging",)
+        return bool(value)
+
+    async def async_turn_on(self, **kwargs) -> None:
+        """Start charging."""
+        api = self.coordinator.api
+        await self.coordinator.async_send_command(api.remote_charge_start, self._vin)
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs) -> None:
+        """Stop charging."""
+        api = self.coordinator.api
+        await self.coordinator.async_send_command(api.remote_charge_stop, self._vin)
         self.async_write_ha_state()
