@@ -58,13 +58,17 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
         """Start climate pre-conditioning."""
         api = self.coordinator.api
         await self.coordinator.async_send_command(api.remote_climate_start, self._vin)
+        self.coordinator.data["climate_active"] = True
         self.async_write_ha_state()
+        await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs) -> None:
         """Stop climate pre-conditioning."""
         api = self.coordinator.api
         await self.coordinator.async_send_command(api.remote_climate_stop, self._vin)
+        self.coordinator.data["climate_active"] = False
         self.async_write_ha_state()
+        await self.coordinator.async_request_refresh()
 
 
 class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
@@ -97,10 +101,14 @@ class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
         """Start charging."""
         api = self.coordinator.api
         await self.coordinator.async_send_command(api.remote_charge_start, self._vin)
+        self.coordinator.data["charge_status"] = "charging"
         self.async_write_ha_state()
+        await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs) -> None:
         """Stop charging."""
         api = self.coordinator.api
         await self.coordinator.async_send_command(api.remote_charge_stop, self._vin)
+        self.coordinator.data["charge_status"] = "not_charging"
         self.async_write_ha_state()
+        await self.coordinator.async_request_refresh()
