@@ -2,11 +2,9 @@
 
 from unittest.mock import MagicMock
 
-import pytest
-
 from custom_components.myhondaplus.entity import FUEL_TYPE_LABELS, MyHondaPlusEntity
 
-from .conftest import MOCK_VIN, MOCK_VEHICLE_NAME
+from .conftest import MOCK_VEHICLE_NAME, MOCK_VIN
 
 
 def make_entity(coordinator, vin=MOCK_VIN, vehicle_name=MOCK_VEHICLE_NAME):

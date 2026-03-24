@@ -6,7 +6,7 @@ import pytest
 
 from custom_components.myhondaplus.lock import HondaDoorLock
 
-from .conftest import MOCK_VIN, MOCK_VEHICLE_NAME
+from .conftest import MOCK_VEHICLE_NAME, MOCK_VIN
 
 
 @pytest.fixture

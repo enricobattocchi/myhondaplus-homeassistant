@@ -1,12 +1,12 @@
 """Tests for the switch platform."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
 from custom_components.myhondaplus.switch import HondaChargeSwitch, HondaClimateSwitch
 
-from .conftest import MOCK_VIN, MOCK_VEHICLE_NAME
+from .conftest import MOCK_VEHICLE_NAME, MOCK_VIN
 
 
 @pytest.fixture

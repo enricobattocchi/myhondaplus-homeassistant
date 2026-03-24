@@ -4,9 +4,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.myhondaplus.number import HondaChargeLimitNumber, NUMBER_DESCRIPTIONS
+from custom_components.myhondaplus.number import (
+    NUMBER_DESCRIPTIONS,
+    HondaChargeLimitNumber,
+)
 
-from .conftest import MOCK_VIN, MOCK_VEHICLE_NAME
+from .conftest import MOCK_VEHICLE_NAME, MOCK_VIN
 
 
 def make_number(coordinator, key):
