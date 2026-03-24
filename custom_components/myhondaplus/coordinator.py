@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pymyhondaplus.api import (
     HondaAPI,
@@ -73,6 +73,9 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             self._persist_tokens_if_changed()
             if err.status_code == 401:
                 raise ConfigEntryAuthFailed from err
+            if err.status_code and err.status_code >= 500 and self.data is not None:
+                LOGGER.warning("Transient server error (%s), keeping cached data", err)
+                return self.data
             raise UpdateFailed(str(err)) from err
         except Exception as err:
             raise UpdateFailed(str(err)) from err
@@ -81,13 +84,25 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         return data
 
     async def async_refresh_from_car(self) -> None:
-        await self.hass.async_add_executor_job(
-            self.api.request_dashboard_refresh, self.vin,
-        )
+        try:
+            await self.hass.async_add_executor_job(
+                self.api.request_dashboard_refresh, self.vin,
+            )
+        except HondaAPIError as err:
+            self._persist_tokens_if_changed()
+            if err.status_code == 401:
+                raise ConfigEntryAuthFailed from err
+            raise HomeAssistantError(f"Refresh failed: {err}") from err
         self._persist_tokens_if_changed()
 
     async def async_send_command(self, func, *args) -> str:
-        result = await self.hass.async_add_executor_job(func, *args)
+        try:
+            result = await self.hass.async_add_executor_job(func, *args)
+        except HondaAPIError as err:
+            self._persist_tokens_if_changed()
+            if err.status_code == 401:
+                raise ConfigEntryAuthFailed from err
+            raise HomeAssistantError(f"Command failed: {err}") from err
         self._persist_tokens_if_changed()
         return result
 
@@ -125,6 +140,9 @@ class HondaTripCoordinator(DataUpdateCoordinator[dict]):
             self._persist_tokens()
             if err.status_code == 401:
                 raise ConfigEntryAuthFailed from err
+            if err.status_code and err.status_code >= 500 and self.data is not None:
+                LOGGER.warning("Transient server error (%s), keeping cached data", err)
+                return self.data
             raise UpdateFailed(str(err)) from err
         except Exception as err:
             raise UpdateFailed(str(err)) from err
