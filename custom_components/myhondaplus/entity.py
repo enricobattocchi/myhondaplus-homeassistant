@@ -1,6 +1,8 @@
 """Base entity for My Honda+."""
 
+from homeassistant.core import CALLBACK_TYPE, callback
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -20,6 +22,7 @@ class MyHondaPlusEntity(CoordinatorEntity[DataUpdateCoordinator[dict]]):
     """Base class for My Honda+ entities."""
 
     _attr_has_entity_name = True
+    _refresh_unsub: CALLBACK_TYPE | None = None
 
     def __init__(
         self,
@@ -48,3 +51,24 @@ class MyHondaPlusEntity(CoordinatorEntity[DataUpdateCoordinator[dict]]):
         if model:
             info["model"] = model
         return info
+
+    def _schedule_refresh(self, delay: int = 30) -> None:
+        """Schedule a coordinator refresh, replacing any pending one."""
+        if self._refresh_unsub:
+            self._refresh_unsub()
+        self._refresh_unsub = async_call_later(
+            self.hass, delay, self._do_refresh,
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Cancel pending refresh on removal."""
+        if self._refresh_unsub:
+            self._refresh_unsub()
+            self._refresh_unsub = None
+        await super().async_will_remove_from_hass()
+
+    @callback
+    def _do_refresh(self, _now) -> None:
+        """Trigger coordinator refresh."""
+        self._refresh_unsub = None
+        self.hass.async_create_task(self.coordinator.async_request_refresh())

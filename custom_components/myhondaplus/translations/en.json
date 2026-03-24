@@ -74,14 +74,15 @@
       "avg_consumption_this_month": { "name": "Avg consumption this month" }
     },
     "button": {
-      "lock": { "name": "Lock doors" },
-      "unlock": { "name": "Unlock doors" },
       "horn_lights": { "name": "Horn & lights" },
-      "climate_start": { "name": "Climate start" },
-      "climate_stop": { "name": "Climate stop" },
-      "charge_start": { "name": "Start charging" },
-      "charge_stop": { "name": "Stop charging" },
       "refresh_data": { "name": "Refresh from car" }
+    },
+    "lock": {
+      "doors": { "name": "Doors" }
+    },
+    "switch": {
+      "climate": { "name": "Climate" },
+      "charging": { "name": "Charging" }
     },
     "number": {
       "charge_limit_home": { "name": "Charge limit (home)" },
