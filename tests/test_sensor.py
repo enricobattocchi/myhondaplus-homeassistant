@@ -2,16 +2,14 @@
 
 from unittest.mock import MagicMock
 
-import pytest
-
 from custom_components.myhondaplus.sensor import (
-    HondaSensor,
-    HondaTripSensor,
     SENSOR_DESCRIPTIONS,
     TRIP_SENSOR_DESCRIPTIONS,
+    HondaSensor,
+    HondaTripSensor,
 )
 
-from .conftest import MOCK_DASHBOARD_DATA, MOCK_TRIP_DATA, MOCK_VIN, MOCK_VEHICLE_NAME
+from .conftest import MOCK_VEHICLE_NAME, MOCK_VIN
 
 
 def make_sensor(coordinator, key):

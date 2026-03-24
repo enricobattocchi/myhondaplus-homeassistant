@@ -6,7 +6,7 @@ import pytest
 
 from custom_components.myhondaplus.button import BUTTON_DESCRIPTIONS, HondaButton
 
-from .conftest import MOCK_VIN, MOCK_VEHICLE_NAME
+from .conftest import MOCK_VEHICLE_NAME, MOCK_VIN
 
 
 def make_button(coordinator, key):
