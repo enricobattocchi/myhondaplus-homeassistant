@@ -49,14 +49,16 @@ class HondaDoorLock(MyHondaPlusEntity, LockEntity):
         """Lock the doors."""
         api = self.coordinator.api
         await self.coordinator.async_send_command(api.remote_lock, self._vin)
-        self.coordinator.data["doors_locked"] = True
-        self.async_write_ha_state()
-        self.hass.async_create_task(self._delayed_refresh())
+        data = dict(self.coordinator.data)
+        data["doors_locked"] = True
+        self.coordinator.async_set_updated_data(data)
+        self._schedule_refresh()
 
     async def async_unlock(self, **kwargs) -> None:
         """Unlock the doors."""
         api = self.coordinator.api
         await self.coordinator.async_send_command(api.remote_unlock, self._vin)
-        self.coordinator.data["doors_locked"] = False
-        self.async_write_ha_state()
-        self.hass.async_create_task(self._delayed_refresh())
+        data = dict(self.coordinator.data)
+        data["doors_locked"] = False
+        self.coordinator.async_set_updated_data(data)
+        self._schedule_refresh()
