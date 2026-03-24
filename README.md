@@ -49,9 +49,15 @@ On first setup, Honda will send a verification email. Copy the link URL (don't c
 - Warning lamps, Last updated
 - Trips this month, Distance this month, Driving time this month, Avg consumption this month
 
+### Lock
+- Doors — lock/unlock with state from vehicle
+
+### Switches
+- Climate — start/stop pre-conditioning with state from vehicle
+- Charging — start/stop charging with state from vehicle
+
 ### Buttons
-- Lock doors, Unlock doors, Horn & lights
-- Climate start/stop, Start/stop charging, Refresh from car
+- Horn & lights, Refresh from car
 
 ### Numbers
 - Charge limit (home), Charge limit (away)
