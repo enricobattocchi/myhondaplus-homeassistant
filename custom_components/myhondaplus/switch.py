@@ -1,6 +1,6 @@
 """Switch platform for My Honda+."""
 
-from homeassistant.components.switch import SwitchEntity, SwitchDeviceClass, SwitchEntityDescription
+from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity, SwitchEntityDescription
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
