@@ -94,7 +94,7 @@ class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
         if isinstance(value, bool):
             return value
         if isinstance(value, str):
-            return value.lower() in ("charging",)
+            return value.lower() in ("charging", "running")
         return bool(value)
 
     async def async_turn_on(self, **kwargs) -> None:
