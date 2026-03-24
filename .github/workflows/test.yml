@@ -1,0 +1,21 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: pip install homeassistant pymyhondaplus pytest pytest-asyncio pytest-cov
+      - name: Run tests
+        run: pytest tests/ -v --cov=custom_components/myhondaplus --cov-report=term-missing
