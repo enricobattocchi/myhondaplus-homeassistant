@@ -36,17 +36,20 @@ MOCK_ENTRY_DATA = {
 
 MOCK_DASHBOARD_DATA = {
     "battery_level": 75,
-    "range_km": 150,
-    "total_range_km": 150,
+    "range": 150,
+    "total_range": 150,
+    "distance_unit": "km",
+    "speed_unit": "km/h",
+    "temp_unit": "c",
     "charge_status": "not_charging",
     "plug_status": "connected",
     "home_away": "home",
     "charge_limit_home": 90,
     "charge_limit_away": 100,
     "climate_active": False,
-    "cabin_temp_c": 22,
-    "interior_temp_c": 21,
-    "odometer_km": 12345,
+    "cabin_temp": 22,
+    "interior_temp": 21,
+    "odometer": 12345,
     "latitude": "45.0",
     "longitude": "9.0",
     "timestamp": "2026-03-24T10:00:00Z",
@@ -54,7 +57,7 @@ MOCK_DASHBOARD_DATA = {
     "all_doors_closed": True,
     "all_windows_closed": True,
     "ignition": "off",
-    "speed_kmh": 0,
+    "speed": 0,
     "charge_mode": "normal",
     "time_to_charge": 0,
     "hood_open": False,
@@ -63,14 +66,19 @@ MOCK_DASHBOARD_DATA = {
     "headlights": "off",
     "parking_lights": "off",
     "warning_lamps": [],
+    "climate_temp": "normal",
+    "climate_duration": 30,
+    "climate_defrost": True,
 }
 
 MOCK_TRIP_DATA = {
     "trips": 15,
-    "total_km": 320,
+    "total_distance": 320,
     "total_minutes": 480,
     "avg_consumption": 14.5,
     "consumption_unit": "kWh/100km",
+    "distance_unit": "km",
+    "speed_unit": "km/h",
 }
 
 Tokens = namedtuple("Tokens", ["access_token", "refresh_token"])

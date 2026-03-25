@@ -10,9 +10,6 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import (
     PERCENTAGE,
-    UnitOfLength,
-    UnitOfSpeed,
-    UnitOfTemperature,
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant
@@ -22,10 +19,15 @@ from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
 from .entity import MyHondaPlusEntity
 
+UNIT_MAP = {
+    "km": {"distance": "km", "speed": "km/h", "temp": "°C"},
+    "miles": {"distance": "mi", "speed": "mph", "temp": "°F"},
+}
+
 
 @dataclass(frozen=True, kw_only=True)
 class HondaSensorDescription(SensorEntityDescription):
-    pass
+    dynamic_unit: str = ""
 
 
 SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
@@ -37,20 +39,20 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
     ),
     HondaSensorDescription(
-        key="range_km",
+        key="range",
         translation_key="range",
-        native_unit_of_measurement=UnitOfLength.KILOMETERS,
         device_class=SensorDeviceClass.DISTANCE,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:map-marker-distance",
+        dynamic_unit="distance",
     ),
     HondaSensorDescription(
-        key="total_range_km",
+        key="total_range",
         translation_key="total_range",
-        native_unit_of_measurement=UnitOfLength.KILOMETERS,
         device_class=SensorDeviceClass.DISTANCE,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:map-marker-distance",
+        dynamic_unit="distance",
     ),
     HondaSensorDescription(
         key="charge_status",
@@ -73,19 +75,19 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         icon="mdi:air-conditioner",
     ),
     HondaSensorDescription(
-        key="cabin_temp_c",
+        key="cabin_temp",
         translation_key="cabin_temperature",
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
+        dynamic_unit="temp",
     ),
     HondaSensorDescription(
-        key="odometer_km",
+        key="odometer",
         translation_key="odometer",
-        native_unit_of_measurement=UnitOfLength.KILOMETERS,
         device_class=SensorDeviceClass.DISTANCE,
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
+        dynamic_unit="distance",
     ),
     HondaSensorDescription(
         key="doors_locked",
@@ -108,12 +110,12 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         icon="mdi:car-key",
     ),
     HondaSensorDescription(
-        key="speed_kmh",
+        key="speed",
         translation_key="speed",
-        native_unit_of_measurement=UnitOfSpeed.KILOMETERS_PER_HOUR,
         device_class=SensorDeviceClass.SPEED,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:speedometer",
+        dynamic_unit="speed",
     ),
     HondaSensorDescription(
         key="charge_mode",
@@ -129,11 +131,11 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         icon="mdi:battery-clock",
     ),
     HondaSensorDescription(
-        key="interior_temp_c",
+        key="interior_temp",
         translation_key="interior_temperature",
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
+        dynamic_unit="temp",
     ),
     HondaSensorDescription(
         key="hood_open",
@@ -191,12 +193,12 @@ TRIP_SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         icon="mdi:car-multiple",
     ),
     HondaSensorDescription(
-        key="total_km",
+        key="total_distance",
         translation_key="distance_this_month",
-        native_unit_of_measurement=UnitOfLength.KILOMETERS,
         device_class=SensorDeviceClass.DISTANCE,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:map-marker-distance",
+        dynamic_unit="distance",
     ),
     HondaSensorDescription(
         key="total_minutes",
@@ -236,6 +238,15 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
+def _resolve_unit(data: dict, description: HondaSensorDescription) -> str | None:
+    """Resolve the unit of measurement from coordinator data."""
+    if not description.dynamic_unit or not data:
+        return description.native_unit_of_measurement
+    distance_unit = data.get("distance_unit", "km")
+    units = UNIT_MAP.get(distance_unit, UNIT_MAP["km"])
+    return units.get(description.dynamic_unit)
+
+
 class HondaSensor(MyHondaPlusEntity, SensorEntity):
     """My Honda+ sensor entity."""
 
@@ -245,6 +256,10 @@ class HondaSensor(MyHondaPlusEntity, SensorEntity):
         if isinstance(value, list):
             return ", ".join(str(v) for v in value) if value else "none"
         return value
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        return _resolve_unit(self.coordinator.data, self.entity_description)
 
 
 class HondaTripSensor(MyHondaPlusEntity, SensorEntity):
@@ -260,4 +275,4 @@ class HondaTripSensor(MyHondaPlusEntity, SensorEntity):
     def native_unit_of_measurement(self) -> str | None:
         if self.entity_description.key == "avg_consumption" and self.coordinator.data:
             return self.coordinator.data.get("consumption_unit")
-        return self.entity_description.native_unit_of_measurement
+        return _resolve_unit(self.coordinator.data, self.entity_description)

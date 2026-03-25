@@ -16,6 +16,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
 
     trip_coordinator = HondaTripCoordinator(
         hass, entry, coordinator.api, coordinator._persist_tokens_if_changed,
+        main_coordinator=coordinator,
     )
     await trip_coordinator.async_config_entry_first_refresh()
 

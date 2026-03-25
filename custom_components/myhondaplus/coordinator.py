@@ -135,11 +135,13 @@ class HondaTripCoordinator(DataUpdateCoordinator[dict]):
         entry: ConfigEntry,
         api: HondaAPI,
         persist_tokens: callable,
+        main_coordinator: HondaDataUpdateCoordinator | None = None,
     ) -> None:
         self.entry = entry
         self.vin: str = entry.data[CONF_VIN]
         self.api = api
         self._persist_tokens = persist_tokens
+        self._main_coordinator = main_coordinator
         self._fuel_type: str = entry.data.get(CONF_FUEL_TYPE, "")
 
         super().__init__(
@@ -151,7 +153,12 @@ class HondaTripCoordinator(DataUpdateCoordinator[dict]):
 
     def _fetch_data(self) -> dict:
         rows = self.api.get_all_trips(self.vin)
-        return compute_trip_stats(rows, "month", fuel_type=self._fuel_type)
+        distance_unit = "km"
+        if self._main_coordinator and self._main_coordinator.data:
+            distance_unit = self._main_coordinator.data.get("distance_unit", "km")
+        return compute_trip_stats(
+            rows, "month", fuel_type=self._fuel_type, distance_unit=distance_unit,
+        )
 
     async def _async_update_data(self) -> dict:
         try:
