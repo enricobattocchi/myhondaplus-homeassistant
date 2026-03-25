@@ -41,26 +41,59 @@ On first setup, Honda will send a verification email. Copy the link URL (don't c
 
 ## Entities
 
+Units are dynamic — the integration uses whatever the vehicle reports (km/miles, °C/°F).
+
 ### Sensors
-- Battery level, Range, Charge status, Plug status, Charge mode, Time to full charge
-- Climate active, Cabin temperature, Interior temperature
-- Odometer, Speed, Ignition
-- Doors locked, Windows closed, Hood, Trunk, Lights
-- Warning lamps, Last updated
-- Trips this month, Distance this month, Driving time this month, Avg consumption this month
+- **Battery & charging**: Battery level, Range, Total range, Charge status, Plug status, Charge mode, Time to full charge
+- **Climate**: Climate active, Climate temperature (cooler/normal/hotter), Climate duration, Climate defrost, Cabin temperature, Interior temperature
+- **Vehicle**: Odometer, Speed, Ignition, Doors locked, Doors closed, Windows closed, Hood, Trunk, Lights, Headlights, Parking lights
+- **Location**: Latitude, Longitude
+- **Other**: Warning lamps, Last updated
+- **Trips**: Trips this month, Distance this month, Driving time this month, Avg consumption this month
+- **Schedules**: Charge schedule (active rules count + full rules in attributes), Climate schedule (active rules count + full rules in attributes)
 
 ### Lock
-- Doors — lock/unlock with state from vehicle
+- **Doors** — lock/unlock with state from vehicle
 
 ### Switches
-- Climate — start/stop pre-conditioning with state from vehicle
-- Charging — start/stop charging with state from vehicle
+- **Climate** — start/stop pre-conditioning using the vehicle's saved temperature, duration, and defrost settings
+- **Charging** — start/stop charging with state from vehicle (reflects both manually and externally started charging)
 
 ### Buttons
-- Horn & lights, Refresh from car
+- **Horn & lights** — flash lights and honk horn
+- **Refresh from car** — request fresh data from the vehicle (wakes the TCU)
 
 ### Numbers
-- Charge limit (home), Charge limit (away)
+- **Charge limit (home)** — 80-100% in steps of 5
+- **Charge limit (away)** — 80-100% in steps of 5
+
+## Services
+
+### `myhondaplus.set_charge_schedule`
+
+Set the charge prohibition schedule (up to 2 rules). Pass an empty list to clear.
+
+```yaml
+service: myhondaplus.set_charge_schedule
+data:
+  rules:
+    - days: "mon,tue,wed,thu,fri"
+      location: "home"
+      start_time: "22:00"
+      end_time: "06:00"
+```
+
+### `myhondaplus.set_climate_schedule`
+
+Set the climate pre-conditioning schedule (up to 7 rules). Pass an empty list to clear.
+
+```yaml
+service: myhondaplus.set_climate_schedule
+data:
+  rules:
+    - days: "mon,tue,wed,thu,fri"
+      start_time: "07:00"
+```
 
 ## Related projects
 
