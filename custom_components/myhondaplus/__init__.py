@@ -2,7 +2,8 @@
 
 import voluptuous as vol
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant, ServiceCall, callback
+from homeassistant.helpers.event import async_call_later
 
 from .const import DOMAIN
 from .coordinator import HondaDataUpdateCoordinator, HondaTripCoordinator
@@ -53,13 +54,37 @@ def _register_services(hass: HomeAssistant) -> None:
     if hass.services.has_service(DOMAIN, SERVICE_SET_CHARGE_SCHEDULE):
         return
 
+    def _optimistic_schedule_update(
+        coordinator: HondaDataUpdateCoordinator,
+        key: str,
+        rules: list[dict],
+    ) -> None:
+        """Optimistically update schedule data and schedule a delayed refresh."""
+        enriched = []
+        for r in rules:
+            rule = dict(r)
+            rule.setdefault("enabled", True)
+            days = rule.get("days", "")
+            if isinstance(days, str):
+                rule["days"] = [d.strip() for d in days.split(",") if d.strip()]
+            enriched.append(rule)
+        data = dict(coordinator.data)
+        data[key] = enriched
+        coordinator.async_set_updated_data(data)
+
+        @callback
+        def _refresh(_now):
+            hass.async_create_task(coordinator.async_request_refresh())
+
+        async_call_later(hass, 30, _refresh)
+
     async def handle_set_charge_schedule(call: ServiceCall) -> None:
         coordinator = _get_coordinator(hass)
         rules = call.data["rules"]
         await coordinator.async_send_command(
             coordinator.api.set_charge_schedule, coordinator.vin, rules,
         )
-        await coordinator.async_request_refresh()
+        _optimistic_schedule_update(coordinator, "charge_schedule", rules)
 
     async def handle_set_climate_schedule(call: ServiceCall) -> None:
         coordinator = _get_coordinator(hass)
@@ -67,7 +92,7 @@ def _register_services(hass: HomeAssistant) -> None:
         await coordinator.async_send_command(
             coordinator.api.set_climate_schedule, coordinator.vin, rules,
         )
-        await coordinator.async_request_refresh()
+        _optimistic_schedule_update(coordinator, "climate_schedule", rules)
 
     hass.services.async_register(
         DOMAIN, SERVICE_SET_CHARGE_SCHEDULE,
