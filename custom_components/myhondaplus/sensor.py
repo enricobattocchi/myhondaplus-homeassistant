@@ -182,6 +182,24 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         translation_key="last_updated",
         icon="mdi:clock-outline",
     ),
+    HondaSensorDescription(
+        key="climate_temp",
+        translation_key="climate_temp",
+        icon="mdi:thermometer",
+    ),
+    HondaSensorDescription(
+        key="climate_duration",
+        translation_key="climate_duration",
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:timer-outline",
+    ),
+    HondaSensorDescription(
+        key="climate_defrost",
+        translation_key="climate_defrost",
+        icon="mdi:car-defrost-rear",
+    ),
 ]
 
 
