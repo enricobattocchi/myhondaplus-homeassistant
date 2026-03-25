@@ -200,6 +200,16 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         translation_key="climate_defrost",
         icon="mdi:car-defrost-rear",
     ),
+    HondaSensorDescription(
+        key="charge_schedule",
+        translation_key="charge_schedule",
+        icon="mdi:calendar-clock",
+    ),
+    HondaSensorDescription(
+        key="climate_schedule",
+        translation_key="climate_schedule",
+        icon="mdi:calendar-clock",
+    ),
 ]
 
 
@@ -265,12 +275,19 @@ def _resolve_unit(data: dict, description: HondaSensorDescription) -> str | None
     return units.get(description.dynamic_unit)
 
 
+SCHEDULE_KEYS = {"charge_schedule", "climate_schedule"}
+
+
 class HondaSensor(MyHondaPlusEntity, SensorEntity):
     """My Honda+ sensor entity."""
 
     @property
     def native_value(self):
         value = self.coordinator.data.get(self.entity_description.key)
+        if self.entity_description.key in SCHEDULE_KEYS:
+            if not isinstance(value, list):
+                return 0
+            return sum(1 for r in value if r.get("enabled"))
         if isinstance(value, list):
             return ", ".join(str(v) for v in value) if value else "none"
         return value
@@ -278,6 +295,15 @@ class HondaSensor(MyHondaPlusEntity, SensorEntity):
     @property
     def native_unit_of_measurement(self) -> str | None:
         return _resolve_unit(self.coordinator.data, self.entity_description)
+
+    @property
+    def extra_state_attributes(self) -> dict | None:
+        if self.entity_description.key not in SCHEDULE_KEYS:
+            return None
+        value = self.coordinator.data.get(self.entity_description.key)
+        if not isinstance(value, list):
+            return None
+        return {"rules": value}
 
 
 class HondaTripSensor(MyHondaPlusEntity, SensorEntity):

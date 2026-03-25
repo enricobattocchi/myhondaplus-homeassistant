@@ -74,7 +74,9 @@
       "avg_consumption_this_month": { "name": "Avg consumption this month" },
       "climate_temp": { "name": "Climate temperature" },
       "climate_duration": { "name": "Climate duration" },
-      "climate_defrost": { "name": "Climate defrost" }
+      "climate_defrost": { "name": "Climate defrost" },
+      "charge_schedule": { "name": "Charge schedule" },
+      "climate_schedule": { "name": "Climate schedule" }
     },
     "button": {
       "horn_lights": { "name": "Horn & lights" },

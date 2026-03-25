@@ -1,0 +1,27 @@
+set_charge_schedule:
+  name: Set charge prohibition schedule
+  description: Set the charge prohibition schedule (up to 2 rules). Pass an empty list to clear.
+  fields:
+    rules:
+      name: Rules
+      description: >
+        List of up to 2 schedule rules. Each rule has: days (comma-separated, e.g. "mon,tue,wed"),
+        location ("home" or "all"), start_time ("HH:MM"), end_time ("HH:MM").
+      required: true
+      example: '[{"days": "mon,tue,wed,thu,fri", "location": "home", "start_time": "22:00", "end_time": "06:00"}]'
+      selector:
+        object:
+
+set_climate_schedule:
+  name: Set climate schedule
+  description: Set the climate pre-conditioning schedule (up to 7 rules). Pass an empty list to clear.
+  fields:
+    rules:
+      name: Rules
+      description: >
+        List of up to 7 schedule rules. Each rule has: days (comma-separated, e.g. "mon,tue,wed"),
+        start_time ("HH:MM").
+      required: true
+      example: '[{"days": "mon,tue,wed,thu,fri", "start_time": "07:00"}]'
+      selector:
+        object:

@@ -102,6 +102,37 @@ class TestHondaSensor:
         sensor = make_sensor(mock_coordinator, "battery_level")
         assert sensor.native_unit_of_measurement == "%"
 
+    def test_charge_schedule_active_count(self, mock_coordinator):
+        sensor = make_sensor(mock_coordinator, "charge_schedule")
+        assert sensor.native_value == 1
+
+    def test_charge_schedule_attributes(self, mock_coordinator):
+        sensor = make_sensor(mock_coordinator, "charge_schedule")
+        attrs = sensor.extra_state_attributes
+        assert "rules" in attrs
+        assert len(attrs["rules"]) == 2
+        assert attrs["rules"][0]["enabled"] is True
+        assert attrs["rules"][0]["start_time"] == "22:00"
+
+    def test_climate_schedule_active_count(self, mock_coordinator):
+        sensor = make_sensor(mock_coordinator, "climate_schedule")
+        assert sensor.native_value == 1
+
+    def test_climate_schedule_attributes(self, mock_coordinator):
+        sensor = make_sensor(mock_coordinator, "climate_schedule")
+        attrs = sensor.extra_state_attributes
+        assert attrs["rules"][0]["days"] == ["mon", "tue", "wed", "thu", "fri"]
+
+    def test_schedule_no_attributes_for_non_schedule(self, mock_coordinator):
+        sensor = make_sensor(mock_coordinator, "battery_level")
+        assert sensor.extra_state_attributes is None
+
+    def test_schedule_empty_list(self, mock_coordinator):
+        mock_coordinator.data["charge_schedule"] = []
+        sensor = make_sensor(mock_coordinator, "charge_schedule")
+        assert sensor.native_value == 0
+        assert sensor.extra_state_attributes == {"rules": []}
+
 
 class TestHondaTripSensor:
     def test_trips_count(self, mock_trip_coordinator):

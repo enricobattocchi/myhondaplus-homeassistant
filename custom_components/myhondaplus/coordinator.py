@@ -10,6 +10,8 @@ from pymyhondaplus.api import (
     HondaAPI,
     HondaAPIError,
     compute_trip_stats,
+    parse_charge_schedule,
+    parse_climate_schedule,
     parse_ev_status,
 )
 
@@ -83,7 +85,10 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
 
     def _fetch_data(self) -> dict:
         dashboard = self.api.get_dashboard_cached(self.vin)
-        return parse_ev_status(dashboard)
+        data = parse_ev_status(dashboard)
+        data["charge_schedule"] = parse_charge_schedule(dashboard)
+        data["climate_schedule"] = parse_climate_schedule(dashboard)
+        return data
 
     async def _async_update_data(self) -> dict:
         try:
