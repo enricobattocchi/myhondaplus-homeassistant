@@ -71,7 +71,10 @@
       "trips_this_month": { "name": "Trips this month" },
       "distance_this_month": { "name": "Distance this month" },
       "driving_time_this_month": { "name": "Driving time this month" },
-      "avg_consumption_this_month": { "name": "Avg consumption this month" }
+      "avg_consumption_this_month": { "name": "Avg consumption this month" },
+      "climate_temp": { "name": "Climate temperature" },
+      "climate_duration": { "name": "Climate duration" },
+      "climate_defrost": { "name": "Climate defrost" }
     },
     "button": {
       "horn_lights": { "name": "Horn & lights" },
