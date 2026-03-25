@@ -34,7 +34,7 @@ class TestHondaSensor:
         assert sensor.native_value == 75
 
     def test_range(self, mock_coordinator):
-        sensor = make_sensor(mock_coordinator, "range_km")
+        sensor = make_sensor(mock_coordinator, "range")
         assert sensor.native_value == 150
 
     def test_charge_status(self, mock_coordinator):
@@ -46,7 +46,7 @@ class TestHondaSensor:
         assert sensor.native_value is True
 
     def test_odometer(self, mock_coordinator):
-        sensor = make_sensor(mock_coordinator, "odometer_km")
+        sensor = make_sensor(mock_coordinator, "odometer")
         assert sensor.native_value == 12345
 
     def test_missing_key_returns_none(self, mock_coordinator):
@@ -69,8 +69,38 @@ class TestHondaSensor:
         for desc in SENSOR_DESCRIPTIONS:
             sensor = HondaSensor(mock_coordinator, desc, MOCK_VIN, MOCK_VEHICLE_NAME)
             sensor.hass = MagicMock()
-            # Should not raise
             _ = sensor.native_value
+
+    def test_dynamic_unit_distance_km(self, mock_coordinator):
+        sensor = make_sensor(mock_coordinator, "range")
+        assert sensor.native_unit_of_measurement == "km"
+
+    def test_dynamic_unit_speed_km(self, mock_coordinator):
+        sensor = make_sensor(mock_coordinator, "speed")
+        assert sensor.native_unit_of_measurement == "km/h"
+
+    def test_dynamic_unit_temp_km(self, mock_coordinator):
+        sensor = make_sensor(mock_coordinator, "cabin_temp")
+        assert sensor.native_unit_of_measurement == "°C"
+
+    def test_dynamic_unit_distance_miles(self, mock_coordinator):
+        mock_coordinator.data["distance_unit"] = "miles"
+        sensor = make_sensor(mock_coordinator, "range")
+        assert sensor.native_unit_of_measurement == "mi"
+
+    def test_dynamic_unit_speed_miles(self, mock_coordinator):
+        mock_coordinator.data["distance_unit"] = "miles"
+        sensor = make_sensor(mock_coordinator, "speed")
+        assert sensor.native_unit_of_measurement == "mph"
+
+    def test_dynamic_unit_temp_miles(self, mock_coordinator):
+        mock_coordinator.data["distance_unit"] = "miles"
+        sensor = make_sensor(mock_coordinator, "cabin_temp")
+        assert sensor.native_unit_of_measurement == "°F"
+
+    def test_static_unit_not_affected(self, mock_coordinator):
+        sensor = make_sensor(mock_coordinator, "battery_level")
+        assert sensor.native_unit_of_measurement == "%"
 
 
 class TestHondaTripSensor:
@@ -78,8 +108,8 @@ class TestHondaTripSensor:
         sensor = make_trip_sensor(mock_trip_coordinator, "trips")
         assert sensor.native_value == 15
 
-    def test_total_km(self, mock_trip_coordinator):
-        sensor = make_trip_sensor(mock_trip_coordinator, "total_km")
+    def test_total_distance(self, mock_trip_coordinator):
+        sensor = make_trip_sensor(mock_trip_coordinator, "total_distance")
         assert sensor.native_value == 320
 
     def test_avg_consumption(self, mock_trip_coordinator):
@@ -100,7 +130,6 @@ class TestHondaTripSensor:
         sensor = make_trip_sensor(mock_trip_coordinator, "trips")
         assert sensor.native_value is None
 
-    def test_non_consumption_unit_from_description(self, mock_trip_coordinator):
-        sensor = make_trip_sensor(mock_trip_coordinator, "total_km")
-        from homeassistant.const import UnitOfLength
-        assert sensor.native_unit_of_measurement == UnitOfLength.KILOMETERS
+    def test_distance_unit_dynamic(self, mock_trip_coordinator):
+        sensor = make_trip_sensor(mock_trip_coordinator, "total_distance")
+        assert sensor.native_unit_of_measurement == "km"
