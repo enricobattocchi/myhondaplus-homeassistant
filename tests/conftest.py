@@ -69,6 +69,17 @@ MOCK_DASHBOARD_DATA = {
     "climate_temp": "normal",
     "climate_duration": 30,
     "climate_defrost": True,
+    "charge_schedule": [
+        {"enabled": True, "days": ["mon", "tue", "wed", "thu", "fri"],
+         "location": "home", "start_time": "22:00", "end_time": "06:00"},
+        {"enabled": False, "days": [], "location": "home",
+         "start_time": "00:00", "end_time": "00:00"},
+    ],
+    "climate_schedule": [
+        {"enabled": True, "days": ["mon", "tue", "wed", "thu", "fri"],
+         "start_time": "07:00"},
+        {"enabled": False, "days": [], "start_time": "00:00"},
+    ],
 }
 
 MOCK_TRIP_DATA = {
