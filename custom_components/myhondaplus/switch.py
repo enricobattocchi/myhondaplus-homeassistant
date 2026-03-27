@@ -25,6 +25,7 @@ async def async_setup_entry(
     async_add_entities([
         HondaClimateSwitch(coordinator, vin, vehicle_name),
         HondaChargeSwitch(coordinator, vin, vehicle_name),
+        HondaAutoRefreshSwitch(coordinator, vin, vehicle_name, entry),
     ])
 
 
@@ -122,3 +123,34 @@ class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
         data["charge_status"] = "not_charging"
         self.coordinator.async_set_updated_data(data)
         self._schedule_refresh()
+
+
+class HondaAutoRefreshSwitch(MyHondaPlusEntity, SwitchEntity):
+    """Switch to enable/disable automatic refresh from car."""
+
+    _attr_device_class = SwitchDeviceClass.SWITCH
+    _attr_icon = "mdi:refresh-auto"
+    _attr_translation_key = "auto_refresh"
+
+    def __init__(self, coordinator, vin: str, vehicle_name: str, entry) -> None:
+        description = SwitchEntityDescription(
+            key="auto_refresh",
+            translation_key="auto_refresh",
+        )
+        super().__init__(coordinator, description, vin, vehicle_name)
+        self._entry = entry
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if auto refresh is enabled."""
+        return self._entry.runtime_data.car_refresh_enabled
+
+    async def async_turn_on(self, **kwargs) -> None:
+        """Enable auto refresh."""
+        self._entry.runtime_data.car_refresh_enabled = True
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs) -> None:
+        """Disable auto refresh."""
+        self._entry.runtime_data.car_refresh_enabled = False
+        self.async_write_ha_state()

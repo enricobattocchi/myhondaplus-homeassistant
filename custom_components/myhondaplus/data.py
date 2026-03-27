@@ -21,3 +21,4 @@ class MyHondaPlusData:
     coordinator: HondaDataUpdateCoordinator
     trip_coordinator: HondaTripCoordinator
     car_refresh_unsub: CALLBACK_TYPE | None = field(default=None)
+    car_refresh_enabled: bool = field(default=True)

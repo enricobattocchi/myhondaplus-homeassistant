@@ -61,6 +61,13 @@ def _schedule_car_refresh(
     @callback
     def _do_car_refresh(_now) -> None:
         """Refresh from car and reschedule."""
+        if not entry.runtime_data.car_refresh_enabled:
+            # Disabled via switch — just reschedule without refreshing
+            entry.runtime_data.car_refresh_unsub = async_call_later(
+                hass, interval, _do_car_refresh,
+            )
+            return
+
         async def _refresh():
             try:
                 await coordinator.async_refresh_from_car()
