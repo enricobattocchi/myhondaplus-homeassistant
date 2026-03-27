@@ -14,5 +14,8 @@ CONF_DEVICE_KEY_PEM = "device_key_pem"
 CONF_VEHICLE_NAME = "vehicle_name"
 CONF_FUEL_TYPE = "fuel_type"
 
+CONF_CAR_REFRESH_INTERVAL = "car_refresh_interval"
+
 DEFAULT_SCAN_INTERVAL = 600  # 10 minutes
 DEFAULT_TRIP_INTERVAL = 3600  # 1 hour
+DEFAULT_CAR_REFRESH_INTERVAL = 43200  # 12 hours

@@ -7,7 +7,8 @@
         "data": {
           "email": "Email",
           "password": "Password",
-          "scan_interval": "Update interval (seconds)"
+          "scan_interval": "Update interval (seconds)",
+          "car_refresh_interval": "Refresh from car interval (seconds, 0 to disable)"
         }
       },
       "select_vehicle": {
