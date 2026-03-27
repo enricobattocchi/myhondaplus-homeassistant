@@ -5,7 +5,12 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.helpers.event import async_call_later
 
-from .const import DOMAIN
+from .const import (
+    CONF_CAR_REFRESH_INTERVAL,
+    DEFAULT_CAR_REFRESH_INTERVAL,
+    DOMAIN,
+    LOGGER,
+)
 from .coordinator import HondaDataUpdateCoordinator, HondaTripCoordinator
 from .data import MyHondaPlusConfigEntry, MyHondaPlusData
 
@@ -36,9 +41,55 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
         trip_coordinator=trip_coordinator,
     )
 
+    _schedule_car_refresh(hass, entry)
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _register_services(hass)
     return True
+
+
+def _schedule_car_refresh(
+    hass: HomeAssistant, entry: MyHondaPlusConfigEntry,
+) -> None:
+    """Schedule a recurring refresh-from-car if configured."""
+    interval = entry.data.get(CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL)
+    if not interval or interval <= 0:
+        return
+
+    coordinator = entry.runtime_data.coordinator
+
+    @callback
+    def _do_car_refresh(_now) -> None:
+        """Refresh from car and reschedule."""
+        if not entry.runtime_data.car_refresh_enabled:
+            # Disabled via switch — just reschedule without refreshing
+            entry.runtime_data.car_refresh_unsub = async_call_later(
+                hass, interval, _do_car_refresh,
+            )
+            return
+
+        async def _refresh():
+            try:
+                await coordinator.async_refresh_from_car()
+                LOGGER.debug("Scheduled refresh from car completed")
+            except Exception:
+                LOGGER.warning("Scheduled refresh from car failed", exc_info=True)
+            # Delayed coordinator poll to pick up fresh data
+            async_call_later(hass, 30, _schedule_poll)
+
+        hass.async_create_task(_refresh())
+
+    @callback
+    def _schedule_poll(_now) -> None:
+        hass.async_create_task(coordinator.async_request_refresh())
+        # Reschedule next car refresh
+        entry.runtime_data.car_refresh_unsub = async_call_later(
+            hass, interval, _do_car_refresh,
+        )
+
+    entry.runtime_data.car_refresh_unsub = async_call_later(
+        hass, interval, _do_car_refresh,
+    )
 
 
 def _get_coordinator(hass: HomeAssistant) -> HondaDataUpdateCoordinator:
@@ -106,6 +157,9 @@ def _register_services(hass: HomeAssistant) -> None:
 
 async def async_unload_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> bool:
     """Unload a config entry."""
+    if entry.runtime_data.car_refresh_unsub:
+        entry.runtime_data.car_refresh_unsub()
+        entry.runtime_data.car_refresh_unsub = None
     result = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if result and not hass.config_entries.async_entries(DOMAIN):
         hass.services.async_remove(DOMAIN, SERVICE_SET_CHARGE_SCHEDULE)

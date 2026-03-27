@@ -7,7 +7,8 @@
         "data": {
           "email": "Email",
           "password": "Password",
-          "scan_interval": "Update interval (seconds)"
+          "scan_interval": "Update interval (seconds)",
+          "car_refresh_interval": "Refresh from car interval (seconds, 0 to disable)"
         }
       },
       "select_vehicle": {
@@ -38,6 +39,17 @@
       "account_locked": "Account is locked. Try again later.",
       "invalid_link": "Could not parse verification link. Copy the full URL.",
       "verification_failed": "Verification failed. Try again."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "My Honda+ settings",
+        "data": {
+          "scan_interval": "Update interval (seconds)",
+          "car_refresh_interval": "Refresh from car interval (seconds, 0 to disable)"
+        }
+      }
     }
   },
   "entity": {
@@ -87,7 +99,8 @@
     },
     "switch": {
       "climate": { "name": "Climate" },
-      "charging": { "name": "Charging" }
+      "charging": { "name": "Charging" },
+      "auto_refresh": { "name": "Auto refresh from car" }
     },
     "number": {
       "charge_limit_home": { "name": "Charge limit (home)" },
