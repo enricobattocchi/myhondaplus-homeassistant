@@ -34,8 +34,45 @@ STEP_VERIFY_DATA_SCHEMA = vol.Schema({
 })
 
 
+class MyHondaPlusOptionsFlow(config_entries.OptionsFlow):
+    """Options flow for My Honda+."""
+
+    async def async_step_init(self, user_input=None):
+        """Handle options."""
+        if user_input is not None:
+            # Store options in entry data so coordinators pick them up
+            new_data = {**self.config_entry.data, **user_input}
+            self.hass.config_entries.async_update_entry(
+                self.config_entry, data=new_data,
+            )
+            await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+            return self.async_create_entry(title="", data={})
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema({
+                vol.Optional(
+                    CONF_SCAN_INTERVAL,
+                    default=self.config_entry.data.get(
+                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL,
+                    ),
+                ): int,
+                vol.Optional(
+                    CONF_CAR_REFRESH_INTERVAL,
+                    default=self.config_entry.data.get(
+                        CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL,
+                    ),
+                ): int,
+            }),
+        )
+
+
 class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
+
+    @staticmethod
+    def async_get_options_flow(config_entry):
+        return MyHondaPlusOptionsFlow()
 
     def __init__(self):
         self._email = None
