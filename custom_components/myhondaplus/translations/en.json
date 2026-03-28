@@ -100,7 +100,12 @@
     "switch": {
       "climate": { "name": "Climate" },
       "charging": { "name": "Charging" },
+      "climate_defrost_setting": { "name": "Climate defrost" },
       "auto_refresh": { "name": "Auto refresh from car" }
+    },
+    "select": {
+      "climate_temp_setting": { "name": "Climate temperature" },
+      "climate_duration_setting": { "name": "Climate duration (min)" }
     },
     "number": {
       "charge_limit_home": { "name": "Charge limit (home)" },

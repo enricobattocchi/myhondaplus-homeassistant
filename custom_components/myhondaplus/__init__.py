@@ -14,12 +14,19 @@ from .const import (
 from .coordinator import HondaDataUpdateCoordinator, HondaTripCoordinator
 from .data import MyHondaPlusConfigEntry, MyHondaPlusData
 
-PLATFORMS = [Platform.SENSOR, Platform.BUTTON, Platform.NUMBER, Platform.SWITCH, Platform.LOCK]
+PLATFORMS = [Platform.SENSOR, Platform.BUTTON, Platform.NUMBER, Platform.SELECT, Platform.SWITCH, Platform.LOCK]
 
 SERVICE_SET_CHARGE_SCHEDULE = "set_charge_schedule"
 SERVICE_SET_CLIMATE_SCHEDULE = "set_climate_schedule"
+SERVICE_CLIMATE_ON = "climate_on"
 
 SCHEDULE_RULE_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
+
+SERVICE_CLIMATE_ON_SCHEMA = vol.Schema({
+    vol.Optional("temp", default="normal"): vol.In(["cooler", "normal", "hotter"]),
+    vol.Optional("duration", default=30): vol.In([10, 20, 30]),
+    vol.Optional("defrost", default=True): bool,
+})
 SERVICE_SCHEDULE_SCHEMA = vol.Schema({
     vol.Required("rules"): [SCHEDULE_RULE_SCHEMA],
 })
@@ -145,6 +152,22 @@ def _register_services(hass: HomeAssistant) -> None:
         )
         _optimistic_schedule_update(coordinator, "climate_schedule", rules)
 
+    async def handle_climate_on(call: ServiceCall) -> None:
+        coordinator = _get_coordinator(hass)
+        temp = call.data.get("temp", "normal")
+        duration = call.data.get("duration", 30)
+        defrost = call.data.get("defrost", True)
+        await coordinator.async_send_command(
+            coordinator.api.remote_climate_on,
+            coordinator.vin, temp, duration, defrost,
+        )
+        new_data = dict(coordinator.data)
+        new_data["climate_active"] = True
+        new_data["climate_temp"] = temp
+        new_data["climate_duration"] = duration
+        new_data["climate_defrost"] = defrost
+        coordinator.async_set_updated_data(new_data)
+
     hass.services.async_register(
         DOMAIN, SERVICE_SET_CHARGE_SCHEDULE,
         handle_set_charge_schedule, schema=SERVICE_SCHEDULE_SCHEMA,
@@ -152,6 +175,10 @@ def _register_services(hass: HomeAssistant) -> None:
     hass.services.async_register(
         DOMAIN, SERVICE_SET_CLIMATE_SCHEDULE,
         handle_set_climate_schedule, schema=SERVICE_SCHEDULE_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_CLIMATE_ON,
+        handle_climate_on, schema=SERVICE_CLIMATE_ON_SCHEMA,
     )
 
 
@@ -164,6 +191,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry)
     if result and not hass.config_entries.async_entries(DOMAIN):
         hass.services.async_remove(DOMAIN, SERVICE_SET_CHARGE_SCHEDULE)
         hass.services.async_remove(DOMAIN, SERVICE_SET_CLIMATE_SCHEDULE)
+        hass.services.async_remove(DOMAIN, SERVICE_CLIMATE_ON)
     return result
 
 

@@ -25,6 +25,7 @@ async def async_setup_entry(
     async_add_entities([
         HondaClimateSwitch(coordinator, vin, vehicle_name),
         HondaChargeSwitch(coordinator, vin, vehicle_name),
+        HondaDefrostSwitch(coordinator, vin, vehicle_name),
         HondaAutoRefreshSwitch(coordinator, vin, vehicle_name, entry),
     ])
 
@@ -116,6 +117,51 @@ class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
         data = dict(self.coordinator.data)
         data["charge_status"] = "not_charging"
         self.coordinator.async_set_updated_data(data)
+        self._schedule_refresh()
+
+
+class HondaDefrostSwitch(MyHondaPlusEntity, SwitchEntity):
+    """Switch to enable/disable climate defrost setting."""
+
+    _attr_device_class = SwitchDeviceClass.SWITCH
+    _attr_icon = "mdi:car-defrost-rear"
+    _attr_translation_key = "climate_defrost_setting"
+
+    def __init__(self, coordinator, vin: str, vehicle_name: str) -> None:
+        description = SwitchEntityDescription(
+            key="climate_defrost_setting",
+            translation_key="climate_defrost_setting",
+        )
+        super().__init__(coordinator, description, vin, vehicle_name)
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if defrost is enabled."""
+        return bool(self.coordinator.data.get("climate_defrost", True))
+
+    async def async_turn_on(self, **kwargs) -> None:
+        """Enable defrost."""
+        await self._set_defrost(True)
+
+    async def async_turn_off(self, **kwargs) -> None:
+        """Disable defrost."""
+        await self._set_defrost(False)
+
+    async def _set_defrost(self, defrost: bool) -> None:
+        data = self.coordinator.data or {}
+        temp = data.get("climate_temp", "normal")
+        if temp not in ("cooler", "normal", "hotter"):
+            temp = "normal"
+        duration = data.get("climate_duration", 30)
+        if duration not in (10, 20, 30):
+            duration = 30
+        await self.coordinator.async_send_command(
+            self.coordinator.api.remote_climate_on,
+            self._vin, temp, duration, defrost,
+        )
+        new_data = dict(self.coordinator.data)
+        new_data["climate_defrost"] = defrost
+        self.coordinator.async_set_updated_data(new_data)
         self._schedule_refresh()
 
 
