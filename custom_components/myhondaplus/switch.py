@@ -155,14 +155,17 @@ class HondaDefrostSwitch(MyHondaPlusEntity, SwitchEntity):
         duration = data.get("climate_duration", 30)
         if duration not in (10, 20, 30):
             duration = 30
-        await self.coordinator.async_send_command(
-            self.coordinator.api.set_climate_settings,
-            self._vin, temp, duration, defrost,
-        )
+        try:
+            await self.coordinator.async_send_command(
+                self.coordinator.api.set_climate_settings,
+                self._vin, temp, duration, defrost,
+            )
+        except Exception:
+            self.async_write_ha_state()
+            raise
         new_data = dict(self.coordinator.data)
         new_data["climate_defrost"] = defrost
         self.coordinator.async_set_updated_data(new_data)
-        self._schedule_refresh()
 
 
 class HondaAutoRefreshSwitch(MyHondaPlusEntity, SwitchEntity):
