@@ -55,14 +55,17 @@ class HondaClimateTempSelect(MyHondaPlusEntity, SelectEntity):
         if duration not in (10, 20, 30):
             duration = 30
         defrost = data.get("climate_defrost", True)
-        await self.coordinator.async_send_command(
-            self.coordinator.api.set_climate_settings,
-            self._vin, option, duration, defrost,
-        )
+        try:
+            await self.coordinator.async_send_command(
+                self.coordinator.api.set_climate_settings,
+                self._vin, option, duration, defrost,
+            )
+        except Exception:
+            self.async_write_ha_state()
+            raise
         new_data = dict(self.coordinator.data)
         new_data["climate_temp"] = option
         self.coordinator.async_set_updated_data(new_data)
-        self._schedule_refresh()
 
 
 class HondaClimateDurationSelect(MyHondaPlusEntity, SelectEntity):
@@ -94,11 +97,14 @@ class HondaClimateDurationSelect(MyHondaPlusEntity, SelectEntity):
             temp = "normal"
         defrost = data.get("climate_defrost", True)
         duration = int(option)
-        await self.coordinator.async_send_command(
-            self.coordinator.api.set_climate_settings,
-            self._vin, temp, duration, defrost,
-        )
+        try:
+            await self.coordinator.async_send_command(
+                self.coordinator.api.set_climate_settings,
+                self._vin, temp, duration, defrost,
+            )
+        except Exception:
+            self.async_write_ha_state()
+            raise
         new_data = dict(self.coordinator.data)
         new_data["climate_duration"] = duration
         self.coordinator.async_set_updated_data(new_data)
-        self._schedule_refresh()
