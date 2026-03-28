@@ -34,6 +34,10 @@ HACS will track updates automatically, making it easy to upgrade.
 The integration will ask for:
 - **Email**: Your My Honda+ account email
 - **Password**: Your My Honda+ account password
+- **Update interval**: How often to poll Honda's cached data (default: 600 seconds / 10 minutes)
+- **Refresh from car interval**: How often to wake the TCU for fresh data (default: 43200 seconds / 12 hours, 0 to disable)
+
+These intervals can be changed later from **Settings > Integrations > My Honda+ > Configure**.
 
 Vehicles on your account are auto-detected. If you have multiple vehicles, you'll be asked to pick one. The vehicle's Honda+ nickname is used as the device name in Home Assistant.
 
@@ -43,9 +47,11 @@ On first setup, Honda will send a verification email. Copy the link URL (don't c
 
 Units are dynamic — the integration uses whatever the vehicle reports (km/miles, °C/°F).
 
+All remote commands wait for the car to confirm execution before updating the UI.
+
 ### Sensors
 - **Battery & charging**: Battery level, Range, Total range, Charge status, Plug status, Charge mode, Time to full charge
-- **Climate**: Climate active, Climate temperature (cooler/normal/hotter), Climate duration, Climate defrost, Cabin temperature, Interior temperature
+- **Climate**: Climate active, Climate temperature, Climate duration, Climate defrost, Cabin temperature, Interior temperature
 - **Vehicle**: Odometer, Speed, Ignition, Doors locked, Doors closed, Windows closed, Hood, Trunk, Lights, Headlights, Parking lights
 - **Location**: Latitude, Longitude
 - **Other**: Warning lamps, Last updated
@@ -56,8 +62,14 @@ Units are dynamic — the integration uses whatever the vehicle reports (km/mile
 - **Doors** — lock/unlock with state from vehicle
 
 ### Switches
-- **Climate** — start/stop pre-conditioning using the vehicle's saved temperature, duration, and defrost settings
-- **Charging** — start/stop charging with state from vehicle (reflects both manually and externally started charging)
+- **Climate** — start/stop pre-conditioning
+- **Charging** — start/stop charging (reflects both manually and externally started charging)
+- **Climate defrost** — enable/disable defrost setting on the vehicle
+- **Auto refresh from car** — enable/disable the recurring refresh from car
+
+### Selects
+- **Climate temperature** — cooler / normal / hotter
+- **Climate duration** — 10 / 20 / 30 minutes
 
 ### Buttons
 - **Horn & lights** — flash lights and honk horn
@@ -68,6 +80,18 @@ Units are dynamic — the integration uses whatever the vehicle reports (km/mile
 - **Charge limit (away)** — 80-100% in steps of 5
 
 ## Services
+
+### `myhondaplus.climate_on`
+
+Start climate with specific settings.
+
+```yaml
+service: myhondaplus.climate_on
+data:
+  temp: "normal"      # cooler, normal, hotter
+  duration: 30         # 10, 20, 30
+  defrost: true
+```
 
 ### `myhondaplus.set_charge_schedule`
 
