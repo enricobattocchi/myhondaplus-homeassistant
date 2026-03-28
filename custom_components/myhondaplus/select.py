@@ -56,7 +56,7 @@ class HondaClimateTempSelect(MyHondaPlusEntity, SelectEntity):
             duration = 30
         defrost = data.get("climate_defrost", True)
         await self.coordinator.async_send_command(
-            self.coordinator.api.remote_climate_on,
+            self.coordinator.api.set_climate_settings,
             self._vin, option, duration, defrost,
         )
         new_data = dict(self.coordinator.data)
@@ -95,7 +95,7 @@ class HondaClimateDurationSelect(MyHondaPlusEntity, SelectEntity):
         defrost = data.get("climate_defrost", True)
         duration = int(option)
         await self.coordinator.async_send_command(
-            self.coordinator.api.remote_climate_on,
+            self.coordinator.api.set_climate_settings,
             self._vin, temp, duration, defrost,
         )
         new_data = dict(self.coordinator.data)

@@ -158,7 +158,7 @@ def _register_services(hass: HomeAssistant) -> None:
         duration = call.data.get("duration", 30)
         defrost = call.data.get("defrost", True)
         await coordinator.async_send_command(
-            coordinator.api.remote_climate_on,
+            coordinator.api.set_climate_settings,
             coordinator.vin, temp, duration, defrost,
         )
         new_data = dict(coordinator.data)

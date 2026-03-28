@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command' | grep -qE '^git commit' && { ruff check . || echo '{\"decision\":\"block\",\"reason\":\"ruff check failed — fix lint errors before committing\"}'; } || true",
+            "timeout": 30,
+            "statusMessage": "Running ruff check..."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -156,7 +156,7 @@ class HondaDefrostSwitch(MyHondaPlusEntity, SwitchEntity):
         if duration not in (10, 20, 30):
             duration = 30
         await self.coordinator.async_send_command(
-            self.coordinator.api.remote_climate_on,
+            self.coordinator.api.set_climate_settings,
             self._vin, temp, duration, defrost,
         )
         new_data = dict(self.coordinator.data)
