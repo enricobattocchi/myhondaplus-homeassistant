@@ -68,31 +68,18 @@ def _schedule_car_refresh(
     @callback
     def _do_car_refresh(_now) -> None:
         """Refresh from car and reschedule."""
-        if not entry.runtime_data.car_refresh_enabled:
-            # Disabled via switch — just reschedule without refreshing
+        async def _refresh():
+            if entry.runtime_data.car_refresh_enabled:
+                try:
+                    await coordinator.async_refresh_from_car()
+                    LOGGER.debug("Scheduled refresh from car completed")
+                except Exception:
+                    LOGGER.warning("Scheduled refresh from car failed", exc_info=True)
             entry.runtime_data.car_refresh_unsub = async_call_later(
                 hass, interval, _do_car_refresh,
             )
-            return
-
-        async def _refresh():
-            try:
-                await coordinator.async_refresh_from_car()
-                LOGGER.debug("Scheduled refresh from car completed")
-            except Exception:
-                LOGGER.warning("Scheduled refresh from car failed", exc_info=True)
-            # Delayed coordinator poll to pick up fresh data
-            async_call_later(hass, 30, _schedule_poll)
 
         hass.async_create_task(_refresh())
-
-    @callback
-    def _schedule_poll(_now) -> None:
-        hass.async_create_task(coordinator.async_request_refresh())
-        # Reschedule next car refresh
-        entry.runtime_data.car_refresh_unsub = async_call_later(
-            hass, interval, _do_car_refresh,
-        )
 
     entry.runtime_data.car_refresh_unsub = async_call_later(
         hass, interval, _do_car_refresh,

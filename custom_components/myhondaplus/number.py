@@ -78,10 +78,10 @@ class HondaChargeLimitNumber(MyHondaPlusEntity, NumberEntity):
         else:
             away = int(value)
 
-        await self.coordinator.async_send_command(
+        confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.set_charge_limit, self._vin, home, away,
         )
-
-        if self.coordinator.data is not None:
-            self.coordinator.data[self.entity_description.key] = int(value)
-            self.async_write_ha_state()
+        if confirmed and self.coordinator.data is not None:
+            data = dict(self.coordinator.data)
+            data[self.entity_description.key] = int(value)
+            self.coordinator.async_set_updated_data(data)

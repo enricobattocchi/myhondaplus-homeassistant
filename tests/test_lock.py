@@ -49,7 +49,7 @@ class TestDoorLock:
     @pytest.mark.asyncio
     async def test_lock(self, door_lock):
         await door_lock.async_lock()
-        door_lock.coordinator.async_send_command.assert_awaited_once_with(
+        door_lock.coordinator.async_send_command_and_wait.assert_awaited_once_with(
             door_lock.coordinator.api.remote_lock, MOCK_VIN,
         )
         door_lock.coordinator.async_set_updated_data.assert_called_once()
@@ -59,7 +59,7 @@ class TestDoorLock:
     @pytest.mark.asyncio
     async def test_unlock(self, door_lock):
         await door_lock.async_unlock()
-        door_lock.coordinator.async_send_command.assert_awaited_once_with(
+        door_lock.coordinator.async_send_command_and_wait.assert_awaited_once_with(
             door_lock.coordinator.api.remote_unlock, MOCK_VIN,
         )
         door_lock.coordinator.async_set_updated_data.assert_called_once()

@@ -44,6 +44,7 @@ def coordinator(mock_hass, mock_entry):
         coord.api.tokens = Tokens("fake-access-token", "fake-refresh-token")
         coord.data = dict(MOCK_DASHBOARD_DATA)
         coord.logger = MagicMock()
+        coord.async_set_updated_data = MagicMock()
         return coord
 
 
@@ -115,11 +116,9 @@ class TestHondaDataUpdateCoordinator:
 
     @pytest.mark.asyncio
     async def test_refresh_from_car_success(self, coordinator):
-        coordinator.hass.async_add_executor_job.return_value = None
+        coordinator.hass.async_add_executor_job.return_value = dict(MOCK_DASHBOARD_DATA)
         await coordinator.async_refresh_from_car()
-        coordinator.hass.async_add_executor_job.assert_awaited_once_with(
-            coordinator.api.request_dashboard_refresh, MOCK_VIN,
-        )
+        coordinator.async_set_updated_data.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_refresh_from_car_401(self, coordinator):

@@ -141,6 +141,7 @@ def mock_coordinator(mock_api, mock_config_entry):
     coordinator.entry = mock_config_entry
     coordinator.async_request_refresh = AsyncMock()
     coordinator.async_send_command = AsyncMock()
+    coordinator.async_send_command_and_wait = AsyncMock(return_value=True)
     coordinator.async_refresh_from_car = AsyncMock()
     coordinator.async_set_updated_data = MagicMock()
     return coordinator

@@ -57,7 +57,7 @@ class TestClimateSwitch:
     @pytest.mark.asyncio
     async def test_turn_on(self, climate_switch):
         await climate_switch.async_turn_on()
-        climate_switch.coordinator.async_send_command.assert_awaited_once_with(
+        climate_switch.coordinator.async_send_command_and_wait.assert_awaited_once_with(
             climate_switch.coordinator.api.remote_climate_start, MOCK_VIN,
         )
         climate_switch.coordinator.async_set_updated_data.assert_called_once()
@@ -67,7 +67,7 @@ class TestClimateSwitch:
     @pytest.mark.asyncio
     async def test_turn_off(self, climate_switch):
         await climate_switch.async_turn_off()
-        climate_switch.coordinator.async_send_command.assert_awaited_once_with(
+        climate_switch.coordinator.async_send_command_and_wait.assert_awaited_once_with(
             climate_switch.coordinator.api.remote_climate_stop, MOCK_VIN,
         )
         climate_switch.coordinator.async_set_updated_data.assert_called_once()
@@ -110,7 +110,7 @@ class TestChargeSwitch:
     @pytest.mark.asyncio
     async def test_turn_on(self, charge_switch):
         await charge_switch.async_turn_on()
-        charge_switch.coordinator.async_send_command.assert_awaited_once_with(
+        charge_switch.coordinator.async_send_command_and_wait.assert_awaited_once_with(
             charge_switch.coordinator.api.remote_charge_start, MOCK_VIN,
         )
         charge_switch.coordinator.async_set_updated_data.assert_called_once()
@@ -120,7 +120,7 @@ class TestChargeSwitch:
     @pytest.mark.asyncio
     async def test_turn_off(self, charge_switch):
         await charge_switch.async_turn_off()
-        charge_switch.coordinator.async_send_command.assert_awaited_once_with(
+        charge_switch.coordinator.async_send_command_and_wait.assert_awaited_once_with(
             charge_switch.coordinator.api.remote_charge_stop, MOCK_VIN,
         )
         charge_switch.coordinator.async_set_updated_data.assert_called_once()

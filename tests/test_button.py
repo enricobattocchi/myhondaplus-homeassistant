@@ -22,7 +22,7 @@ class TestHondaButton:
     async def test_horn_lights(self, mock_coordinator):
         button = make_button(mock_coordinator, "horn_lights")
         await button.async_press()
-        mock_coordinator.async_send_command.assert_awaited_once_with(
+        mock_coordinator.async_send_command_and_wait.assert_awaited_once_with(
             mock_coordinator.api.remote_horn_lights, MOCK_VIN,
         )
 

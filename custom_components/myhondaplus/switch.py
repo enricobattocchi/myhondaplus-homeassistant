@@ -58,21 +58,23 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Start climate pre-conditioning."""
-        api = self.coordinator.api
-        await self.coordinator.async_send_command(api.remote_climate_start, self._vin)
-        data = dict(self.coordinator.data)
-        data["climate_active"] = True
-        self.coordinator.async_set_updated_data(data)
-        self._schedule_refresh()
+        confirmed = await self.coordinator.async_send_command_and_wait(
+            self.coordinator.api.remote_climate_start, self._vin,
+        )
+        if confirmed:
+            data = dict(self.coordinator.data)
+            data["climate_active"] = True
+            self.coordinator.async_set_updated_data(data)
 
     async def async_turn_off(self, **kwargs) -> None:
         """Stop climate pre-conditioning."""
-        api = self.coordinator.api
-        await self.coordinator.async_send_command(api.remote_climate_stop, self._vin)
-        data = dict(self.coordinator.data)
-        data["climate_active"] = False
-        self.coordinator.async_set_updated_data(data)
-        self._schedule_refresh()
+        confirmed = await self.coordinator.async_send_command_and_wait(
+            self.coordinator.api.remote_climate_stop, self._vin,
+        )
+        if confirmed:
+            data = dict(self.coordinator.data)
+            data["climate_active"] = False
+            self.coordinator.async_set_updated_data(data)
 
 
 class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
@@ -103,21 +105,23 @@ class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Start charging."""
-        api = self.coordinator.api
-        await self.coordinator.async_send_command(api.remote_charge_start, self._vin)
-        data = dict(self.coordinator.data)
-        data["charge_status"] = "charging"
-        self.coordinator.async_set_updated_data(data)
-        self._schedule_refresh()
+        confirmed = await self.coordinator.async_send_command_and_wait(
+            self.coordinator.api.remote_charge_start, self._vin,
+        )
+        if confirmed:
+            data = dict(self.coordinator.data)
+            data["charge_status"] = "charging"
+            self.coordinator.async_set_updated_data(data)
 
     async def async_turn_off(self, **kwargs) -> None:
         """Stop charging."""
-        api = self.coordinator.api
-        await self.coordinator.async_send_command(api.remote_charge_stop, self._vin)
-        data = dict(self.coordinator.data)
-        data["charge_status"] = "not_charging"
-        self.coordinator.async_set_updated_data(data)
-        self._schedule_refresh()
+        confirmed = await self.coordinator.async_send_command_and_wait(
+            self.coordinator.api.remote_charge_stop, self._vin,
+        )
+        if confirmed:
+            data = dict(self.coordinator.data)
+            data["charge_status"] = "not_charging"
+            self.coordinator.async_set_updated_data(data)
 
 
 class HondaDefrostSwitch(MyHondaPlusEntity, SwitchEntity):
@@ -155,17 +159,14 @@ class HondaDefrostSwitch(MyHondaPlusEntity, SwitchEntity):
         duration = data.get("climate_duration", 30)
         if duration not in (10, 20, 30):
             duration = 30
-        try:
-            await self.coordinator.async_send_command(
-                self.coordinator.api.set_climate_settings,
-                self._vin, temp, duration, defrost,
-            )
-        except Exception:
-            self.async_write_ha_state()
-            raise
-        new_data = dict(self.coordinator.data)
-        new_data["climate_defrost"] = defrost
-        self.coordinator.async_set_updated_data(new_data)
+        confirmed = await self.coordinator.async_send_command_and_wait(
+            self.coordinator.api.set_climate_settings,
+            self._vin, temp, duration, defrost,
+        )
+        if confirmed:
+            new_data = dict(self.coordinator.data)
+            new_data["climate_defrost"] = defrost
+            self.coordinator.async_set_updated_data(new_data)
 
 
 class HondaAutoRefreshSwitch(MyHondaPlusEntity, SwitchEntity):
