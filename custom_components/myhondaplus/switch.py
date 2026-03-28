@@ -56,15 +56,9 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
         return bool(value)
 
     async def async_turn_on(self, **kwargs) -> None:
-        """Start climate pre-conditioning using saved settings."""
+        """Start climate pre-conditioning."""
         api = self.coordinator.api
-        data = self.coordinator.data or {}
-        temp = data.get("climate_temp", "normal")
-        duration = data.get("climate_duration", 30)
-        defrost = data.get("climate_defrost", True)
-        await self.coordinator.async_send_command(
-            api.remote_climate_on, self._vin, temp, duration, defrost,
-        )
+        await self.coordinator.async_send_command(api.remote_climate_start, self._vin)
         data = dict(self.coordinator.data)
         data["climate_active"] = True
         self.coordinator.async_set_updated_data(data)

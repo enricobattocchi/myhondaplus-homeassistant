@@ -58,8 +58,7 @@ class TestClimateSwitch:
     async def test_turn_on(self, climate_switch):
         await climate_switch.async_turn_on()
         climate_switch.coordinator.async_send_command.assert_awaited_once_with(
-            climate_switch.coordinator.api.remote_climate_on,
-            MOCK_VIN, "normal", 30, True,
+            climate_switch.coordinator.api.remote_climate_start, MOCK_VIN,
         )
         climate_switch.coordinator.async_set_updated_data.assert_called_once()
         data = climate_switch.coordinator.async_set_updated_data.call_args[0][0]
