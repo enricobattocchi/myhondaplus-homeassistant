@@ -1,7 +1,7 @@
 set_charge_schedule:
   name: Set charge prohibition schedule
   description: Set the charge prohibition schedule (up to 2 rules). Pass an empty list to clear.
-  target:
+
   fields:
     rules:
       name: Rules
@@ -16,7 +16,7 @@ set_charge_schedule:
 climate_on:
   name: Climate on with settings
   description: Start climate pre-conditioning with specific temperature, duration, and defrost settings.
-  target:
+
   fields:
     temp:
       name: Temperature
@@ -54,7 +54,7 @@ climate_on:
 set_climate_schedule:
   name: Set climate schedule
   description: Set the climate pre-conditioning schedule (up to 7 rules). Pass an empty list to clear.
-  target:
+
   fields:
     rules:
       name: Rules
