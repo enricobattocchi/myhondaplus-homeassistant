@@ -1,6 +1,6 @@
 """Data coordinator for My Honda+."""
 
-import time
+import asyncio
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
@@ -139,27 +139,44 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         self._persist_tokens_if_changed()
         return result
 
-    def _poll_command(self, command_id: str, timeout: int = 60) -> bool:
+    async def _async_poll_command(self, command_id: str, timeout: int = 60) -> bool:
         """Poll a command until confirmed or timeout. Returns True if confirmed."""
         if not command_id:
             return False
         polls = timeout // 2
         for _ in range(polls):
-            result = self.api.poll_command(command_id)
+            result = await self.hass.async_add_executor_job(
+                self.api.poll_command, command_id,
+            )
             if result["status_code"] == 200:
                 return True
-            time.sleep(2)
+            await asyncio.sleep(2)
         return False
 
     async def async_send_command_and_wait(self, func, *args, timeout: int = 60) -> bool:
         """Send a command and wait for confirmation. Raises on send failure."""
         command_id = await self.async_send_command(func, *args)
-        confirmed = await self.hass.async_add_executor_job(
-            self._poll_command, command_id, timeout,
-        )
+        confirmed = await self._async_poll_command(command_id, timeout)
         if not confirmed:
             LOGGER.warning("Command timed out waiting for confirmation (id=%s)", command_id)
         return confirmed
+
+    async def async_refresh_location(self) -> None:
+        """Request fresh GPS location from the car and update dashboard."""
+        try:
+            command_id = await self.async_send_command(
+                self.api.request_car_location, self.vin,
+            )
+            await self._async_poll_command(command_id)
+            data = await self.hass.async_add_executor_job(self._fetch_data)
+        except HondaAPIError as err:
+            _handle_api_error(err, self._persist_tokens_if_changed)
+            LOGGER.error("Location refresh failed: %s", err)
+            raise HomeAssistantError(
+                "Unable to refresh location from vehicle"
+            ) from err
+        self._persist_tokens_if_changed()
+        self.async_set_updated_data(data)
 
 
 class HondaTripCoordinator(DataUpdateCoordinator[dict]):

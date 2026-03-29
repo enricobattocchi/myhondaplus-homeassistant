@@ -3,7 +3,7 @@
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD, CONF_SCAN_INTERVAL
-from pymyhondaplus.api import HondaAPI
+from pymyhondaplus.api import HondaAPI, HondaAuthError
 from pymyhondaplus.auth import DeviceKey, HondaAuth
 
 from .const import (
@@ -11,12 +11,14 @@ from .const import (
     CONF_CAR_REFRESH_INTERVAL,
     CONF_DEVICE_KEY_PEM,
     CONF_FUEL_TYPE,
+    CONF_LOCATION_REFRESH_INTERVAL,
     CONF_PERSONAL_ID,
     CONF_REFRESH_TOKEN,
     CONF_USER_ID,
     CONF_VEHICLE_NAME,
     CONF_VIN,
     DEFAULT_CAR_REFRESH_INTERVAL,
+    DEFAULT_LOCATION_REFRESH_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     LOGGER,
@@ -27,6 +29,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_PASSWORD): str,
     vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
     vol.Optional(CONF_CAR_REFRESH_INTERVAL, default=DEFAULT_CAR_REFRESH_INTERVAL): int,
+    vol.Optional(CONF_LOCATION_REFRESH_INTERVAL, default=DEFAULT_LOCATION_REFRESH_INTERVAL): int,
 })
 
 STEP_VERIFY_DATA_SCHEMA = vol.Schema({
@@ -66,6 +69,12 @@ class MyHondaPlusOptionsFlow(config_entries.OptionsFlow):
                     CONF_CAR_REFRESH_INTERVAL,
                     default=self.config_entry.data.get(
                         CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL,
+                    ),
+                ): int,
+                vol.Optional(
+                    CONF_LOCATION_REFRESH_INTERVAL,
+                    default=self.config_entry.data.get(
+                        CONF_LOCATION_REFRESH_INTERVAL, DEFAULT_LOCATION_REFRESH_INTERVAL,
                     ),
                 ): int,
             }),
@@ -108,7 +117,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     self._auth.login, self._email, self._password,
                 )
                 return await self._fetch_vehicles_and_continue()
-            except RuntimeError as e:
+            except HondaAuthError as e:
                 error_text = str(e)
                 if "device-authenticator-not-registered" in error_text:
                     try:
@@ -116,7 +125,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             self._auth.reset_device_authenticator,
                             self._email, self._password,
                         )
-                    except RuntimeError as e2:
+                    except HondaAuthError as e2:
                         if "currently blocked" not in str(e2):
                             errors["base"] = "cannot_connect"
                             return self._show_user_form(errors)
@@ -156,7 +165,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     self._auth.login, self._email, self._password,
                 )
                 return self._update_reauth_entry()
-            except RuntimeError as e:
+            except HondaAuthError as e:
                 error_text = str(e)
                 if "device-authenticator-not-registered" in error_text:
                     try:
@@ -164,7 +173,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             self._auth.reset_device_authenticator,
                             self._email, self._password,
                         )
-                    except RuntimeError as e2:
+                    except HondaAuthError as e2:
                         if "currently blocked" not in str(e2):
                             errors["base"] = "cannot_connect"
                             return self.async_show_form(
@@ -231,7 +240,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         self._auth.login, self._email, self._password,
                     )
                     return await self._fetch_vehicles_and_continue()
-                except RuntimeError as e:
+                except HondaAuthError as e:
                     LOGGER.error("Login after verification failed: %s", e)
                     errors["base"] = "verification_failed"
 

@@ -7,7 +7,9 @@ from homeassistant.helpers.event import async_call_later
 
 from .const import (
     CONF_CAR_REFRESH_INTERVAL,
+    CONF_LOCATION_REFRESH_INTERVAL,
     DEFAULT_CAR_REFRESH_INTERVAL,
+    DEFAULT_LOCATION_REFRESH_INTERVAL,
     DOMAIN,
     LOGGER,
 )
@@ -64,6 +66,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
     )
 
     _schedule_car_refresh(hass, entry)
+    _schedule_location_refresh(hass, entry)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     _register_services(hass)
@@ -98,6 +101,36 @@ def _schedule_car_refresh(
 
     entry.runtime_data.car_refresh_unsub = async_call_later(
         hass, interval, _do_car_refresh,
+    )
+
+
+def _schedule_location_refresh(
+    hass: HomeAssistant, entry: MyHondaPlusConfigEntry,
+) -> None:
+    """Schedule a recurring location refresh if configured."""
+    interval = entry.data.get(CONF_LOCATION_REFRESH_INTERVAL, DEFAULT_LOCATION_REFRESH_INTERVAL)
+    if not interval or interval <= 0:
+        return
+
+    coordinator = entry.runtime_data.coordinator
+
+    @callback
+    def _do_location_refresh(_now) -> None:
+        """Refresh location and reschedule."""
+        async def _refresh():
+            try:
+                await coordinator.async_refresh_location()
+                LOGGER.debug("Scheduled location refresh completed")
+            except Exception:
+                LOGGER.warning("Scheduled location refresh failed", exc_info=True)
+            entry.runtime_data.location_refresh_unsub = async_call_later(
+                hass, interval, _do_location_refresh,
+            )
+
+        hass.async_create_task(_refresh())
+
+    entry.runtime_data.location_refresh_unsub = async_call_later(
+        hass, interval, _do_location_refresh,
     )
 
 
@@ -193,6 +226,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry)
     if entry.runtime_data.car_refresh_unsub:
         entry.runtime_data.car_refresh_unsub()
         entry.runtime_data.car_refresh_unsub = None
+    if entry.runtime_data.location_refresh_unsub:
+        entry.runtime_data.location_refresh_unsub()
+        entry.runtime_data.location_refresh_unsub = None
     result = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if result and not hass.config_entries.async_entries(DOMAIN):
         hass.services.async_remove(DOMAIN, SERVICE_SET_CHARGE_SCHEDULE)

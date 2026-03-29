@@ -10,6 +10,17 @@ from homeassistant.helpers.update_coordinator import (
 
 from .const import CONF_FUEL_TYPE, DOMAIN
 
+
+def to_bool(value) -> bool | None:
+    """Convert a value to bool, handling strings from the API."""
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.lower() in ("true", "on", "yes", "1", "locked")
+    return bool(value)
+
 FUEL_TYPE_LABELS = {
     "E": "Electric",
     "H": "Hybrid",

@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from pymyhondaplus.api import HondaAuthError
 
 from custom_components.myhondaplus.config_flow import (
     MyHondaPlusConfigFlow,
@@ -88,7 +89,7 @@ class TestAsyncStepUser:
         """Login with bad credentials shows error."""
         with patch("custom_components.myhondaplus.config_flow.DeviceKey"), \
              patch("custom_components.myhondaplus.config_flow.HondaAuth"):
-            flow.hass.async_add_executor_job.side_effect = RuntimeError("invalid-credentials")
+            flow.hass.async_add_executor_job.side_effect = HondaAuthError(401, "invalid-credentials")
             await flow.async_step_user({
                 "email": "test@test.com",
                 "password": "wrong",
@@ -105,7 +106,7 @@ class TestAsyncStepUser:
         """Locked account shows error."""
         with patch("custom_components.myhondaplus.config_flow.DeviceKey"), \
              patch("custom_components.myhondaplus.config_flow.HondaAuth"):
-            flow.hass.async_add_executor_job.side_effect = RuntimeError("locked-account")
+            flow.hass.async_add_executor_job.side_effect = HondaAuthError(401, "locked-account")
             await flow.async_step_user({
                 "email": "test@test.com",
                 "password": "pass",
@@ -127,7 +128,7 @@ class TestAsyncStepUser:
             # First call: login fails with device-authenticator-not-registered
             # Second call: reset_device_authenticator succeeds
             flow.hass.async_add_executor_job.side_effect = [
-                RuntimeError("device-authenticator-not-registered"),
+                HondaAuthError(401, "device-authenticator-not-registered"),
                 None,  # reset_device_authenticator
             ]
             await flow.async_step_user({
@@ -368,7 +369,7 @@ class TestReauthFlow:
 
         with patch("custom_components.myhondaplus.config_flow.DeviceKey"), \
              patch("custom_components.myhondaplus.config_flow.HondaAuth"):
-            reauth_flow.hass.async_add_executor_job.side_effect = RuntimeError("invalid-credentials")
+            reauth_flow.hass.async_add_executor_job.side_effect = HondaAuthError(401, "invalid-credentials")
             await reauth_flow.async_step_reauth_confirm({
                 "email": "test@test.com",
                 "password": "wrong",

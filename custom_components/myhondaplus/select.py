@@ -2,6 +2,7 @@
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_VEHICLE_NAME, CONF_VIN
@@ -33,6 +34,7 @@ class HondaClimateTempSelect(MyHondaPlusEntity, SelectEntity):
     _attr_icon = "mdi:thermometer"
     _attr_translation_key = "climate_temp_setting"
     _attr_options = CLIMATE_TEMP_OPTIONS
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, coordinator, vin: str, vehicle_name: str) -> None:
         description = SelectEntityDescription(
@@ -71,6 +73,7 @@ class HondaClimateDurationSelect(MyHondaPlusEntity, SelectEntity):
     _attr_icon = "mdi:timer-outline"
     _attr_translation_key = "climate_duration_setting"
     _attr_options = CLIMATE_DURATION_OPTIONS
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, coordinator, vin: str, vehicle_name: str) -> None:
         description = SelectEntityDescription(

@@ -1,0 +1,46 @@
+name: Bug report
+description: Report a bug with the My Honda+ integration
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Integration version
+      placeholder: "e.g. 4.1.0"
+    validations:
+      required: true
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      placeholder: "e.g. 2026.3.4"
+    validations:
+      required: true
+  - type: input
+    id: vehicle
+    attributes:
+      label: Vehicle model
+      placeholder: "e.g. Honda e, e:Ny1, ZR-V"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste any relevant logs from Settings > System > Logs (filter by "myhondaplus")
+      render: text
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: >
+        Attach the diagnostics file from Settings > Integrations > My Honda+ > three dots > Download diagnostics.
+        Secrets are automatically redacted.
+      render: json

@@ -12,7 +12,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
-from .entity import MyHondaPlusEntity
+from .entity import MyHondaPlusEntity, to_bool
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -77,17 +77,6 @@ async def async_setup_entry(
     )
 
 
-def _to_bool(value) -> bool | None:
-    """Convert a value to bool, handling strings from the API."""
-    if value is None:
-        return None
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, str):
-        return value.lower() in ("true", "on", "yes", "1")
-    return bool(value)
-
-
 class HondaBinarySensor(MyHondaPlusEntity, BinarySensorEntity):
     """My Honda+ binary sensor entity."""
 
@@ -96,7 +85,7 @@ class HondaBinarySensor(MyHondaPlusEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         value = self.coordinator.data.get(self.entity_description.data_key)
-        result = _to_bool(value)
+        result = to_bool(value)
         if result is None:
             return None
         if self.entity_description.invert:
