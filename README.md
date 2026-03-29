@@ -52,11 +52,20 @@ All remote commands wait for the car to confirm execution before updating the UI
 ### Sensors
 - **Battery & charging**: Battery level, Range, Total range, Charge status, Plug status, Charge mode, Time to full charge
 - **Climate**: Climate active, Climate temperature, Climate duration, Climate defrost, Cabin temperature, Interior temperature
-- **Vehicle**: Odometer, Speed, Ignition, Doors locked, Doors closed, Windows closed, Hood, Trunk, Lights, Headlights, Parking lights
-- **Location**: Latitude, Longitude
+- **Vehicle**: Odometer, Speed, Ignition, Doors locked, Headlights, Parking lights
 - **Other**: Warning lamps, Last updated
 - **Trips**: Trips this month, Distance this month, Driving time this month, Avg consumption this month
 - **Schedules**: Charge schedule (active rules count + full rules in attributes), Climate schedule (active rules count + full rules in attributes)
+
+### Binary Sensors
+- **Doors** — open/closed
+- **Windows** — open/closed
+- **Hood** — open/closed
+- **Trunk** — open/closed
+- **Lights** — on/off
+
+### Device Tracker
+- **Location** — vehicle GPS position, shown on the HA map
 
 ### Lock
 - **Doors** — lock/unlock with state from vehicle
@@ -83,7 +92,7 @@ All remote commands wait for the car to confirm execution before updating the UI
 
 ### `myhondaplus.climate_on`
 
-Start climate with specific settings.
+Start climate pre-conditioning with specific settings. Applies the settings and starts climate.
 
 ```yaml
 service: myhondaplus.climate_on
@@ -95,21 +104,21 @@ data:
 
 ### `myhondaplus.set_charge_schedule`
 
-Set the charge prohibition schedule (up to 2 rules). Pass an empty list to clear.
+Set the charge prohibition schedule (up to 2 rules). All fields are required. Pass `rules: []` to clear.
 
 ```yaml
 service: myhondaplus.set_charge_schedule
 data:
   rules:
     - days: "mon,tue,wed,thu,fri"
-      location: "home"
+      location: "home"       # home, all
       start_time: "22:00"
       end_time: "06:00"
 ```
 
 ### `myhondaplus.set_climate_schedule`
 
-Set the climate pre-conditioning schedule (up to 7 rules). Pass an empty list to clear.
+Set the climate pre-conditioning schedule (up to 7 rules). `days` and `start_time` are required. Pass `rules: []` to clear.
 
 ```yaml
 service: myhondaplus.set_climate_schedule
