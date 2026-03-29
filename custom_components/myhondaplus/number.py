@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from homeassistant.components.number import NumberEntity, NumberEntityDescription
 from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_VEHICLE_NAME, CONF_VIN
@@ -58,6 +59,8 @@ async def async_setup_entry(
 
 class HondaChargeLimitNumber(MyHondaPlusEntity, NumberEntity):
     """My Honda+ charge limit number entity."""
+
+    _attr_entity_category = EntityCategory.CONFIG
 
     @property
     def native_value(self) -> float | None:

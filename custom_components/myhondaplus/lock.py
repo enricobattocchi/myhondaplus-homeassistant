@@ -6,7 +6,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
-from .entity import MyHondaPlusEntity
+from .entity import MyHondaPlusEntity, to_bool
 
 
 async def async_setup_entry(
@@ -37,13 +37,7 @@ class HondaDoorLock(MyHondaPlusEntity, LockEntity):
     def is_locked(self) -> bool | None:
         """Return true if doors are locked."""
         value = self.coordinator.data.get("doors_locked")
-        if value is None:
-            return None
-        if isinstance(value, bool):
-            return value
-        if isinstance(value, str):
-            return value.lower() in ("true", "on", "yes", "1", "locked")
-        return bool(value)
+        return to_bool(value)
 
     async def async_lock(self, **kwargs) -> None:
         """Lock the doors."""

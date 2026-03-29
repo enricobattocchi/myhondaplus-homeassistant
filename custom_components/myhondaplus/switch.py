@@ -6,11 +6,12 @@ from homeassistant.components.switch import (
     SwitchEntityDescription,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
-from .entity import MyHondaPlusEntity
+from .entity import MyHondaPlusEntity, to_bool
 
 
 async def async_setup_entry(
@@ -48,13 +49,9 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
     def is_on(self) -> bool | None:
         """Return true if climate is active."""
         value = self.coordinator.data.get("climate_active")
-        if value is None:
-            return None
-        if isinstance(value, bool):
-            return value
-        if isinstance(value, str):
-            return value.lower() in ("true", "on", "yes", "1", "active")
-        return bool(value)
+        if isinstance(value, str) and value.lower() == "active":
+            return True
+        return to_bool(value)
 
     async def async_turn_on(self, **kwargs) -> None:
         """Start climate pre-conditioning."""
@@ -130,6 +127,7 @@ class HondaDefrostSwitch(MyHondaPlusEntity, SwitchEntity):
     _attr_device_class = SwitchDeviceClass.SWITCH
     _attr_icon = "mdi:car-defrost-rear"
     _attr_translation_key = "climate_defrost_setting"
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, coordinator, vin: str, vehicle_name: str) -> None:
         description = SwitchEntityDescription(
@@ -175,6 +173,7 @@ class HondaAutoRefreshSwitch(MyHondaPlusEntity, SwitchEntity):
     _attr_device_class = SwitchDeviceClass.SWITCH
     _attr_icon = "mdi:refresh-auto"
     _attr_translation_key = "auto_refresh"
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, coordinator, vin: str, vehicle_name: str, entry) -> None:
         description = SwitchEntityDescription(

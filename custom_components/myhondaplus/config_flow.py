@@ -3,7 +3,7 @@
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD, CONF_SCAN_INTERVAL
-from pymyhondaplus.api import HondaAPI
+from pymyhondaplus.api import HondaAPI, HondaAuthError
 from pymyhondaplus.auth import DeviceKey, HondaAuth
 
 from .const import (
@@ -108,7 +108,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     self._auth.login, self._email, self._password,
                 )
                 return await self._fetch_vehicles_and_continue()
-            except RuntimeError as e:
+            except HondaAuthError as e:
                 error_text = str(e)
                 if "device-authenticator-not-registered" in error_text:
                     try:
@@ -116,7 +116,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             self._auth.reset_device_authenticator,
                             self._email, self._password,
                         )
-                    except RuntimeError as e2:
+                    except HondaAuthError as e2:
                         if "currently blocked" not in str(e2):
                             errors["base"] = "cannot_connect"
                             return self._show_user_form(errors)
@@ -156,7 +156,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     self._auth.login, self._email, self._password,
                 )
                 return self._update_reauth_entry()
-            except RuntimeError as e:
+            except HondaAuthError as e:
                 error_text = str(e)
                 if "device-authenticator-not-registered" in error_text:
                     try:
@@ -164,7 +164,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             self._auth.reset_device_authenticator,
                             self._email, self._password,
                         )
-                    except RuntimeError as e2:
+                    except HondaAuthError as e2:
                         if "currently blocked" not in str(e2):
                             errors["base"] = "cannot_connect"
                             return self.async_show_form(
@@ -231,7 +231,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         self._auth.login, self._email, self._password,
                     )
                     return await self._fetch_vehicles_and_continue()
-                except RuntimeError as e:
+                except HondaAuthError as e:
                     LOGGER.error("Login after verification failed: %s", e)
                     errors["base"] = "verification_failed"
 

@@ -14,6 +14,7 @@ from homeassistant.const import (
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_VEHICLE_NAME, CONF_VIN
@@ -148,6 +149,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         translation_key="last_updated",
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:clock-outline",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     HondaSensorDescription(
         key="climate_temp",
@@ -171,11 +173,13 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         key="charge_schedule",
         translation_key="charge_schedule",
         icon="mdi:calendar-clock",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     HondaSensorDescription(
         key="climate_schedule",
         translation_key="climate_schedule",
         icon="mdi:calendar-clock",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
 ]
 
