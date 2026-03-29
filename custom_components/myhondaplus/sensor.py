@@ -1,6 +1,7 @@
 """Sensor platform for My Honda+."""
 
 from dataclasses import dataclass
+from datetime import datetime
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -95,16 +96,6 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         icon="mdi:car-door-lock",
     ),
     HondaSensorDescription(
-        key="all_doors_closed",
-        translation_key="doors_closed",
-        icon="mdi:car-door",
-    ),
-    HondaSensorDescription(
-        key="all_windows_closed",
-        translation_key="windows_closed",
-        icon="mdi:car-door",
-    ),
-    HondaSensorDescription(
         key="ignition",
         translation_key="ignition",
         icon="mdi:car-key",
@@ -138,21 +129,6 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         dynamic_unit="temp",
     ),
     HondaSensorDescription(
-        key="hood_open",
-        translation_key="hood",
-        icon="mdi:car",
-    ),
-    HondaSensorDescription(
-        key="trunk_open",
-        translation_key="trunk",
-        icon="mdi:car-back",
-    ),
-    HondaSensorDescription(
-        key="lights_on",
-        translation_key="lights",
-        icon="mdi:car-light-high",
-    ),
-    HondaSensorDescription(
         key="headlights",
         translation_key="headlights",
         icon="mdi:car-light-high",
@@ -168,18 +144,9 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         icon="mdi:alert",
     ),
     HondaSensorDescription(
-        key="latitude",
-        translation_key="latitude",
-        icon="mdi:crosshairs-gps",
-    ),
-    HondaSensorDescription(
-        key="longitude",
-        translation_key="longitude",
-        icon="mdi:crosshairs-gps",
-    ),
-    HondaSensorDescription(
         key="timestamp",
         translation_key="last_updated",
+        device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:clock-outline",
     ),
     HondaSensorDescription(
@@ -290,6 +257,11 @@ class HondaSensor(MyHondaPlusEntity, SensorEntity):
             return sum(1 for r in value if r.get("enabled"))
         if isinstance(value, list):
             return ", ".join(str(v) for v in value) if value else "none"
+        if self.entity_description.device_class == SensorDeviceClass.TIMESTAMP and isinstance(value, str):
+            try:
+                return datetime.fromisoformat(value)
+            except ValueError:
+                return None
         return value
 
     @property

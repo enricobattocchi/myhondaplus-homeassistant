@@ -33,6 +33,11 @@ STEP_VERIFY_DATA_SCHEMA = vol.Schema({
     vol.Required("verification_link"): str,
 })
 
+STEP_REAUTH_SCHEMA = vol.Schema({
+    vol.Required(CONF_EMAIL): str,
+    vol.Required(CONF_PASSWORD): str,
+})
+
 
 class MyHondaPlusOptionsFlow(config_entries.OptionsFlow):
     """Options flow for My Honda+."""
@@ -84,6 +89,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._tokens = None
         self._api = None
         self._vehicles = []
+        self._reauth_entry = None
 
     async def async_step_user(self, user_input=None):
         errors = {}
@@ -129,6 +135,76 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self._show_user_form(errors)
 
+    async def async_step_reauth(self, entry_data):
+        """Handle reauth when tokens expire."""
+        self._reauth_entry = self.hass.config_entries.async_get_entry(
+            self.context["entry_id"],
+        )
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(self, user_input=None):
+        """Handle reauth confirmation."""
+        errors = {}
+        if user_input is not None:
+            self._email = user_input[CONF_EMAIL]
+            self._password = user_input[CONF_PASSWORD]
+            self._device_key = DeviceKey()
+            self._auth = HondaAuth(device_key=self._device_key)
+
+            try:
+                self._tokens = await self.hass.async_add_executor_job(
+                    self._auth.login, self._email, self._password,
+                )
+                return self._update_reauth_entry()
+            except RuntimeError as e:
+                error_text = str(e)
+                if "device-authenticator-not-registered" in error_text:
+                    try:
+                        await self.hass.async_add_executor_job(
+                            self._auth.reset_device_authenticator,
+                            self._email, self._password,
+                        )
+                    except RuntimeError as e2:
+                        if "currently blocked" not in str(e2):
+                            errors["base"] = "cannot_connect"
+                            return self.async_show_form(
+                                step_id="reauth_confirm",
+                                data_schema=STEP_REAUTH_SCHEMA,
+                                errors=errors,
+                            )
+                    return await self.async_step_verify()
+                elif "invalid-credentials" in error_text.lower() or "INVALID_CREDS" in error_text:
+                    errors["base"] = "invalid_auth"
+                elif "locked-account" in error_text.lower():
+                    errors["base"] = "account_locked"
+                else:
+                    LOGGER.error("Reauth login failed: %s", e)
+                    errors["base"] = "cannot_connect"
+            except Exception:
+                LOGGER.exception("Unexpected error during reauth")
+                errors["base"] = "cannot_connect"
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=STEP_REAUTH_SCHEMA,
+            errors=errors,
+        )
+
+    def _update_reauth_entry(self):
+        """Update the existing config entry with new tokens."""
+        user_id = HondaAuth.extract_user_id(self._tokens["access_token"])
+        new_data = {
+            **self._reauth_entry.data,
+            CONF_ACCESS_TOKEN: self._tokens["access_token"],
+            CONF_REFRESH_TOKEN: self._tokens["refresh_token"],
+            CONF_USER_ID: user_id,
+            CONF_DEVICE_KEY_PEM: self._device_key.pem_bytes.decode(),
+        }
+        self.hass.config_entries.async_update_entry(
+            self._reauth_entry, data=new_data,
+        )
+        return self.async_abort(reason="reauth_successful")
+
     def _show_user_form(self, errors=None):
         return self.async_show_form(
             step_id="user",
@@ -166,7 +242,12 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def _fetch_vehicles_and_continue(self):
-        """After login, fetch vehicles and go to selection or create entry."""
+        """After login, fetch vehicles and go to selection or create entry.
+
+        During reauth, skip vehicle selection and just update tokens.
+        """
+        if self._reauth_entry is not None:
+            return self._update_reauth_entry()
         user_id = HondaAuth.extract_user_id(self._tokens["access_token"])
 
         self._api = HondaAPI()
