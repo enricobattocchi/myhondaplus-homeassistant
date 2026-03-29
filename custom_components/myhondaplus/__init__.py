@@ -14,21 +14,36 @@ from .const import (
 from .coordinator import HondaDataUpdateCoordinator, HondaTripCoordinator
 from .data import MyHondaPlusConfigEntry, MyHondaPlusData
 
-PLATFORMS = [Platform.SENSOR, Platform.BUTTON, Platform.NUMBER, Platform.SELECT, Platform.SWITCH, Platform.LOCK]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.DEVICE_TRACKER, Platform.LOCK, Platform.NUMBER, Platform.SELECT, Platform.SENSOR, Platform.SWITCH]
 
 SERVICE_SET_CHARGE_SCHEDULE = "set_charge_schedule"
 SERVICE_SET_CLIMATE_SCHEDULE = "set_climate_schedule"
 SERVICE_CLIMATE_ON = "climate_on"
 
-SCHEDULE_RULE_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
+CHARGE_RULE_SCHEMA = vol.Schema({
+    vol.Required("days"): str,
+    vol.Required("location"): vol.In(["home", "all"]),
+    vol.Required("start_time"): str,
+    vol.Required("end_time"): str,
+    vol.Optional("enabled", default=True): bool,
+})
+
+CLIMATE_RULE_SCHEMA = vol.Schema({
+    vol.Required("days"): str,
+    vol.Required("start_time"): str,
+    vol.Optional("enabled", default=True): bool,
+})
 
 SERVICE_CLIMATE_ON_SCHEMA = vol.Schema({
     vol.Optional("temp", default="normal"): vol.In(["cooler", "normal", "hotter"]),
     vol.Optional("duration", default=30): vol.In([10, 20, 30]),
     vol.Optional("defrost", default=True): bool,
 })
-SERVICE_SCHEDULE_SCHEMA = vol.Schema({
-    vol.Required("rules"): [SCHEDULE_RULE_SCHEMA],
+SERVICE_CHARGE_SCHEDULE_SCHEMA = vol.Schema({
+    vol.Required("rules"): [CHARGE_RULE_SCHEMA],
+})
+SERVICE_CLIMATE_SCHEDULE_SCHEMA = vol.Schema({
+    vol.Required("rules"): [CLIMATE_RULE_SCHEMA],
 })
 
 
@@ -144,24 +159,28 @@ def _register_services(hass: HomeAssistant) -> None:
         temp = call.data.get("temp", "normal")
         duration = call.data.get("duration", 30)
         defrost = call.data.get("defrost", True)
-        await coordinator.async_send_command(
+        await coordinator.async_send_command_and_wait(
             coordinator.api.set_climate_settings,
             coordinator.vin, temp, duration, defrost,
         )
-        new_data = dict(coordinator.data)
-        new_data["climate_active"] = True
-        new_data["climate_temp"] = temp
-        new_data["climate_duration"] = duration
-        new_data["climate_defrost"] = defrost
-        coordinator.async_set_updated_data(new_data)
+        confirmed = await coordinator.async_send_command_and_wait(
+            coordinator.api.remote_climate_start, coordinator.vin,
+        )
+        if confirmed:
+            new_data = dict(coordinator.data)
+            new_data["climate_active"] = True
+            new_data["climate_temp"] = temp
+            new_data["climate_duration"] = duration
+            new_data["climate_defrost"] = defrost
+            coordinator.async_set_updated_data(new_data)
 
     hass.services.async_register(
         DOMAIN, SERVICE_SET_CHARGE_SCHEDULE,
-        handle_set_charge_schedule, schema=SERVICE_SCHEDULE_SCHEMA,
+        handle_set_charge_schedule, schema=SERVICE_CHARGE_SCHEDULE_SCHEMA,
     )
     hass.services.async_register(
         DOMAIN, SERVICE_SET_CLIMATE_SCHEDULE,
-        handle_set_climate_schedule, schema=SERVICE_SCHEDULE_SCHEMA,
+        handle_set_climate_schedule, schema=SERVICE_CLIMATE_SCHEDULE_SCHEMA,
     )
     hass.services.async_register(
         DOMAIN, SERVICE_CLIMATE_ON,
