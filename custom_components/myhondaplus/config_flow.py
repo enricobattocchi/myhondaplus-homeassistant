@@ -11,12 +11,14 @@ from .const import (
     CONF_CAR_REFRESH_INTERVAL,
     CONF_DEVICE_KEY_PEM,
     CONF_FUEL_TYPE,
+    CONF_LOCATION_REFRESH_INTERVAL,
     CONF_PERSONAL_ID,
     CONF_REFRESH_TOKEN,
     CONF_USER_ID,
     CONF_VEHICLE_NAME,
     CONF_VIN,
     DEFAULT_CAR_REFRESH_INTERVAL,
+    DEFAULT_LOCATION_REFRESH_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     LOGGER,
@@ -27,6 +29,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_PASSWORD): str,
     vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
     vol.Optional(CONF_CAR_REFRESH_INTERVAL, default=DEFAULT_CAR_REFRESH_INTERVAL): int,
+    vol.Optional(CONF_LOCATION_REFRESH_INTERVAL, default=DEFAULT_LOCATION_REFRESH_INTERVAL): int,
 })
 
 STEP_VERIFY_DATA_SCHEMA = vol.Schema({
@@ -66,6 +69,12 @@ class MyHondaPlusOptionsFlow(config_entries.OptionsFlow):
                     CONF_CAR_REFRESH_INTERVAL,
                     default=self.config_entry.data.get(
                         CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL,
+                    ),
+                ): int,
+                vol.Optional(
+                    CONF_LOCATION_REFRESH_INTERVAL,
+                    default=self.config_entry.data.get(
+                        CONF_LOCATION_REFRESH_INTERVAL, DEFAULT_LOCATION_REFRESH_INTERVAL,
                     ),
                 ): int,
             }),
