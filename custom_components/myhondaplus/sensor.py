@@ -1,6 +1,7 @@
 """Sensor platform for My Honda+."""
 
 from dataclasses import dataclass
+from datetime import datetime
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -256,6 +257,11 @@ class HondaSensor(MyHondaPlusEntity, SensorEntity):
             return sum(1 for r in value if r.get("enabled"))
         if isinstance(value, list):
             return ", ".join(str(v) for v in value) if value else "none"
+        if self.entity_description.device_class == SensorDeviceClass.TIMESTAMP and isinstance(value, str):
+            try:
+                return datetime.fromisoformat(value)
+            except ValueError:
+                return None
         return value
 
     @property
