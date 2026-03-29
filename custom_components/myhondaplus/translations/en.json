@@ -8,7 +8,8 @@
           "email": "Email",
           "password": "Password",
           "scan_interval": "Update interval (seconds)",
-          "car_refresh_interval": "Refresh from car interval (seconds, 0 to disable)"
+          "car_refresh_interval": "Refresh from car interval (seconds, 0 to disable)",
+          "location_refresh_interval": "Location refresh interval (seconds, 0 to disable)"
         }
       },
       "select_vehicle": {
@@ -58,7 +59,8 @@
         "title": "My Honda+ settings",
         "data": {
           "scan_interval": "Update interval (seconds)",
-          "car_refresh_interval": "Refresh from car interval (seconds, 0 to disable)"
+          "car_refresh_interval": "Refresh from car interval (seconds, 0 to disable)",
+          "location_refresh_interval": "Location refresh interval (seconds, 0 to disable)"
         }
       }
     }

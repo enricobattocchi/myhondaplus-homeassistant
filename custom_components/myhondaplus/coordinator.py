@@ -161,6 +161,23 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             LOGGER.warning("Command timed out waiting for confirmation (id=%s)", command_id)
         return confirmed
 
+    async def async_refresh_location(self) -> None:
+        """Request fresh GPS location from the car and update dashboard."""
+        try:
+            command_id = await self.async_send_command(
+                self.api.request_car_location, self.vin,
+            )
+            await self._async_poll_command(command_id)
+            data = await self.hass.async_add_executor_job(self._fetch_data)
+        except HondaAPIError as err:
+            _handle_api_error(err, self._persist_tokens_if_changed)
+            LOGGER.error("Location refresh failed: %s", err)
+            raise HomeAssistantError(
+                "Unable to refresh location from vehicle"
+            ) from err
+        self._persist_tokens_if_changed()
+        self.async_set_updated_data(data)
+
 
 class HondaTripCoordinator(DataUpdateCoordinator[dict]):
 
