@@ -55,22 +55,30 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Start climate pre-conditioning."""
+        data = dict(self.coordinator.data)
+        prev = data.get("climate_active")
+        data["climate_active"] = True
+        self.coordinator.async_set_updated_data(data)
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.remote_climate_start, self._vin,
         )
-        if confirmed:
+        if not confirmed:
             data = dict(self.coordinator.data)
-            data["climate_active"] = True
+            data["climate_active"] = prev
             self.coordinator.async_set_updated_data(data)
 
     async def async_turn_off(self, **kwargs) -> None:
         """Stop climate pre-conditioning."""
+        data = dict(self.coordinator.data)
+        prev = data.get("climate_active")
+        data["climate_active"] = False
+        self.coordinator.async_set_updated_data(data)
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.remote_climate_stop, self._vin,
         )
-        if confirmed:
+        if not confirmed:
             data = dict(self.coordinator.data)
-            data["climate_active"] = False
+            data["climate_active"] = prev
             self.coordinator.async_set_updated_data(data)
 
 
@@ -102,22 +110,30 @@ class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Start charging."""
+        data = dict(self.coordinator.data)
+        prev = data.get("charge_status")
+        data["charge_status"] = "charging"
+        self.coordinator.async_set_updated_data(data)
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.remote_charge_start, self._vin,
         )
-        if confirmed:
+        if not confirmed:
             data = dict(self.coordinator.data)
-            data["charge_status"] = "charging"
+            data["charge_status"] = prev
             self.coordinator.async_set_updated_data(data)
 
     async def async_turn_off(self, **kwargs) -> None:
         """Stop charging."""
+        data = dict(self.coordinator.data)
+        prev = data.get("charge_status")
+        data["charge_status"] = "not_charging"
+        self.coordinator.async_set_updated_data(data)
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.remote_charge_stop, self._vin,
         )
-        if confirmed:
+        if not confirmed:
             data = dict(self.coordinator.data)
-            data["charge_status"] = "not_charging"
+            data["charge_status"] = prev
             self.coordinator.async_set_updated_data(data)
 
 
@@ -151,19 +167,23 @@ class HondaDefrostSwitch(MyHondaPlusEntity, SwitchEntity):
 
     async def _set_defrost(self, defrost: bool) -> None:
         data = self.coordinator.data or {}
+        prev = data.get("climate_defrost")
         temp = data.get("climate_temp", "normal")
         if temp not in ("cooler", "normal", "hotter"):
             temp = "normal"
         duration = data.get("climate_duration", 30)
         if duration not in (10, 20, 30):
             duration = 30
+        new_data = dict(self.coordinator.data)
+        new_data["climate_defrost"] = defrost
+        self.coordinator.async_set_updated_data(new_data)
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.set_climate_settings,
             self._vin, temp, duration, defrost,
         )
-        if confirmed:
+        if not confirmed:
             new_data = dict(self.coordinator.data)
-            new_data["climate_defrost"] = defrost
+            new_data["climate_defrost"] = prev
             self.coordinator.async_set_updated_data(new_data)
 
 
