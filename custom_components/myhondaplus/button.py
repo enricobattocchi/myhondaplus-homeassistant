@@ -24,9 +24,15 @@ BUTTON_DESCRIPTIONS: list[HondaButtonDescription] = [
         action="horn_lights",
     ),
     HondaButtonDescription(
+        key="refresh_cached",
+        translation_key="refresh_cached",
+        icon="mdi:refresh",
+        action="refresh_cached",
+    ),
+    HondaButtonDescription(
         key="refresh_data",
         translation_key="refresh_data",
-        icon="mdi:refresh",
+        icon="mdi:refresh-circle",
         action="refresh",
     ),
 ]
@@ -57,5 +63,7 @@ class HondaButton(MyHondaPlusEntity, ButtonEntity):
 
         if action == "horn_lights":
             await self.coordinator.async_send_command_and_wait(api.remote_horn_lights, vin)
+        elif action == "refresh_cached":
+            await self.coordinator.async_request_refresh()
         elif action == "refresh":
             await self.coordinator.async_refresh_from_car()
