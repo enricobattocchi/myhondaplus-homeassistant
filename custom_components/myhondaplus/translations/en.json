@@ -108,6 +108,7 @@
     },
     "button": {
       "horn_lights": { "name": "Horn & lights" },
+      "refresh_cached": { "name": "Refresh" },
       "refresh_data": { "name": "Refresh from car" }
     },
     "lock": {
