@@ -42,7 +42,7 @@ def _handle_api_error(
     ConfigEntryAuthFailed for auth errors, or raises UpdateFailed/HomeAssistantError.
     """
     persist_tokens()
-    if isinstance(err, HondaAuthError) or err.status_code == 401:
+    if isinstance(err, HondaAuthError):
         raise ConfigEntryAuthFailed from err
     if err.status_code and err.status_code >= 500 and cached_data is not None:
         LOGGER.warning("Transient server error (%s), keeping cached data", err.status_code)
