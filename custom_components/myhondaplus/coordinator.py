@@ -1,6 +1,5 @@
 """Data coordinator for My Honda+."""
 
-import asyncio
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
@@ -10,6 +9,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from pymyhondaplus.api import (
     HondaAPI,
     HondaAPIError,
+    HondaAuthError,
     compute_trip_stats,
     parse_charge_schedule,
     parse_climate_schedule,
@@ -39,10 +39,10 @@ def _handle_api_error(
     """Handle HondaAPIError consistently across coordinators.
 
     Returns cached data for transient 5xx errors, raises
-    ConfigEntryAuthFailed for 401, or raises UpdateFailed/HomeAssistantError.
+    ConfigEntryAuthFailed for auth errors, or raises UpdateFailed/HomeAssistantError.
     """
     persist_tokens()
-    if err.status_code == 401:
+    if isinstance(err, HondaAuthError):
         raise ConfigEntryAuthFailed from err
     if err.status_code and err.status_code >= 500 and cached_data is not None:
         LOGGER.warning("Transient server error (%s), keeping cached data", err.status_code)
@@ -139,27 +139,17 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         self._persist_tokens_if_changed()
         return result
 
-    async def _async_poll_command(self, command_id: str, timeout: int = 60) -> bool:
-        """Poll a command until confirmed or timeout. Returns True if confirmed."""
-        if not command_id:
-            return False
-        polls = timeout // 2
-        for _ in range(polls):
-            result = await self.hass.async_add_executor_job(
-                self.api.poll_command, command_id,
-            )
-            if result["status_code"] == 200:
-                return True
-            await asyncio.sleep(2)
-        return False
-
     async def async_send_command_and_wait(self, func, *args, timeout: int = 60) -> bool:
         """Send a command and wait for confirmation. Raises on send failure."""
         command_id = await self.async_send_command(func, *args)
-        confirmed = await self._async_poll_command(command_id, timeout)
-        if not confirmed:
-            LOGGER.warning("Command timed out waiting for confirmation (id=%s)", command_id)
-        return confirmed
+        if not command_id:
+            return False
+        result = await self.hass.async_add_executor_job(
+            self.api.wait_for_command, command_id, timeout,
+        )
+        if not result.success:
+            LOGGER.warning("Command did not succeed (id=%s, status=%s)", command_id, result.status)
+        return result.success
 
     async def async_refresh_location(self) -> None:
         """Request fresh GPS location from the car and update dashboard."""
@@ -167,7 +157,9 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             command_id = await self.async_send_command(
                 self.api.request_car_location, self.vin,
             )
-            await self._async_poll_command(command_id)
+            await self.hass.async_add_executor_job(
+                self.api.wait_for_command, command_id,
+            )
             data = await self.hass.async_add_executor_job(self._fetch_data)
         except HondaAPIError as err:
             _handle_api_error(err, self._persist_tokens_if_changed)

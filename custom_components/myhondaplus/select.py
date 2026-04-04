@@ -53,17 +53,21 @@ class HondaClimateTempSelect(MyHondaPlusEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Update climate temperature setting on the vehicle."""
         data = self.coordinator.data or {}
+        prev = data.get("climate_temp")
         duration = data.get("climate_duration", 30)
         if duration not in (10, 20, 30):
             duration = 30
         defrost = data.get("climate_defrost", True)
+        new_data = dict(self.coordinator.data)
+        new_data["climate_temp"] = option
+        self.coordinator.async_set_updated_data(new_data)
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.set_climate_settings,
             self._vin, option, duration, defrost,
         )
-        if confirmed:
+        if not confirmed:
             new_data = dict(self.coordinator.data)
-            new_data["climate_temp"] = option
+            new_data["climate_temp"] = prev
             self.coordinator.async_set_updated_data(new_data)
 
 
@@ -92,16 +96,20 @@ class HondaClimateDurationSelect(MyHondaPlusEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Update climate duration setting on the vehicle."""
         data = self.coordinator.data or {}
+        prev = data.get("climate_duration")
         temp = data.get("climate_temp", "normal")
         if temp not in CLIMATE_TEMP_OPTIONS:
             temp = "normal"
         defrost = data.get("climate_defrost", True)
         duration = int(option)
+        new_data = dict(self.coordinator.data)
+        new_data["climate_duration"] = duration
+        self.coordinator.async_set_updated_data(new_data)
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.set_climate_settings,
             self._vin, temp, duration, defrost,
         )
-        if confirmed:
+        if not confirmed:
             new_data = dict(self.coordinator.data)
-            new_data["climate_duration"] = duration
+            new_data["climate_duration"] = prev
             self.coordinator.async_set_updated_data(new_data)

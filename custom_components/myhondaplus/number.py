@@ -73,6 +73,7 @@ class HondaChargeLimitNumber(MyHondaPlusEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         data = self.coordinator.data or {}
+        prev = data.get(self.entity_description.key)
         home = data.get("charge_limit_home", 80)
         away = data.get("charge_limit_away", 90)
 
@@ -81,10 +82,13 @@ class HondaChargeLimitNumber(MyHondaPlusEntity, NumberEntity):
         else:
             away = int(value)
 
+        new_data = dict(self.coordinator.data)
+        new_data[self.entity_description.key] = int(value)
+        self.coordinator.async_set_updated_data(new_data)
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.set_charge_limit, self._vin, home, away,
         )
-        if confirmed and self.coordinator.data is not None:
-            data = dict(self.coordinator.data)
-            data[self.entity_description.key] = int(value)
-            self.coordinator.async_set_updated_data(data)
+        if not confirmed:
+            new_data = dict(self.coordinator.data)
+            new_data[self.entity_description.key] = prev
+            self.coordinator.async_set_updated_data(new_data)
