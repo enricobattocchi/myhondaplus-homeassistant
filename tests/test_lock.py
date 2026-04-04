@@ -14,6 +14,7 @@ def door_lock(mock_coordinator):
     """Create a HondaDoorLock instance."""
     lock = HondaDoorLock(mock_coordinator, MOCK_VIN, MOCK_VEHICLE_NAME)
     lock.hass = MagicMock()
+    lock.async_write_ha_state = MagicMock()
     return lock
 
 
