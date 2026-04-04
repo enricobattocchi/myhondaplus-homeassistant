@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from pymyhondaplus.api import HondaAPIError
+from pymyhondaplus.api import HondaAPIError, HondaAuthError
 
 from custom_components.myhondaplus.coordinator import (
     HondaDataUpdateCoordinator,
@@ -73,7 +73,7 @@ class TestHondaDataUpdateCoordinator:
 
     @pytest.mark.asyncio
     async def test_update_401_raises_auth_failed(self, coordinator):
-        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(401, "Unauthorized")
+        coordinator.hass.async_add_executor_job.side_effect = HondaAuthError(401, "Unauthorized")
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator._async_update_data()
 
@@ -122,7 +122,7 @@ class TestHondaDataUpdateCoordinator:
 
     @pytest.mark.asyncio
     async def test_refresh_from_car_401(self, coordinator):
-        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(401, "Unauthorized")
+        coordinator.hass.async_add_executor_job.side_effect = HondaAuthError(401, "Unauthorized")
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator.async_refresh_from_car()
 
@@ -143,7 +143,7 @@ class TestHondaDataUpdateCoordinator:
     @pytest.mark.asyncio
     async def test_send_command_401(self, coordinator):
         func = MagicMock()
-        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(401, "Unauthorized")
+        coordinator.hass.async_add_executor_job.side_effect = HondaAuthError(401, "Unauthorized")
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator.async_send_command(func)
 
@@ -164,7 +164,7 @@ class TestHondaTripCoordinator:
 
     @pytest.mark.asyncio
     async def test_update_401_raises_auth_failed(self, trip_coordinator):
-        trip_coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(401, "Unauthorized")
+        trip_coordinator.hass.async_add_executor_job.side_effect = HondaAuthError(401, "Unauthorized")
         with pytest.raises(ConfigEntryAuthFailed):
             await trip_coordinator._async_update_data()
 
