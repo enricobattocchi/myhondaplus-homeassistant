@@ -47,7 +47,7 @@ On first setup, Honda will send a verification email. Copy the link URL (don't c
 
 Units are dynamic — the integration uses whatever the vehicle reports (km/miles, °C/°F).
 
-All remote commands wait for the car to confirm execution before updating the UI.
+Remote commands update the UI optimistically (the state changes immediately) and revert if the command fails. The lock entity shows "Locking..."/"Unlocking..." transition states.
 
 ### Sensors
 - **Battery & charging**: Battery level, Range, Total range, Charge status, Plug status, Charge mode, Time to full charge
@@ -82,6 +82,7 @@ All remote commands wait for the car to confirm execution before updating the UI
 
 ### Buttons
 - **Horn & lights** — flash lights and honk horn
+- **Refresh** — re-fetch cached data from Honda's servers (instant, no car wake-up)
 - **Refresh from car** — request fresh data from the vehicle (wakes the TCU)
 
 ### Numbers
