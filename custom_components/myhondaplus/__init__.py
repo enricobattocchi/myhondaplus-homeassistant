@@ -3,7 +3,10 @@
 import voluptuous as vol
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
+from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.event import async_call_later
+from homeassistant.helpers.target import TargetSelection, async_extract_referenced_entity_ids
 
 from .const import (
     CONF_CAR_REFRESH_INTERVAL,
@@ -134,12 +137,57 @@ def _schedule_location_refresh(
     )
 
 
-def _get_coordinator(hass: HomeAssistant) -> HondaDataUpdateCoordinator:
-    """Get the first available coordinator."""
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if hasattr(entry, "runtime_data") and entry.runtime_data:
-            return entry.runtime_data.coordinator
-    raise ValueError("No My Honda+ config entry found")
+def _get_coordinator(
+    hass: HomeAssistant, call: ServiceCall | None = None,
+) -> HondaDataUpdateCoordinator:
+    """Resolve the coordinator for a service call target."""
+    entries = [
+        entry for entry in hass.config_entries.async_entries(DOMAIN)
+        if hasattr(entry, "runtime_data") and entry.runtime_data
+    ]
+    if not entries:
+        raise ValueError("No My Honda+ config entry found")
+
+    target_selection = TargetSelection(call.data) if call is not None else None
+    if target_selection is None or not target_selection.has_any_target:
+        if len(entries) == 1:
+            return entries[0].runtime_data.coordinator
+        raise ServiceValidationError(
+            "Multiple My Honda+ vehicles are configured; target a specific vehicle entity."
+        )
+
+    selected = async_extract_referenced_entity_ids(hass, target_selection)
+    entity_ids = selected.referenced | selected.indirectly_referenced
+    device_ids = selected.referenced_devices
+    ent_reg = er.async_get(hass)
+    dev_reg = dr.async_get(hass)
+
+    matching_entries = []
+    for entry in entries:
+        if any(
+            (entity_entry := ent_reg.async_get(entity_id)) is not None
+            and entity_entry.config_entry_id == entry.entry_id
+            for entity_id in entity_ids
+        ):
+            matching_entries.append(entry)
+            continue
+
+        if any(
+            (device_entry := dev_reg.async_get(device_id)) is not None
+            and entry.entry_id in device_entry.config_entries
+            for device_id in device_ids
+        ):
+            matching_entries.append(entry)
+
+    if len(matching_entries) == 1:
+        return matching_entries[0].runtime_data.coordinator
+    if not matching_entries:
+        raise ServiceValidationError(
+            "The selected target does not belong to a My Honda+ vehicle."
+        )
+    raise ServiceValidationError(
+        "The selected target matches multiple My Honda+ vehicles; narrow the service target."
+    )
 
 
 def _register_services(hass: HomeAssistant) -> None:
@@ -172,7 +220,7 @@ def _register_services(hass: HomeAssistant) -> None:
         async_call_later(hass, 30, _refresh)
 
     async def handle_set_charge_schedule(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(hass, call)
         rules = call.data["rules"]
         await coordinator.async_send_command(
             coordinator.api.set_charge_schedule, coordinator.vin, rules,
@@ -180,7 +228,7 @@ def _register_services(hass: HomeAssistant) -> None:
         _optimistic_schedule_update(coordinator, "charge_schedule", rules)
 
     async def handle_set_climate_schedule(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(hass, call)
         rules = call.data["rules"]
         await coordinator.async_send_command(
             coordinator.api.set_climate_schedule, coordinator.vin, rules,
@@ -188,7 +236,7 @@ def _register_services(hass: HomeAssistant) -> None:
         _optimistic_schedule_update(coordinator, "climate_schedule", rules)
 
     async def handle_climate_on(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(hass, call)
         temp = call.data.get("temp", "normal")
         duration = call.data.get("duration", 30)
         defrost = call.data.get("defrost", True)
