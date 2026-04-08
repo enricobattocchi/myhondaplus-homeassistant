@@ -1,9 +1,11 @@
 """Tests for __init__.py (services, setup, unload)."""
 
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 import voluptuous as vol
+from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.myhondaplus import (
     SERVICE_CLIMATE_ON,
@@ -42,6 +44,7 @@ class TestGetCoordinator:
         entry = MagicMock()
         entry.runtime_data = MagicMock()
         entry.runtime_data.coordinator = mock_coordinator
+        entry.entry_id = "entry_1"
         hass.config_entries.async_entries.return_value = [entry]
         assert _get_coordinator(hass) is mock_coordinator
 
@@ -57,8 +60,57 @@ class TestGetCoordinator:
         entry_with_data = MagicMock()
         entry_with_data.runtime_data = MagicMock()
         entry_with_data.runtime_data.coordinator = mock_coordinator
+        entry_with_data.entry_id = "entry_1"
         hass.config_entries.async_entries.return_value = [entry_no_data, entry_with_data]
         assert _get_coordinator(hass) is mock_coordinator
+
+    def test_raises_without_target_when_multiple_entries(self, mock_coordinator):
+        hass = MagicMock()
+        entry_1 = MagicMock()
+        entry_1.entry_id = "entry_1"
+        entry_1.runtime_data = MagicMock()
+        entry_1.runtime_data.coordinator = mock_coordinator
+        entry_2 = MagicMock()
+        entry_2.entry_id = "entry_2"
+        entry_2.runtime_data = MagicMock()
+        entry_2.runtime_data.coordinator = MagicMock()
+        hass.config_entries.async_entries.return_value = [entry_1, entry_2]
+
+        with pytest.raises(ServiceValidationError, match="target a specific vehicle entity"):
+            _get_coordinator(hass, MagicMock(data={}))
+
+    def test_resolves_targeted_entry(self, mock_coordinator):
+        hass = MagicMock()
+        entry_1 = MagicMock()
+        entry_1.entry_id = "entry_1"
+        entry_1.runtime_data = MagicMock()
+        entry_1.runtime_data.coordinator = mock_coordinator
+        entry_2 = MagicMock()
+        entry_2.entry_id = "entry_2"
+        entry_2.runtime_data = MagicMock()
+        other_coordinator = MagicMock()
+        entry_2.runtime_data.coordinator = other_coordinator
+        hass.config_entries.async_entries.return_value = [entry_1, entry_2]
+
+        call = MagicMock()
+        call.data = {"entity_id": "sensor.honda_two_battery_level"}
+
+        entity_registry = MagicMock()
+        entity_registry.async_get.side_effect = lambda entity_id: {
+            "sensor.honda_two_battery_level": SimpleNamespace(config_entry_id="entry_2"),
+        }.get(entity_id)
+
+        with patch("custom_components.myhondaplus.er.async_get", return_value=entity_registry), \
+             patch("custom_components.myhondaplus.dr.async_get", return_value=MagicMock()), \
+             patch(
+                 "custom_components.myhondaplus.async_extract_referenced_entity_ids",
+                 return_value=SimpleNamespace(
+                     referenced={"sensor.honda_two_battery_level"},
+                     indirectly_referenced=set(),
+                     referenced_devices=set(),
+                 ),
+             ):
+            assert _get_coordinator(hass, call) is other_coordinator
 
 
 class TestRegisterServices:
@@ -228,3 +280,26 @@ class TestServiceHandlers:
 
         mock_coordinator.async_send_command.assert_awaited_once()
         mock_coordinator.async_set_updated_data.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_handlers_pass_service_call_to_target_resolution(
+        self, mock_hass_with_services, mock_coordinator,
+    ):
+        _register_services(mock_hass_with_services)
+        handlers = {
+            call[0][1]: call[0][2]
+            for call in mock_hass_with_services.services.async_register.call_args_list
+        }
+
+        call = MagicMock()
+        call.data = {
+            "entity_id": "sensor.honda_two_battery_level",
+            "rules": [{"days": "mon", "start_time": "07:00"}],
+        }
+        with patch(
+            "custom_components.myhondaplus._get_coordinator",
+            return_value=mock_coordinator,
+        ) as get_coordinator:
+            await handlers[SERVICE_SET_CLIMATE_SCHEDULE](call)
+
+        get_coordinator.assert_called_once_with(mock_hass_with_services, call)
