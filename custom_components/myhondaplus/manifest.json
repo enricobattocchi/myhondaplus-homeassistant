@@ -1,7 +1,7 @@
 {
   "domain": "myhondaplus",
   "name": "My Honda+",
-  "codeowners": [],
+  "codeowners": ["@enricobattocchi"],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/enricobattocchi/myhondaplus-homeassistant",
