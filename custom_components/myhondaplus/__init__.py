@@ -1,5 +1,7 @@
 """My Honda+ integration for Home Assistant."""
 
+import re
+
 import voluptuous as vol
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
@@ -25,17 +27,45 @@ SERVICE_SET_CHARGE_SCHEDULE = "set_charge_schedule"
 SERVICE_SET_CLIMATE_SCHEDULE = "set_climate_schedule"
 SERVICE_CLIMATE_ON = "climate_on"
 
+
+VALID_DAYS = {"mon", "tue", "wed", "thu", "fri", "sat", "sun"}
+TIME_PATTERN = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+
+
+def _validate_days(value: str) -> str:
+    """Validate a comma-separated weekday list."""
+    if not isinstance(value, str):
+        raise vol.Invalid("days must be a comma-separated string")
+    days = [day.strip().lower() for day in value.split(",") if day.strip()]
+    if not days:
+        raise vol.Invalid("at least one day is required")
+    if any(day not in VALID_DAYS for day in days):
+        raise vol.Invalid("days must only contain mon-sun")
+    if len(days) != len(set(days)):
+        raise vol.Invalid("days must not contain duplicates")
+    return ",".join(days)
+
+
+def _validate_time(value: str) -> str:
+    """Validate a time string in HH:MM format."""
+    if not isinstance(value, str):
+        raise vol.Invalid("time must be a string")
+    if not TIME_PATTERN.match(value):
+        raise vol.Invalid("time must be in HH:MM format")
+    return value
+
+
 CHARGE_RULE_SCHEMA = vol.Schema({
-    vol.Required("days"): str,
+    vol.Required("days"): _validate_days,
     vol.Required("location"): vol.In(["home", "all"]),
-    vol.Required("start_time"): str,
-    vol.Required("end_time"): str,
+    vol.Required("start_time"): _validate_time,
+    vol.Required("end_time"): _validate_time,
     vol.Optional("enabled", default=True): bool,
 })
 
 CLIMATE_RULE_SCHEMA = vol.Schema({
-    vol.Required("days"): str,
-    vol.Required("start_time"): str,
+    vol.Required("days"): _validate_days,
+    vol.Required("start_time"): _validate_time,
     vol.Optional("enabled", default=True): bool,
 })
 
@@ -45,10 +75,10 @@ SERVICE_CLIMATE_ON_SCHEMA = vol.Schema({
     vol.Optional("defrost", default=True): bool,
 })
 SERVICE_CHARGE_SCHEDULE_SCHEMA = vol.Schema({
-    vol.Required("rules"): [CHARGE_RULE_SCHEMA],
+    vol.Required("rules"): vol.All([CHARGE_RULE_SCHEMA], vol.Length(max=2)),
 })
 SERVICE_CLIMATE_SCHEDULE_SCHEMA = vol.Schema({
-    vol.Required("rules"): [CLIMATE_RULE_SCHEMA],
+    vol.Required("rules"): vol.All([CLIMATE_RULE_SCHEMA], vol.Length(max=7)),
 })
 
 

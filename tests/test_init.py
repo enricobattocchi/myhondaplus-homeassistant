@@ -171,6 +171,72 @@ class TestChargeScheduleSchema:
                 }],
             })
 
+    def test_invalid_day_token(self):
+        from custom_components.myhondaplus import SERVICE_CHARGE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CHARGE_SCHEDULE_SCHEMA({
+                "rules": [{
+                    "days": "mon,holiday",
+                    "location": "home",
+                    "start_time": "22:00",
+                    "end_time": "06:00",
+                }],
+            })
+
+    def test_duplicate_days(self):
+        from custom_components.myhondaplus import SERVICE_CHARGE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CHARGE_SCHEDULE_SCHEMA({
+                "rules": [{
+                    "days": "mon,mon",
+                    "location": "home",
+                    "start_time": "22:00",
+                    "end_time": "06:00",
+                }],
+            })
+
+    def test_invalid_time(self):
+        from custom_components.myhondaplus import SERVICE_CHARGE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CHARGE_SCHEDULE_SCHEMA({
+                "rules": [{
+                    "days": "mon",
+                    "location": "home",
+                    "start_time": "25:00",
+                    "end_time": "06:00",
+                }],
+            })
+
+    def test_max_two_rules(self):
+        from custom_components.myhondaplus import SERVICE_CHARGE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CHARGE_SCHEDULE_SCHEMA({
+                "rules": [
+                    {
+                        "days": "mon",
+                        "location": "home",
+                        "start_time": "22:00",
+                        "end_time": "06:00",
+                    },
+                    {
+                        "days": "tue",
+                        "location": "home",
+                        "start_time": "22:00",
+                        "end_time": "06:00",
+                    },
+                    {
+                        "days": "wed",
+                        "location": "home",
+                        "start_time": "22:00",
+                        "end_time": "06:00",
+                    },
+                ],
+            })
+
 
 class TestClimateScheduleSchema:
     def test_valid_climate_rule(self):
@@ -187,6 +253,39 @@ class TestClimateScheduleSchema:
         with pytest.raises(vol.Invalid):
             SERVICE_CLIMATE_SCHEDULE_SCHEMA({
                 "rules": [{"start_time": "07:00"}],
+            })
+
+    def test_invalid_time(self):
+        from custom_components.myhondaplus import SERVICE_CLIMATE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CLIMATE_SCHEDULE_SCHEMA({
+                "rules": [{"days": "mon", "start_time": "7:00"}],
+            })
+
+    def test_invalid_day_token(self):
+        from custom_components.myhondaplus import SERVICE_CLIMATE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CLIMATE_SCHEDULE_SCHEMA({
+                "rules": [{"days": "mon,foo", "start_time": "07:00"}],
+            })
+
+    def test_max_seven_rules(self):
+        from custom_components.myhondaplus import SERVICE_CLIMATE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CLIMATE_SCHEDULE_SCHEMA({
+                "rules": [
+                    {"days": "mon", "start_time": "07:00"},
+                    {"days": "tue", "start_time": "07:00"},
+                    {"days": "wed", "start_time": "07:00"},
+                    {"days": "thu", "start_time": "07:00"},
+                    {"days": "fri", "start_time": "07:00"},
+                    {"days": "sat", "start_time": "07:00"},
+                    {"days": "sun", "start_time": "07:00"},
+                    {"days": "mon", "start_time": "08:00"},
+                ],
             })
 
 
