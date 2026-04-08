@@ -14,6 +14,7 @@ from homeassistant.helpers.target import TargetSelection, async_extract_referenc
 from .const import (
     CONF_CAR_REFRESH_INTERVAL,
     CONF_LOCATION_REFRESH_INTERVAL,
+    CONF_VEHICLE_NAME,
     DEFAULT_CAR_REFRESH_INTERVAL,
     DEFAULT_LOCATION_REFRESH_INTERVAL,
     DOMAIN,
@@ -71,14 +72,17 @@ CLIMATE_RULE_SCHEMA = vol.Schema({
 })
 
 SERVICE_CLIMATE_ON_FIELDS = {
+    vol.Optional(CONF_VEHICLE_NAME): str,
     vol.Optional("temp", default="normal"): vol.In(["cooler", "normal", "hotter"]),
     vol.Optional("duration", default=30): vol.In([10, 20, 30]),
     vol.Optional("defrost", default=True): bool,
 }
 SERVICE_CHARGE_SCHEDULE_FIELDS = {
+    vol.Optional(CONF_VEHICLE_NAME): str,
     vol.Required("rules"): vol.All([CHARGE_RULE_SCHEMA], vol.Length(max=2)),
 }
 SERVICE_CLIMATE_SCHEDULE_FIELDS = {
+    vol.Optional(CONF_VEHICLE_NAME): str,
     vol.Required("rules"): vol.All([CLIMATE_RULE_SCHEMA], vol.Length(max=7)),
 }
 
@@ -189,12 +193,28 @@ def _get_coordinator(
     if not entries:
         raise ValueError("No My Honda+ config entry found")
 
+    requested_vehicle_name = call.data.get(CONF_VEHICLE_NAME) if call is not None else None
+    if requested_vehicle_name:
+        matching_entries = [
+            entry for entry in entries
+            if entry.data.get(CONF_VEHICLE_NAME) == requested_vehicle_name
+        ]
+        if len(matching_entries) == 1:
+            return matching_entries[0].runtime_data.coordinator
+        if not matching_entries:
+            raise ServiceValidationError(
+                f"No My Honda+ vehicle found for vehicle_name '{requested_vehicle_name}'."
+            )
+        raise ServiceValidationError(
+            f"Multiple My Honda+ vehicles share the name '{requested_vehicle_name}'; use a target instead."
+        )
+
     target_selection = TargetSelection(call.data) if call is not None else None
     if target_selection is None or not target_selection.has_any_target:
         if len(entries) == 1:
             return entries[0].runtime_data.coordinator
         raise ServiceValidationError(
-            "Multiple My Honda+ vehicles are configured; target a specific vehicle entity."
+            "Multiple My Honda+ vehicles are configured; provide a vehicle_name or target a specific vehicle."
         )
 
     selected = async_extract_referenced_entity_ids(hass, target_selection)

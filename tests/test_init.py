@@ -15,6 +15,7 @@ from custom_components.myhondaplus import (
     _get_coordinator,
     _register_services,
 )
+from custom_components.myhondaplus.const import CONF_VEHICLE_NAME, CONF_VIN
 
 
 @pytest.fixture
@@ -68,25 +69,29 @@ class TestGetCoordinator:
         hass = MagicMock()
         entry_1 = MagicMock()
         entry_1.entry_id = "entry_1"
+        entry_1.data = {CONF_VIN: "VIN1", CONF_VEHICLE_NAME: "Car 1"}
         entry_1.runtime_data = MagicMock()
         entry_1.runtime_data.coordinator = mock_coordinator
         entry_2 = MagicMock()
         entry_2.entry_id = "entry_2"
+        entry_2.data = {CONF_VIN: "VIN2", CONF_VEHICLE_NAME: "Car 2"}
         entry_2.runtime_data = MagicMock()
         entry_2.runtime_data.coordinator = MagicMock()
         hass.config_entries.async_entries.return_value = [entry_1, entry_2]
 
-        with pytest.raises(ServiceValidationError, match="target a specific vehicle entity"):
+        with pytest.raises(ServiceValidationError, match="provide a vehicle_name or target a specific vehicle"):
             _get_coordinator(hass, MagicMock(data={}))
 
     def test_resolves_targeted_entry(self, mock_coordinator):
         hass = MagicMock()
         entry_1 = MagicMock()
         entry_1.entry_id = "entry_1"
+        entry_1.data = {CONF_VIN: "VIN1", CONF_VEHICLE_NAME: "Car 1"}
         entry_1.runtime_data = MagicMock()
         entry_1.runtime_data.coordinator = mock_coordinator
         entry_2 = MagicMock()
         entry_2.entry_id = "entry_2"
+        entry_2.data = {CONF_VIN: "VIN2", CONF_VEHICLE_NAME: "Car 2"}
         entry_2.runtime_data = MagicMock()
         other_coordinator = MagicMock()
         entry_2.runtime_data.coordinator = other_coordinator
@@ -111,6 +116,55 @@ class TestGetCoordinator:
                  ),
              ):
             assert _get_coordinator(hass, call) is other_coordinator
+
+    def test_resolves_entry_by_vehicle_name(self, mock_coordinator):
+        hass = MagicMock()
+        entry_1 = MagicMock()
+        entry_1.entry_id = "entry_1"
+        entry_1.data = {CONF_VIN: "VIN1", CONF_VEHICLE_NAME: "Car 1"}
+        entry_1.runtime_data = MagicMock()
+        entry_1.runtime_data.coordinator = mock_coordinator
+        entry_2 = MagicMock()
+        entry_2.entry_id = "entry_2"
+        entry_2.data = {CONF_VIN: "VIN2", CONF_VEHICLE_NAME: "Car 2"}
+        entry_2.runtime_data = MagicMock()
+        other_coordinator = MagicMock()
+        entry_2.runtime_data.coordinator = other_coordinator
+        hass.config_entries.async_entries.return_value = [entry_1, entry_2]
+
+        call = MagicMock()
+        call.data = {CONF_VEHICLE_NAME: "Car 2"}
+
+        assert _get_coordinator(hass, call) is other_coordinator
+
+    def test_raises_for_unknown_vehicle_name(self, mock_coordinator):
+        hass = MagicMock()
+        entry = MagicMock()
+        entry.entry_id = "entry_1"
+        entry.data = {CONF_VIN: "VIN1", CONF_VEHICLE_NAME: "Car 1"}
+        entry.runtime_data = MagicMock()
+        entry.runtime_data.coordinator = mock_coordinator
+        hass.config_entries.async_entries.return_value = [entry]
+
+        with pytest.raises(ServiceValidationError, match="No My Honda\\+ vehicle found for vehicle_name 'Car 2'"):
+            _get_coordinator(hass, MagicMock(data={CONF_VEHICLE_NAME: "Car 2"}))
+
+    def test_raises_for_duplicate_vehicle_names(self, mock_coordinator):
+        hass = MagicMock()
+        entry_1 = MagicMock()
+        entry_1.entry_id = "entry_1"
+        entry_1.data = {CONF_VIN: "VIN1", CONF_VEHICLE_NAME: "Honda"}
+        entry_1.runtime_data = MagicMock()
+        entry_1.runtime_data.coordinator = mock_coordinator
+        entry_2 = MagicMock()
+        entry_2.entry_id = "entry_2"
+        entry_2.data = {CONF_VIN: "VIN2", CONF_VEHICLE_NAME: "Honda"}
+        entry_2.runtime_data = MagicMock()
+        entry_2.runtime_data.coordinator = MagicMock()
+        hass.config_entries.async_entries.return_value = [entry_1, entry_2]
+
+        with pytest.raises(ServiceValidationError, match="Multiple My Honda\\+ vehicles share the name 'Honda'"):
+            _get_coordinator(hass, MagicMock(data={CONF_VEHICLE_NAME: "Honda"}))
 
 
 class TestRegisterServices:
@@ -141,6 +195,7 @@ class TestChargeScheduleSchema:
         from custom_components.myhondaplus import SERVICE_CHARGE_SCHEDULE_SCHEMA
 
         result = SERVICE_CHARGE_SCHEDULE_SCHEMA({
+            "vehicle_name": "Car 1",
             "device_id": "device-123",
             "rules": [{
                 "days": "mon,tue,wed",
@@ -149,6 +204,7 @@ class TestChargeScheduleSchema:
                 "end_time": "06:00",
             }],
         })
+        assert result["vehicle_name"] == "Car 1"
         assert result["device_id"] == ["device-123"]
         assert result["rules"][0]["enabled"] is True
 
@@ -245,9 +301,11 @@ class TestClimateScheduleSchema:
         from custom_components.myhondaplus import SERVICE_CLIMATE_SCHEDULE_SCHEMA
 
         result = SERVICE_CLIMATE_SCHEDULE_SCHEMA({
+            "vehicle_name": "Car 1",
             "device_id": "device-123",
             "rules": [{"days": "mon,fri", "start_time": "07:00"}],
         })
+        assert result["vehicle_name"] == "Car 1"
         assert result["device_id"] == ["device-123"]
         assert result["rules"][0]["enabled"] is True
 
@@ -295,17 +353,20 @@ class TestClimateScheduleSchema:
 
 class TestClimateOnSchema:
     def test_defaults(self):
-        result = SERVICE_CLIMATE_ON_SCHEMA({})
+        result = SERVICE_CLIMATE_ON_SCHEMA({"vehicle_name": "Car 1"})
+        assert result["vehicle_name"] == "Car 1"
         assert result["temp"] == "normal"
         assert result["duration"] == 30
         assert result["defrost"] is True
 
     def test_valid_values(self):
         result = SERVICE_CLIMATE_ON_SCHEMA({
+            "vehicle_name": "Car 1",
             "temp": "cooler",
             "duration": 10,
             "defrost": False,
         })
+        assert result["vehicle_name"] == "Car 1"
         assert result["temp"] == "cooler"
         assert result["duration"] == 10
         assert result["defrost"] is False
