@@ -3,6 +3,13 @@ set_charge_schedule:
   description: Set the charge prohibition schedule (up to 2 rules). Pass an empty list to clear.
 
   fields:
+    vehicle_name:
+      name: Vehicle Name
+      description: Optional vehicle name to select the vehicle explicitly, useful when multiple Honda vehicles are configured.
+      required: false
+      example: "Honda e Test"
+      selector:
+        text:
     rules:
       name: Rules
       description: >
@@ -18,6 +25,13 @@ climate_on:
   description: Start climate pre-conditioning with specific temperature, duration, and defrost settings.
 
   fields:
+    vehicle_name:
+      name: Vehicle Name
+      description: Optional vehicle name to select the vehicle explicitly, useful when multiple Honda vehicles are configured.
+      required: false
+      example: "Honda e Test"
+      selector:
+        text:
     temp:
       name: Temperature
       description: Temperature setting (cooler, normal, hotter)
@@ -56,6 +70,13 @@ set_climate_schedule:
   description: Set the climate pre-conditioning schedule (up to 7 rules). Pass an empty list to clear.
 
   fields:
+    vehicle_name:
+      name: Vehicle Name
+      description: Optional vehicle name to select the vehicle explicitly, useful when multiple Honda vehicles are configured.
+      required: false
+      example: "Honda e Test"
+      selector:
+        text:
     rules:
       name: Rules
       description: >
