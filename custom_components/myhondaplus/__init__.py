@@ -6,6 +6,7 @@ import voluptuous as vol
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.target import TargetSelection, async_extract_referenced_entity_ids
@@ -69,17 +70,27 @@ CLIMATE_RULE_SCHEMA = vol.Schema({
     vol.Optional("enabled", default=True): bool,
 })
 
-SERVICE_CLIMATE_ON_SCHEMA = vol.Schema({
+SERVICE_CLIMATE_ON_FIELDS = {
     vol.Optional("temp", default="normal"): vol.In(["cooler", "normal", "hotter"]),
     vol.Optional("duration", default=30): vol.In([10, 20, 30]),
     vol.Optional("defrost", default=True): bool,
-})
-SERVICE_CHARGE_SCHEDULE_SCHEMA = vol.Schema({
+}
+SERVICE_CHARGE_SCHEDULE_FIELDS = {
     vol.Required("rules"): vol.All([CHARGE_RULE_SCHEMA], vol.Length(max=2)),
-})
-SERVICE_CLIMATE_SCHEDULE_SCHEMA = vol.Schema({
+}
+SERVICE_CLIMATE_SCHEDULE_FIELDS = {
     vol.Required("rules"): vol.All([CLIMATE_RULE_SCHEMA], vol.Length(max=7)),
-})
+}
+
+SERVICE_CLIMATE_ON_SCHEMA = vol.Schema(
+    {**SERVICE_CLIMATE_ON_FIELDS, **cv.TARGET_SERVICE_FIELDS},
+)
+SERVICE_CHARGE_SCHEDULE_SCHEMA = vol.Schema(
+    {**SERVICE_CHARGE_SCHEDULE_FIELDS, **cv.TARGET_SERVICE_FIELDS},
+)
+SERVICE_CLIMATE_SCHEDULE_SCHEMA = vol.Schema(
+    {**SERVICE_CLIMATE_SCHEDULE_FIELDS, **cv.TARGET_SERVICE_FIELDS},
+)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> bool:

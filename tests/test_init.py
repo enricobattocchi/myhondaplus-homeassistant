@@ -141,6 +141,7 @@ class TestChargeScheduleSchema:
         from custom_components.myhondaplus import SERVICE_CHARGE_SCHEDULE_SCHEMA
 
         result = SERVICE_CHARGE_SCHEDULE_SCHEMA({
+            "device_id": "device-123",
             "rules": [{
                 "days": "mon,tue,wed",
                 "location": "home",
@@ -148,6 +149,7 @@ class TestChargeScheduleSchema:
                 "end_time": "06:00",
             }],
         })
+        assert result["device_id"] == ["device-123"]
         assert result["rules"][0]["enabled"] is True
 
     def test_missing_required_field(self):
@@ -243,8 +245,10 @@ class TestClimateScheduleSchema:
         from custom_components.myhondaplus import SERVICE_CLIMATE_SCHEDULE_SCHEMA
 
         result = SERVICE_CLIMATE_SCHEDULE_SCHEMA({
+            "device_id": "device-123",
             "rules": [{"days": "mon,fri", "start_time": "07:00"}],
         })
+        assert result["device_id"] == ["device-123"]
         assert result["rules"][0]["enabled"] is True
 
     def test_missing_days(self):
