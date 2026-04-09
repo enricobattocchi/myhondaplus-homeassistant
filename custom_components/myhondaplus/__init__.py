@@ -3,18 +3,16 @@
 import re
 
 import voluptuous as vol
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ServiceValidationError
-from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.event import async_call_later
-from homeassistant.helpers.target import TargetSelection, async_extract_referenced_entity_ids
+from homeassistant.helpers import selector
 
 from .const import (
     CONF_CAR_REFRESH_INTERVAL,
     CONF_LOCATION_REFRESH_INTERVAL,
-    CONF_VEHICLE_NAME,
     DEFAULT_CAR_REFRESH_INTERVAL,
     DEFAULT_LOCATION_REFRESH_INTERVAL,
     DOMAIN,
@@ -28,6 +26,7 @@ PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.DEVICE_TRACKER, P
 SERVICE_SET_CHARGE_SCHEDULE = "set_charge_schedule"
 SERVICE_SET_CLIMATE_SCHEDULE = "set_climate_schedule"
 SERVICE_CLIMATE_ON = "climate_on"
+ATTR_CONFIG_ENTRY = "config_entry"
 
 
 VALID_DAYS = {"mon", "tue", "wed", "thu", "fri", "sat", "sun"}
@@ -71,30 +70,31 @@ CLIMATE_RULE_SCHEMA = vol.Schema({
     vol.Optional("enabled", default=True): bool,
 })
 
+BASE_SERVICE_FIELDS = {
+    vol.Required(ATTR_CONFIG_ENTRY): selector.ConfigEntrySelector(
+        {
+            "integration": DOMAIN,
+        }
+    ),
+}
 SERVICE_CLIMATE_ON_FIELDS = {
-    vol.Optional(CONF_VEHICLE_NAME): str,
+    **BASE_SERVICE_FIELDS,
     vol.Optional("temp", default="normal"): vol.In(["cooler", "normal", "hotter"]),
     vol.Optional("duration", default=30): vol.In([10, 20, 30]),
     vol.Optional("defrost", default=True): bool,
 }
 SERVICE_CHARGE_SCHEDULE_FIELDS = {
-    vol.Optional(CONF_VEHICLE_NAME): str,
+    **BASE_SERVICE_FIELDS,
     vol.Required("rules"): vol.All([CHARGE_RULE_SCHEMA], vol.Length(max=2)),
 }
 SERVICE_CLIMATE_SCHEDULE_FIELDS = {
-    vol.Optional(CONF_VEHICLE_NAME): str,
+    **BASE_SERVICE_FIELDS,
     vol.Required("rules"): vol.All([CLIMATE_RULE_SCHEMA], vol.Length(max=7)),
 }
 
-SERVICE_CLIMATE_ON_SCHEMA = vol.Schema(
-    {**SERVICE_CLIMATE_ON_FIELDS, **cv.TARGET_SERVICE_FIELDS},
-)
-SERVICE_CHARGE_SCHEDULE_SCHEMA = vol.Schema(
-    {**SERVICE_CHARGE_SCHEDULE_FIELDS, **cv.TARGET_SERVICE_FIELDS},
-)
-SERVICE_CLIMATE_SCHEDULE_SCHEMA = vol.Schema(
-    {**SERVICE_CLIMATE_SCHEDULE_FIELDS, **cv.TARGET_SERVICE_FIELDS},
-)
+SERVICE_CLIMATE_ON_SCHEMA = vol.Schema(SERVICE_CLIMATE_ON_FIELDS)
+SERVICE_CHARGE_SCHEDULE_SCHEMA = vol.Schema(SERVICE_CHARGE_SCHEDULE_FIELDS)
+SERVICE_CLIMATE_SCHEDULE_SCHEMA = vol.Schema(SERVICE_CLIMATE_SCHEDULE_FIELDS)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> bool:
@@ -183,72 +183,24 @@ def _schedule_location_refresh(
 
 
 def _get_coordinator(
-    hass: HomeAssistant, call: ServiceCall | None = None,
+    hass: HomeAssistant, call: ServiceCall,
 ) -> HondaDataUpdateCoordinator:
-    """Resolve the coordinator for a service call target."""
-    entries = [
-        entry for entry in hass.config_entries.async_entries(DOMAIN)
-        if hasattr(entry, "runtime_data") and entry.runtime_data
-    ]
-    if not entries:
-        raise ValueError("No My Honda+ config entry found")
-
-    requested_vehicle_name = call.data.get(CONF_VEHICLE_NAME) if call is not None else None
-    if requested_vehicle_name:
-        matching_entries = [
-            entry for entry in entries
-            if entry.data.get(CONF_VEHICLE_NAME) == requested_vehicle_name
-        ]
-        if len(matching_entries) == 1:
-            return matching_entries[0].runtime_data.coordinator
-        if not matching_entries:
-            raise ServiceValidationError(
-                f"No My Honda+ vehicle found for vehicle_name '{requested_vehicle_name}'."
-            )
+    """Resolve the coordinator for a service call config entry."""
+    entry_id = call.data[ATTR_CONFIG_ENTRY]
+    entry = hass.config_entries.async_get_entry(entry_id)
+    if entry is None or entry.domain != DOMAIN:
         raise ServiceValidationError(
-            f"Multiple My Honda+ vehicles share the name '{requested_vehicle_name}'; use a target instead."
+            f"Failed to call service '{call.service}'. Config entry '{entry_id}' not found"
         )
-
-    target_selection = TargetSelection(call.data) if call is not None else None
-    if target_selection is None or not target_selection.has_any_target:
-        if len(entries) == 1:
-            return entries[0].runtime_data.coordinator
+    if entry.state != ConfigEntryState.LOADED:
         raise ServiceValidationError(
-            "Multiple My Honda+ vehicles are configured; provide a vehicle_name or target a specific vehicle."
+            f"Failed to call service '{call.service}'. Config entry '{entry_id}' not loaded"
         )
-
-    selected = async_extract_referenced_entity_ids(hass, target_selection)
-    entity_ids = selected.referenced | selected.indirectly_referenced
-    device_ids = selected.referenced_devices
-    ent_reg = er.async_get(hass)
-    dev_reg = dr.async_get(hass)
-
-    matching_entries = []
-    for entry in entries:
-        if any(
-            (entity_entry := ent_reg.async_get(entity_id)) is not None
-            and entity_entry.config_entry_id == entry.entry_id
-            for entity_id in entity_ids
-        ):
-            matching_entries.append(entry)
-            continue
-
-        if any(
-            (device_entry := dev_reg.async_get(device_id)) is not None
-            and entry.entry_id in device_entry.config_entries
-            for device_id in device_ids
-        ):
-            matching_entries.append(entry)
-
-    if len(matching_entries) == 1:
-        return matching_entries[0].runtime_data.coordinator
-    if not matching_entries:
+    if not hasattr(entry, "runtime_data") or not entry.runtime_data:
         raise ServiceValidationError(
-            "The selected target does not belong to a My Honda+ vehicle."
+            f"Failed to call service '{call.service}'. Config entry '{entry_id}' has no runtime data"
         )
-    raise ServiceValidationError(
-        "The selected target matches multiple My Honda+ vehicles; narrow the service target."
-    )
+    return entry.runtime_data.coordinator
 
 
 def _register_services(hass: HomeAssistant) -> None:
