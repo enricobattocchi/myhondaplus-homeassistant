@@ -1,6 +1,6 @@
 """Tests for __init__.py (services, setup, unload)."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import voluptuous as vol
@@ -16,6 +16,7 @@ from custom_components.myhondaplus import (
     _get_coordinator,
     _register_services,
     async_setup,
+    async_setup_entry,
 )
 from custom_components.myhondaplus.const import DOMAIN
 
@@ -112,6 +113,33 @@ class TestRegisterServices:
         _register_services(mock_hass_with_services)
         # Still only 3 calls from the first registration
         assert mock_hass_with_services.services.async_register.call_count == 3
+
+
+class TestSetupEntry:
+    @pytest.mark.asyncio
+    async def test_setup_entry_registers_update_listener(self, mock_hass, mock_entry_with_coordinator):
+        mock_entry_with_coordinator.add_update_listener = MagicMock(return_value="listener")
+        mock_entry_with_coordinator.async_on_unload = MagicMock()
+        mock_hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=True)
+
+        with patch("custom_components.myhondaplus.HondaDataUpdateCoordinator") as coordinator_cls, \
+             patch("custom_components.myhondaplus.HondaTripCoordinator") as trip_cls, \
+             patch("custom_components.myhondaplus._schedule_car_refresh"), \
+            patch("custom_components.myhondaplus._schedule_location_refresh"):
+            coordinator = MagicMock()
+            coordinator.async_config_entry_first_refresh = AsyncMock()
+            coordinator.api = MagicMock()
+            coordinator._persist_tokens_if_changed = MagicMock()
+            coordinator_cls.return_value = coordinator
+
+            trip = MagicMock()
+            trip.async_config_entry_first_refresh = AsyncMock()
+            trip_cls.return_value = trip
+
+            assert await async_setup_entry(mock_hass, mock_entry_with_coordinator) is True
+
+        mock_entry_with_coordinator.add_update_listener.assert_called_once()
+        mock_entry_with_coordinator.async_on_unload.assert_called_once_with("listener")
 
 
 class TestChargeScheduleSchema:
