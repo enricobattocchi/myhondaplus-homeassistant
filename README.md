@@ -72,7 +72,7 @@ Installation parameters summary:
 
 Units are dynamic — the integration uses whatever the vehicle reports (km/miles, °C/°F).
 
-Remote commands update the UI optimistically (the state changes immediately) and revert if the command fails. The lock entity shows "Locking..."/"Unlocking..." transition states.
+Remote commands update the entity state only after the car confirms success. The lock entity shows "Locking..."/"Unlocking..." while waiting for confirmation. If a command times out, a persistent notification is created.
 
 ### Sensors
 - **Battery & charging**: Battery level, Range, Total range, Charge status, Plug status, Charge mode, Time to full charge
