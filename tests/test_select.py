@@ -66,13 +66,10 @@ class TestClimateTempSelect:
         assert updated["climate_temp"] == "cooler"
 
     @pytest.mark.asyncio
-    async def test_select_option_reverts_on_timeout(self, temp_select):
+    async def test_select_option_no_update_on_failure(self, temp_select):
         temp_select.coordinator.async_send_command_and_wait.return_value = False
         await temp_select.async_select_option("hotter")
-        # Optimistic set, then revert
-        assert temp_select.coordinator.async_set_updated_data.call_count == 2
-        reverted = temp_select.coordinator.async_set_updated_data.call_args[0][0]
-        assert reverted["climate_temp"] == "normal"
+        temp_select.coordinator.async_set_updated_data.assert_not_called()
 
 
 class TestClimateDurationSelect:
@@ -111,9 +108,7 @@ class TestClimateDurationSelect:
         assert updated["climate_duration"] == 10
 
     @pytest.mark.asyncio
-    async def test_select_option_reverts_on_timeout(self, duration_select):
+    async def test_select_option_no_update_on_failure(self, duration_select):
         duration_select.coordinator.async_send_command_and_wait.return_value = False
         await duration_select.async_select_option("20")
-        assert duration_select.coordinator.async_set_updated_data.call_count == 2
-        reverted = duration_select.coordinator.async_set_updated_data.call_args[0][0]
-        assert reverted["climate_duration"] == 30
+        duration_select.coordinator.async_set_updated_data.assert_not_called()

@@ -301,7 +301,7 @@ class TestPlatformSetupCoverage:
 
 class TestNumberCoverage:
     @pytest.mark.asyncio
-    async def test_set_limit_reverts_on_failure(self):
+    async def test_set_limit_no_update_on_failure(self):
         class FakeCoordinator:
             def __init__(self) -> None:
                 self.data = dict(MOCK_DASHBOARD_DATA)
@@ -318,7 +318,7 @@ class TestNumberCoverage:
             coordinator, description, MOCK_VIN, MOCK_VEHICLE_NAME,
         )
         await number.async_set_native_value(85)
-        assert coordinator.async_set_updated_data.call_count == 2
+        coordinator.async_set_updated_data.assert_not_called()
 
 
 class TestSelectCoverage:
@@ -355,12 +355,12 @@ class TestSelectCoverage:
 
 class TestSwitchCoverage:
     @pytest.mark.asyncio
-    async def test_climate_switch_reverts_on_failure(self, mock_coordinator):
+    async def test_climate_switch_no_update_on_failure(self, mock_coordinator):
         mock_coordinator.async_send_command_and_wait.return_value = False
         entity = HondaClimateSwitch(mock_coordinator, MOCK_VIN, MOCK_VEHICLE_NAME)
         entity.hass = _make_hass_mock()
         await entity.async_turn_on()
-        assert mock_coordinator.async_set_updated_data.call_count == 2
+        mock_coordinator.async_set_updated_data.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_charge_switch_bool_and_failure_paths(self, mock_coordinator):
@@ -370,10 +370,10 @@ class TestSwitchCoverage:
         assert entity.is_on is True
         mock_coordinator.async_send_command_and_wait.return_value = False
         await entity.async_turn_off()
-        assert mock_coordinator.async_set_updated_data.call_count == 2
+        mock_coordinator.async_set_updated_data.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_defrost_switch_defaults_and_reverts(self, mock_coordinator):
+    async def test_defrost_switch_defaults_and_no_update_on_failure(self, mock_coordinator):
         mock_coordinator.data["climate_temp"] = "bad"
         mock_coordinator.data["climate_duration"] = 99
         mock_coordinator.async_send_command_and_wait.return_value = False
@@ -383,7 +383,7 @@ class TestSwitchCoverage:
         args = mock_coordinator.async_send_command_and_wait.call_args[0]
         assert args[2] == "normal"
         assert args[3] == 30
-        assert mock_coordinator.async_set_updated_data.call_count == 2
+        mock_coordinator.async_set_updated_data.assert_not_called()
 
     def test_auto_refresh_switch(self, mock_coordinator):
         entry = MagicMock()
@@ -444,11 +444,15 @@ class TestCoordinatorCoverage:
         coord.async_send_command = AsyncMock(return_value="cmd")
         coord.hass = MagicMock()
         coord.api = MagicMock()
+        coord._vehicle_name = MOCK_VEHICLE_NAME
         coord.hass.async_add_executor_job = AsyncMock(
-            return_value=SimpleNamespace(success=False, status="timeout"),
+            return_value=SimpleNamespace(
+                success=False, status="timeout", timed_out=True, reason=None,
+            ),
         )
         with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
-            result = await HondaDataUpdateCoordinator.async_send_command_and_wait(coord, MagicMock())
+            with patch("custom_components.myhondaplus.coordinator.pn_async_create"):
+                result = await HondaDataUpdateCoordinator.async_send_command_and_wait(coord, MagicMock())
         assert result is False
         logger.warning.assert_called_once()
 
@@ -479,7 +483,7 @@ class TestCoordinatorCoverage:
         HondaDataUpdateCoordinator._persist_tokens_if_changed(coord)
         coord.hass.config_entries.async_update_entry.assert_called_once()
 
-    def test_fetch_data_and_fresh(self):
+    def test_fetch_data_and_refresh_command(self):
         coord = HondaDataUpdateCoordinator.__new__(HondaDataUpdateCoordinator)
         coord.vin = MOCK_VIN
         coord.api = MagicMock()
@@ -487,9 +491,9 @@ class TestCoordinatorCoverage:
              patch("custom_components.myhondaplus.coordinator.parse_charge_schedule", return_value=["a"]), \
              patch("custom_components.myhondaplus.coordinator.parse_climate_schedule", return_value=["b"]):
             coord.api.get_dashboard_cached.return_value = {"dash": 1}
-            coord.api.get_dashboard.return_value = {"dash": 2}
+            coord.api.refresh_dashboard.return_value = SimpleNamespace(success=True)
             assert HondaDataUpdateCoordinator._fetch_data(coord) == {"x": 1, "charge_schedule": ["a"], "climate_schedule": ["b"]}
-            assert HondaDataUpdateCoordinator._fetch_data_fresh(coord) == {"x": 1, "charge_schedule": ["a"], "climate_schedule": ["b"]}
+            assert HondaDataUpdateCoordinator._refresh_from_car(coord).success is True
 
     def test_trip_fetch_data_uses_main_coordinator_distance(self):
         coord = HondaTripCoordinator.__new__(HondaTripCoordinator)

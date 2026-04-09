@@ -79,12 +79,16 @@ class TestClimateSwitch:
         assert data["climate_active"] is False
 
     @pytest.mark.asyncio
-    async def test_turn_off_reverts_on_failure(self, climate_switch):
+    async def test_turn_on_no_update_on_failure(self, climate_switch):
+        climate_switch.coordinator.async_send_command_and_wait.return_value = False
+        await climate_switch.async_turn_on()
+        climate_switch.coordinator.async_set_updated_data.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_turn_off_no_update_on_failure(self, climate_switch):
         climate_switch.coordinator.async_send_command_and_wait.return_value = False
         await climate_switch.async_turn_off()
-        assert climate_switch.coordinator.async_set_updated_data.call_count == 2
-        reverted = climate_switch.coordinator.async_set_updated_data.call_args[0][0]
-        assert reverted["climate_active"] is False
+        climate_switch.coordinator.async_set_updated_data.assert_not_called()
 
 
 class TestChargeSwitch:
@@ -145,17 +149,23 @@ class TestChargeSwitch:
 
     @pytest.mark.asyncio
     async def test_turn_on_does_not_mutate_original(self, charge_switch):
-        """Ensure optimistic update creates a copy, not mutating coordinator.data."""
+        """Ensure confirmed update creates a copy, not mutating coordinator.data."""
         original_data = charge_switch.coordinator.data
         await charge_switch.async_turn_on()
         # The original dict should not have been modified
         assert original_data["charge_status"] == "not_charging"
 
     @pytest.mark.asyncio
-    async def test_turn_on_reverts_on_failure(self, charge_switch):
+    async def test_turn_on_no_update_on_failure(self, charge_switch):
         charge_switch.coordinator.async_send_command_and_wait.return_value = False
         await charge_switch.async_turn_on()
-        assert charge_switch.coordinator.async_set_updated_data.call_count == 2
+        charge_switch.coordinator.async_set_updated_data.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_turn_off_no_update_on_failure(self, charge_switch):
+        charge_switch.coordinator.async_send_command_and_wait.return_value = False
+        await charge_switch.async_turn_off()
+        charge_switch.coordinator.async_set_updated_data.assert_not_called()
 
 
 class TestDefrostSwitch:
