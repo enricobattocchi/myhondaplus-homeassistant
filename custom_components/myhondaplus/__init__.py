@@ -80,7 +80,7 @@ BASE_SERVICE_FIELDS = {
 SERVICE_CLIMATE_ON_FIELDS = {
     **BASE_SERVICE_FIELDS,
     vol.Optional("temp", default="normal"): vol.In(["cooler", "normal", "hotter"]),
-    vol.Optional("duration", default=30): vol.In([10, 20, 30]),
+    vol.Optional("duration", default=30): vol.All(vol.Coerce(int), vol.In([10, 20, 30])),
     vol.Optional("defrost", default=True): bool,
 }
 SERVICE_CHARGE_SCHEDULE_FIELDS = {
