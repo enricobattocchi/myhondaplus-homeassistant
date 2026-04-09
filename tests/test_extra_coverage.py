@@ -5,13 +5,6 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
-
-def _make_hass_mock():
-    """Return a MagicMock for hass that properly closes unawaited coroutines."""
-    hass = MagicMock()
-    hass.async_create_task = lambda coro: coro.close()
-    return hass
-
 import pytest
 import voluptuous as vol
 from homeassistant.const import PERCENTAGE
@@ -88,6 +81,13 @@ from .conftest import (
     MOCK_VEHICLE_NAME,
     MOCK_VIN,
 )
+
+
+def _make_hass_mock():
+    """Return a MagicMock for hass that properly closes unawaited coroutines."""
+    hass = MagicMock()
+    hass.async_create_task = lambda coro: coro.close()
+    return hass
 
 
 def make_base_entity(coordinator, key="test_key", vehicle_name=MOCK_VEHICLE_NAME):
