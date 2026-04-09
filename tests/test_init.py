@@ -285,6 +285,13 @@ class TestClimateOnSchema:
         assert result["duration"] == 10
         assert result["defrost"] is False
 
+    def test_valid_string_duration_from_ui(self):
+        result = SERVICE_CLIMATE_ON_SCHEMA({
+            "config_entry": "entry_1",
+            "duration": "20",
+        })
+        assert result["duration"] == 20
+
     def test_invalid_temp(self):
         with pytest.raises(vol.Invalid):
             SERVICE_CLIMATE_ON_SCHEMA({"temp": "freezing"})
