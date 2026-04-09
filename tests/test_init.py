@@ -15,10 +15,17 @@ from custom_components.myhondaplus import (
     SERVICE_SET_CLIMATE_SCHEDULE,
     _get_coordinator,
     _register_services,
+    async_migrate_entry,
+    async_reload_entry,
     async_setup,
     async_setup_entry,
 )
-from custom_components.myhondaplus.const import DOMAIN
+from custom_components.myhondaplus.const import (
+    CONF_CAR_REFRESH_INTERVAL,
+    CONF_LOCATION_REFRESH_INTERVAL,
+    CONF_SCAN_INTERVAL,
+    DOMAIN,
+)
 
 
 @pytest.fixture
@@ -115,6 +122,61 @@ class TestRegisterServices:
         assert mock_hass_with_services.services.async_register.call_count == 3
 
 
+class TestMigration:
+    @pytest.mark.asyncio
+    async def test_migrate_v1_moves_interval_settings_to_options(self, mock_hass):
+        entry = MagicMock()
+        entry.version = 1
+        entry.data = {
+            CONF_SCAN_INTERVAL: 300,
+            CONF_CAR_REFRESH_INTERVAL: 7200,
+            CONF_LOCATION_REFRESH_INTERVAL: 1800,
+            "vin": "VIN123",
+        }
+        entry.options = {}
+
+        assert await async_migrate_entry(mock_hass, entry) is True
+
+        mock_hass.config_entries.async_update_entry.assert_called_once()
+        kwargs = mock_hass.config_entries.async_update_entry.call_args.kwargs
+        assert kwargs["data"] == {"vin": "VIN123"}
+        assert kwargs["options"] == {
+            CONF_SCAN_INTERVAL: 300,
+            CONF_CAR_REFRESH_INTERVAL: 7200,
+            CONF_LOCATION_REFRESH_INTERVAL: 1800,
+        }
+        assert kwargs["version"] == 2
+
+    @pytest.mark.asyncio
+    async def test_migrate_v1_preserves_existing_options(self, mock_hass):
+        entry = MagicMock()
+        entry.version = 1
+        entry.data = {
+            CONF_SCAN_INTERVAL: 300,
+            CONF_CAR_REFRESH_INTERVAL: 7200,
+        }
+        entry.options = {CONF_SCAN_INTERVAL: 600}
+
+        assert await async_migrate_entry(mock_hass, entry) is True
+
+        kwargs = mock_hass.config_entries.async_update_entry.call_args.kwargs
+        assert kwargs["data"] == {}
+        assert kwargs["options"] == {
+            CONF_SCAN_INTERVAL: 600,
+            CONF_CAR_REFRESH_INTERVAL: 7200,
+        }
+
+    @pytest.mark.asyncio
+    async def test_migrate_current_version_noop(self, mock_hass):
+        entry = MagicMock()
+        entry.version = 2
+        entry.data = {}
+        entry.options = {}
+
+        assert await async_migrate_entry(mock_hass, entry) is True
+        mock_hass.config_entries.async_update_entry.assert_not_called()
+
+
 class TestSetupEntry:
     @pytest.mark.asyncio
     async def test_setup_entry_registers_update_listener(self, mock_hass, mock_entry_with_coordinator):
@@ -140,6 +202,16 @@ class TestSetupEntry:
 
         mock_entry_with_coordinator.add_update_listener.assert_called_once()
         mock_entry_with_coordinator.async_on_unload.assert_called_once_with("listener")
+
+    @pytest.mark.asyncio
+    async def test_reload_entry_uses_config_entries_reload(self, mock_hass):
+        entry = MagicMock()
+        entry.entry_id = "entry_1"
+        mock_hass.config_entries.async_reload = AsyncMock()
+
+        await async_reload_entry(mock_hass, entry)
+
+        mock_hass.config_entries.async_reload.assert_awaited_once_with("entry_1")
 
 
 class TestChargeScheduleSchema:
