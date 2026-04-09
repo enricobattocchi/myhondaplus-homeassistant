@@ -46,7 +46,6 @@ def _handle_api_error(
     if isinstance(err, HondaAuthError):
         raise ConfigEntryAuthFailed from err
     if err.status_code and err.status_code >= 500 and cached_data is not None:
-        LOGGER.warning("Transient server error (%s), keeping cached data", err.status_code)
         return cached_data
     return None
 
@@ -57,6 +56,7 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         self.entry = entry
         self.vin: str = entry.data[CONF_VIN]
         self.api = HondaAPI()
+        self._service_available = True
         self._apply_tokens()
 
         interval = get_entry_value(entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
@@ -92,6 +92,18 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         data["climate_schedule"] = parse_climate_schedule(dashboard)
         return data
 
+    def _log_unavailable_once(self, message: str, *args) -> None:
+        """Log when the Honda service becomes unavailable."""
+        if self._service_available:
+            LOGGER.warning(message, *args)
+            self._service_available = False
+
+    def _log_recovered_once(self) -> None:
+        """Log when the Honda service becomes available again."""
+        if not self._service_available:
+            LOGGER.info("Connection to Honda API restored")
+            self._service_available = True
+
     async def _async_update_data(self) -> dict:
         try:
             data = await self.hass.async_add_executor_job(self._fetch_data)
@@ -100,12 +112,19 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                 err, self._persist_tokens_if_changed, self.data,
             )
             if cached is not None:
+                self._log_unavailable_once(
+                    "Honda API unavailable (%s), keeping cached vehicle data",
+                    err.status_code,
+                )
                 return cached
+            self._log_unavailable_once("Honda API unavailable: %s", err)
             raise UpdateFailed(str(err)) from err
         except Exception as err:
+            self._log_unavailable_once("Honda API unavailable: %s", err)
             raise UpdateFailed(str(err)) from err
 
         self._persist_tokens_if_changed()
+        self._log_recovered_once()
         return data
 
     def _fetch_data_fresh(self) -> dict:
@@ -196,6 +215,7 @@ class HondaTripCoordinator(DataUpdateCoordinator[dict]):
         self._persist_tokens = persist_tokens
         self._main_coordinator = main_coordinator
         self._fuel_type: str = entry.data.get(CONF_FUEL_TYPE, "")
+        self._service_available = True
 
         super().__init__(
             hass,
@@ -213,6 +233,18 @@ class HondaTripCoordinator(DataUpdateCoordinator[dict]):
             rows, "month", fuel_type=self._fuel_type, distance_unit=distance_unit,
         )
 
+    def _log_unavailable_once(self, message: str, *args) -> None:
+        """Log when the Honda service becomes unavailable."""
+        if self._service_available:
+            LOGGER.warning(message, *args)
+            self._service_available = False
+
+    def _log_recovered_once(self) -> None:
+        """Log when the Honda service becomes available again."""
+        if not self._service_available:
+            LOGGER.info("Connection to Honda API restored")
+            self._service_available = True
+
     async def _async_update_data(self) -> dict:
         try:
             data = await self.hass.async_add_executor_job(self._fetch_data)
@@ -221,10 +253,17 @@ class HondaTripCoordinator(DataUpdateCoordinator[dict]):
                 err, self._persist_tokens, self.data,
             )
             if cached is not None:
+                self._log_unavailable_once(
+                    "Honda API unavailable (%s), keeping cached trip data",
+                    err.status_code,
+                )
                 return cached
+            self._log_unavailable_once("Honda API unavailable: %s", err)
             raise UpdateFailed(str(err)) from err
         except Exception as err:
+            self._log_unavailable_once("Honda API unavailable: %s", err)
             raise UpdateFailed(str(err)) from err
 
         self._persist_tokens()
+        self._log_recovered_once()
         return data

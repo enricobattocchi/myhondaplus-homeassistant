@@ -9,6 +9,8 @@ from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
 from .entity import MyHondaPlusEntity
 
+PARALLEL_UPDATES = 1
+
 CLIMATE_TEMP_OPTIONS = ["cooler", "normal", "hotter"]
 CLIMATE_DURATION_OPTIONS = ["10", "20", "30"]
 
