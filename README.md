@@ -92,11 +92,11 @@ Remote commands update the UI optimistically (the state changes immediately) and
 
 ## Services
 
-If you have multiple Honda vehicles configured, each service call requires selecting which vehicle to control via the **config_entry** field (shown as a "Vehicle" dropdown in the UI).
+Each service call requires selecting the vehicle to control via the **config_entry** field, shown as a **Vehicle** dropdown in the Home Assistant UI.
 
 ### `myhondaplus.climate_on`
 
-Start climate pre-conditioning with specific settings. Applies the settings and starts climate.
+Apply the requested climate settings and then send the remote climate-start command to the vehicle.
 
 ```yaml
 service: myhondaplus.climate_on
@@ -109,7 +109,7 @@ data:
 
 ### `myhondaplus.set_charge_schedule`
 
-Set the charge prohibition schedule (up to 2 rules). All fields are required. Pass `rules: []` to clear.
+Update the charge prohibition schedule (up to 2 rules). All rule fields are required. Pass `rules: []` to clear all rules.
 
 Days must be a comma-separated list of `mon,tue,wed,thu,fri,sat,sun`. Times must be in `HH:MM` format (24-hour).
 
@@ -126,7 +126,7 @@ data:
 
 ### `myhondaplus.set_climate_schedule`
 
-Set the climate pre-conditioning schedule (up to 7 rules). `days` and `start_time` are required. Pass `rules: []` to clear.
+Update the climate pre-conditioning schedule (up to 7 rules). `days` and `start_time` are required. Pass `rules: []` to clear all rules.
 
 Days must be a comma-separated list of `mon,tue,wed,thu,fri,sat,sun`. Times must be in `HH:MM` format (24-hour).
 

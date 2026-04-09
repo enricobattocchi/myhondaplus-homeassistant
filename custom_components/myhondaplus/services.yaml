@@ -1,40 +1,41 @@
 set_charge_schedule:
-  name: Set charge prohibition schedule
-  description: Set the charge prohibition schedule (up to 2 rules). Pass an empty list to clear.
+  name: Set charge schedule
+  description: Update the vehicle's charge prohibition schedule. Pass an empty list to clear all rules.
 
   fields:
     config_entry:
       name: Vehicle
-      description: Select the My Honda+ config entry to control.
+      description: Select the My Honda+ vehicle to control.
       required: true
       selector:
         config_entry:
           integration: myhondaplus
     rules:
-      name: Rules
+      name: Schedule rules
       description: >
-        List of up to 2 schedule rules. Each rule has: days (comma-separated, e.g. "mon,tue,wed"),
-        location ("home" or "all"), start_time ("HH:MM"), end_time ("HH:MM").
+        List of up to 2 rules. Each rule must include days as a comma-separated list
+        such as "mon,tue,wed", location as "home" or "all", and start/end times in
+        24-hour HH:MM format.
       required: true
       example: '[{"days": "mon,tue,wed,thu,fri", "location": "home", "start_time": "22:00", "end_time": "06:00"}]'
       selector:
         object:
 
 climate_on:
-  name: Climate on with settings
-  description: Start climate pre-conditioning with specific temperature, duration, and defrost settings.
+  name: Start climate with settings
+  description: Apply the requested climate settings and then send the remote climate-start command to the vehicle.
 
   fields:
     config_entry:
       name: Vehicle
-      description: Select the My Honda+ config entry to control.
+      description: Select the My Honda+ vehicle to control.
       required: true
       selector:
         config_entry:
           integration: myhondaplus
     temp:
       name: Temperature
-      description: Temperature setting (cooler, normal, hotter)
+      description: Climate temperature preset.
       required: false
       default: "normal"
       example: "normal"
@@ -46,7 +47,7 @@ climate_on:
             - "hotter"
     duration:
       name: Duration
-      description: Duration in minutes (10, 20, or 30)
+      description: Climate run time in minutes.
       required: false
       default: 30
       example: 30
@@ -58,7 +59,7 @@ climate_on:
             - "30"
     defrost:
       name: Defrost
-      description: Enable defrost
+      description: Whether defrost should be enabled for this start command.
       required: false
       default: true
       example: true
@@ -67,21 +68,21 @@ climate_on:
 
 set_climate_schedule:
   name: Set climate schedule
-  description: Set the climate pre-conditioning schedule (up to 7 rules). Pass an empty list to clear.
+  description: Update the vehicle's climate pre-conditioning schedule. Pass an empty list to clear all rules.
 
   fields:
     config_entry:
       name: Vehicle
-      description: Select the My Honda+ config entry to control.
+      description: Select the My Honda+ vehicle to control.
       required: true
       selector:
         config_entry:
           integration: myhondaplus
     rules:
-      name: Rules
+      name: Schedule rules
       description: >
-        List of up to 7 schedule rules. Each rule has: days (comma-separated, e.g. "mon,tue,wed"),
-        start_time ("HH:MM").
+        List of up to 7 rules. Each rule must include days as a comma-separated list
+        such as "mon,tue,wed" and a start time in 24-hour HH:MM format.
       required: true
       example: '[{"days": "mon,tue,wed,thu,fri", "start_time": "07:00"}]'
       selector:
