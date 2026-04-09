@@ -1,13 +1,14 @@
 """Tests for __init__.py (services, setup, unload)."""
 
-from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 import voluptuous as vol
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.myhondaplus import (
+    ATTR_CONFIG_ENTRY,
     SERVICE_CLIMATE_ON,
     SERVICE_CLIMATE_ON_SCHEMA,
     SERVICE_SET_CHARGE_SCHEDULE,
@@ -15,7 +16,7 @@ from custom_components.myhondaplus import (
     _get_coordinator,
     _register_services,
 )
-from custom_components.myhondaplus.const import CONF_VEHICLE_NAME, CONF_VIN
+from custom_components.myhondaplus.const import DOMAIN
 
 
 @pytest.fixture
@@ -46,125 +47,42 @@ class TestGetCoordinator:
         entry.runtime_data = MagicMock()
         entry.runtime_data.coordinator = mock_coordinator
         entry.entry_id = "entry_1"
-        hass.config_entries.async_entries.return_value = [entry]
-        assert _get_coordinator(hass) is mock_coordinator
+        entry.domain = DOMAIN
+        entry.state = ConfigEntryState.LOADED
+        hass.config_entries.async_get_entry.return_value = entry
+        assert _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"})) is mock_coordinator
 
     def test_raises_when_no_entries(self):
         hass = MagicMock()
-        hass.config_entries.async_entries.return_value = []
-        with pytest.raises(ValueError, match="No My Honda\\+"):
-            _get_coordinator(hass)
+        hass.config_entries.async_get_entry.return_value = None
+        with pytest.raises(ServiceValidationError, match="Config entry 'entry_1' not found"):
+            _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"}))
 
-    def test_skips_entries_without_runtime_data(self, mock_coordinator):
-        hass = MagicMock()
-        entry_no_data = MagicMock(spec=[])  # no runtime_data attr
-        entry_with_data = MagicMock()
-        entry_with_data.runtime_data = MagicMock()
-        entry_with_data.runtime_data.coordinator = mock_coordinator
-        entry_with_data.entry_id = "entry_1"
-        hass.config_entries.async_entries.return_value = [entry_no_data, entry_with_data]
-        assert _get_coordinator(hass) is mock_coordinator
-
-    def test_raises_without_target_when_multiple_entries(self, mock_coordinator):
-        hass = MagicMock()
-        entry_1 = MagicMock()
-        entry_1.entry_id = "entry_1"
-        entry_1.data = {CONF_VIN: "VIN1", CONF_VEHICLE_NAME: "Car 1"}
-        entry_1.runtime_data = MagicMock()
-        entry_1.runtime_data.coordinator = mock_coordinator
-        entry_2 = MagicMock()
-        entry_2.entry_id = "entry_2"
-        entry_2.data = {CONF_VIN: "VIN2", CONF_VEHICLE_NAME: "Car 2"}
-        entry_2.runtime_data = MagicMock()
-        entry_2.runtime_data.coordinator = MagicMock()
-        hass.config_entries.async_entries.return_value = [entry_1, entry_2]
-
-        with pytest.raises(ServiceValidationError, match="provide a vehicle_name or target a specific vehicle"):
-            _get_coordinator(hass, MagicMock(data={}))
-
-    def test_resolves_targeted_entry(self, mock_coordinator):
-        hass = MagicMock()
-        entry_1 = MagicMock()
-        entry_1.entry_id = "entry_1"
-        entry_1.data = {CONF_VIN: "VIN1", CONF_VEHICLE_NAME: "Car 1"}
-        entry_1.runtime_data = MagicMock()
-        entry_1.runtime_data.coordinator = mock_coordinator
-        entry_2 = MagicMock()
-        entry_2.entry_id = "entry_2"
-        entry_2.data = {CONF_VIN: "VIN2", CONF_VEHICLE_NAME: "Car 2"}
-        entry_2.runtime_data = MagicMock()
-        other_coordinator = MagicMock()
-        entry_2.runtime_data.coordinator = other_coordinator
-        hass.config_entries.async_entries.return_value = [entry_1, entry_2]
-
-        call = MagicMock()
-        call.data = {"entity_id": "sensor.honda_two_battery_level"}
-
-        entity_registry = MagicMock()
-        entity_registry.async_get.side_effect = lambda entity_id: {
-            "sensor.honda_two_battery_level": SimpleNamespace(config_entry_id="entry_2"),
-        }.get(entity_id)
-
-        with patch("custom_components.myhondaplus.er.async_get", return_value=entity_registry), \
-             patch("custom_components.myhondaplus.dr.async_get", return_value=MagicMock()), \
-             patch(
-                 "custom_components.myhondaplus.async_extract_referenced_entity_ids",
-                 return_value=SimpleNamespace(
-                     referenced={"sensor.honda_two_battery_level"},
-                     indirectly_referenced=set(),
-                     referenced_devices=set(),
-                 ),
-             ):
-            assert _get_coordinator(hass, call) is other_coordinator
-
-    def test_resolves_entry_by_vehicle_name(self, mock_coordinator):
-        hass = MagicMock()
-        entry_1 = MagicMock()
-        entry_1.entry_id = "entry_1"
-        entry_1.data = {CONF_VIN: "VIN1", CONF_VEHICLE_NAME: "Car 1"}
-        entry_1.runtime_data = MagicMock()
-        entry_1.runtime_data.coordinator = mock_coordinator
-        entry_2 = MagicMock()
-        entry_2.entry_id = "entry_2"
-        entry_2.data = {CONF_VIN: "VIN2", CONF_VEHICLE_NAME: "Car 2"}
-        entry_2.runtime_data = MagicMock()
-        other_coordinator = MagicMock()
-        entry_2.runtime_data.coordinator = other_coordinator
-        hass.config_entries.async_entries.return_value = [entry_1, entry_2]
-
-        call = MagicMock()
-        call.data = {CONF_VEHICLE_NAME: "Car 2"}
-
-        assert _get_coordinator(hass, call) is other_coordinator
-
-    def test_raises_for_unknown_vehicle_name(self, mock_coordinator):
+    def test_raises_when_unloaded(self, mock_coordinator):
         hass = MagicMock()
         entry = MagicMock()
         entry.entry_id = "entry_1"
-        entry.data = {CONF_VIN: "VIN1", CONF_VEHICLE_NAME: "Car 1"}
+        entry.domain = DOMAIN
+        entry.state = "not_loaded"
         entry.runtime_data = MagicMock()
         entry.runtime_data.coordinator = mock_coordinator
-        hass.config_entries.async_entries.return_value = [entry]
+        hass.config_entries.async_get_entry.return_value = entry
 
-        with pytest.raises(ServiceValidationError, match="No My Honda\\+ vehicle found for vehicle_name 'Car 2'"):
-            _get_coordinator(hass, MagicMock(data={CONF_VEHICLE_NAME: "Car 2"}))
+        with pytest.raises(ServiceValidationError, match="Config entry 'entry_1' not loaded"):
+            _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"}))
 
-    def test_raises_for_duplicate_vehicle_names(self, mock_coordinator):
+    def test_raises_when_wrong_domain(self, mock_coordinator):
         hass = MagicMock()
-        entry_1 = MagicMock()
-        entry_1.entry_id = "entry_1"
-        entry_1.data = {CONF_VIN: "VIN1", CONF_VEHICLE_NAME: "Honda"}
-        entry_1.runtime_data = MagicMock()
-        entry_1.runtime_data.coordinator = mock_coordinator
-        entry_2 = MagicMock()
-        entry_2.entry_id = "entry_2"
-        entry_2.data = {CONF_VIN: "VIN2", CONF_VEHICLE_NAME: "Honda"}
-        entry_2.runtime_data = MagicMock()
-        entry_2.runtime_data.coordinator = MagicMock()
-        hass.config_entries.async_entries.return_value = [entry_1, entry_2]
+        entry = MagicMock()
+        entry.entry_id = "entry_1"
+        entry.domain = "wrong_domain"
+        entry.state = ConfigEntryState.LOADED
+        entry.runtime_data = MagicMock()
+        entry.runtime_data.coordinator = mock_coordinator
+        hass.config_entries.async_get_entry.return_value = entry
 
-        with pytest.raises(ServiceValidationError, match="Multiple My Honda\\+ vehicles share the name 'Honda'"):
-            _get_coordinator(hass, MagicMock(data={CONF_VEHICLE_NAME: "Honda"}))
+        with pytest.raises(ServiceValidationError, match="Config entry 'entry_1' not found"):
+            _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"}))
 
 
 class TestRegisterServices:
@@ -195,8 +113,7 @@ class TestChargeScheduleSchema:
         from custom_components.myhondaplus import SERVICE_CHARGE_SCHEDULE_SCHEMA
 
         result = SERVICE_CHARGE_SCHEDULE_SCHEMA({
-            "vehicle_name": "Car 1",
-            "device_id": "device-123",
+            "config_entry": "entry_1",
             "rules": [{
                 "days": "mon,tue,wed",
                 "location": "home",
@@ -204,8 +121,7 @@ class TestChargeScheduleSchema:
                 "end_time": "06:00",
             }],
         })
-        assert result["vehicle_name"] == "Car 1"
-        assert result["device_id"] == ["device-123"]
+        assert result["config_entry"] == "entry_1"
         assert result["rules"][0]["enabled"] is True
 
     def test_missing_required_field(self):
@@ -301,12 +217,10 @@ class TestClimateScheduleSchema:
         from custom_components.myhondaplus import SERVICE_CLIMATE_SCHEDULE_SCHEMA
 
         result = SERVICE_CLIMATE_SCHEDULE_SCHEMA({
-            "vehicle_name": "Car 1",
-            "device_id": "device-123",
+            "config_entry": "entry_1",
             "rules": [{"days": "mon,fri", "start_time": "07:00"}],
         })
-        assert result["vehicle_name"] == "Car 1"
-        assert result["device_id"] == ["device-123"]
+        assert result["config_entry"] == "entry_1"
         assert result["rules"][0]["enabled"] is True
 
     def test_missing_days(self):
@@ -353,20 +267,20 @@ class TestClimateScheduleSchema:
 
 class TestClimateOnSchema:
     def test_defaults(self):
-        result = SERVICE_CLIMATE_ON_SCHEMA({"vehicle_name": "Car 1"})
-        assert result["vehicle_name"] == "Car 1"
+        result = SERVICE_CLIMATE_ON_SCHEMA({"config_entry": "entry_1"})
+        assert result["config_entry"] == "entry_1"
         assert result["temp"] == "normal"
         assert result["duration"] == 30
         assert result["defrost"] is True
 
     def test_valid_values(self):
         result = SERVICE_CLIMATE_ON_SCHEMA({
-            "vehicle_name": "Car 1",
+            "config_entry": "entry_1",
             "temp": "cooler",
             "duration": 10,
             "defrost": False,
         })
-        assert result["vehicle_name"] == "Car 1"
+        assert result["config_entry"] == "entry_1"
         assert result["temp"] == "cooler"
         assert result["duration"] == 10
         assert result["defrost"] is False
