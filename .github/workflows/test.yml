@@ -17,5 +17,5 @@ jobs:
           python-version: "3.13"
       - name: Install dependencies
         run: pip install homeassistant pymyhondaplus pytest pytest-asyncio pytest-cov
-      - name: Run tests
-        run: pytest tests/ -v --cov=custom_components/myhondaplus --cov-report=term-missing
+      - name: Run tests with coverage gate
+        run: pytest tests/ -v --cov=custom_components/myhondaplus --cov-report=term-missing --cov-fail-under=95
