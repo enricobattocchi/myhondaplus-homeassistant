@@ -1,10 +1,14 @@
 """Tests for the switch platform."""
 
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.myhondaplus.switch import HondaChargeSwitch, HondaClimateSwitch
+from custom_components.myhondaplus.switch import (
+    HondaChargeSwitch,
+    HondaClimateSwitch,
+    HondaDefrostSwitch,
+)
 
 from .conftest import MOCK_VEHICLE_NAME, MOCK_VIN
 
@@ -74,6 +78,14 @@ class TestClimateSwitch:
         data = climate_switch.coordinator.async_set_updated_data.call_args[0][0]
         assert data["climate_active"] is False
 
+    @pytest.mark.asyncio
+    async def test_turn_off_reverts_on_failure(self, climate_switch):
+        climate_switch.coordinator.async_send_command_and_wait.return_value = False
+        await climate_switch.async_turn_off()
+        assert climate_switch.coordinator.async_set_updated_data.call_count == 2
+        reverted = climate_switch.coordinator.async_set_updated_data.call_args[0][0]
+        assert reverted["climate_active"] is False
+
 
 class TestChargeSwitch:
     def test_is_on_charging(self, charge_switch):
@@ -107,6 +119,10 @@ class TestChargeSwitch:
         charge_switch.coordinator.data["charge_status"] = "Running"
         assert charge_switch.is_on is True
 
+    def test_is_on_non_string_truthy(self, charge_switch):
+        charge_switch.coordinator.data["charge_status"] = 1
+        assert charge_switch.is_on is True
+
     @pytest.mark.asyncio
     async def test_turn_on(self, charge_switch):
         await charge_switch.async_turn_on()
@@ -134,3 +150,29 @@ class TestChargeSwitch:
         await charge_switch.async_turn_on()
         # The original dict should not have been modified
         assert original_data["charge_status"] == "not_charging"
+
+    @pytest.mark.asyncio
+    async def test_turn_on_reverts_on_failure(self, charge_switch):
+        charge_switch.coordinator.async_send_command_and_wait.return_value = False
+        await charge_switch.async_turn_on()
+        assert charge_switch.coordinator.async_set_updated_data.call_count == 2
+
+
+class TestDefrostSwitch:
+    @pytest.fixture
+    def defrost_switch(self, mock_coordinator):
+        sw = HondaDefrostSwitch(mock_coordinator, MOCK_VIN, MOCK_VEHICLE_NAME)
+        sw.hass = MagicMock()
+        return sw
+
+    def test_is_on_false(self, defrost_switch):
+        defrost_switch.coordinator.data["climate_defrost"] = False
+        assert defrost_switch.is_on is False
+
+    @pytest.mark.asyncio
+    async def test_turn_on_calls_set_defrost(self, defrost_switch):
+        with pytest.MonkeyPatch.context() as mp:
+            set_defrost = AsyncMock()
+            mp.setattr(defrost_switch, "_set_defrost", set_defrost)
+            await defrost_switch.async_turn_on()
+        set_defrost.assert_awaited_once_with(True)

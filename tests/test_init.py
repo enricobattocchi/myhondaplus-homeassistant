@@ -93,6 +93,18 @@ class TestGetCoordinator:
         with pytest.raises(ServiceValidationError, match="Config entry 'entry_1' not found"):
             _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"}))
 
+    def test_raises_when_runtime_data_missing(self):
+        hass = MagicMock()
+        entry = MagicMock()
+        entry.entry_id = "entry_1"
+        entry.domain = DOMAIN
+        entry.state = ConfigEntryState.LOADED
+        entry.runtime_data = None
+        hass.config_entries.async_get_entry.return_value = entry
+
+        with pytest.raises(ServiceValidationError, match="has no runtime data"):
+            _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"}))
+
 
 class TestRegisterServices:
     @pytest.mark.asyncio

@@ -45,6 +45,7 @@ def coordinator(mock_hass, mock_entry):
         coord.api.tokens = Tokens("fake-access-token", "fake-refresh-token")
         coord.data = dict(MOCK_DASHBOARD_DATA)
         coord.logger = MagicMock()
+        coord._service_available = True
         coord.async_set_updated_data = MagicMock()
         return coord
 
@@ -62,6 +63,7 @@ def trip_coordinator(mock_hass, mock_entry):
         coord._fuel_type = "E"
         coord.data = {"trips": 10, "total_km": 200}
         coord.logger = MagicMock()
+        coord._service_available = True
         return coord
 
 
@@ -114,6 +116,24 @@ class TestHondaDataUpdateCoordinator:
         coordinator.hass.async_add_executor_job.side_effect = RuntimeError("boom")
         with pytest.raises(UpdateFailed):
             await coordinator._async_update_data()
+
+    @pytest.mark.asyncio
+    async def test_update_logs_unavailable_once_and_recovered_once(self, coordinator):
+        with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
+            coordinator.hass.async_add_executor_job.side_effect = [
+                HondaAPIError(503, "Service Unavailable"),
+                HondaAPIError(503, "Service Unavailable"),
+                dict(MOCK_DASHBOARD_DATA),
+            ]
+
+            assert await coordinator._async_update_data() == coordinator.data
+            assert await coordinator._async_update_data() == coordinator.data
+            await coordinator._async_update_data()
+
+        logger.warning.assert_called_once_with(
+            "Honda API unavailable (%s), keeping cached vehicle data", 503,
+        )
+        logger.info.assert_called_once_with("Connection to Honda API restored")
 
     @pytest.mark.asyncio
     async def test_refresh_from_car_success(self, coordinator):
@@ -223,3 +243,21 @@ class TestHondaTripCoordinator:
         trip_coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(400, "Bad Request")
         with pytest.raises(UpdateFailed):
             await trip_coordinator._async_update_data()
+
+    @pytest.mark.asyncio
+    async def test_update_logs_unavailable_once_and_recovered_once(self, trip_coordinator):
+        with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
+            trip_coordinator.hass.async_add_executor_job.side_effect = [
+                HondaAPIError(502, "Bad Gateway"),
+                HondaAPIError(502, "Bad Gateway"),
+                {"trips": 5},
+            ]
+
+            assert await trip_coordinator._async_update_data() == trip_coordinator.data
+            assert await trip_coordinator._async_update_data() == trip_coordinator.data
+            await trip_coordinator._async_update_data()
+
+        logger.warning.assert_called_once_with(
+            "Honda API unavailable (%s), keeping cached trip data", 502,
+        )
+        logger.info.assert_called_once_with("Connection to Honda API restored")
