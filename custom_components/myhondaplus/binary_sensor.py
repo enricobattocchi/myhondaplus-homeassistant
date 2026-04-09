@@ -14,6 +14,8 @@ from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
 from .entity import MyHondaPlusEntity, to_bool
 
+PARALLEL_UPDATES = 0
+
 
 @dataclass(frozen=True, kw_only=True)
 class HondaBinarySensorDescription(BinarySensorEntityDescription):

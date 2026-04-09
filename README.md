@@ -6,6 +6,13 @@ Tested on Honda e. Should work with other Honda Connect Europe vehicles (e:Ny1, 
 
 ## Installation
 
+### Prerequisites
+
+- A supported Honda Connect Europe / My Honda+ vehicle
+- A working My Honda+ account with email and password
+- Access to the verification email Honda sends during first setup
+- Home Assistant with either HACS or manual custom-component installation access
+
 ### HACS (recommended)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=enricobattocchi&repository=myhondaplus-homeassistant&category=integration)
@@ -55,6 +62,11 @@ These refresh settings are stored as integration options and can be changed late
 Vehicles on your account are auto-detected. If you have multiple vehicles, you'll be asked to pick one. The vehicle's Honda+ nickname is used as the device name in Home Assistant.
 
 On first setup, Honda will send a verification email. Copy the link URL (don't click it) and paste it in the verification step.
+
+Installation parameters summary:
+- **Integration source**: HACS or manual installation
+- **Verification link**: Required only when Honda asks to register the device authenticator
+- **Vehicle selection**: Required only when multiple vehicles are found on the account
 
 ## Entities
 
