@@ -136,7 +136,7 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         """Request fresh data from the car and return the command result."""
         return self.api.refresh_dashboard(self.vin)
 
-    async def async_refresh_from_car(self) -> None:
+    async def async_refresh_from_car(self, *, notify_on_timeout: bool = True) -> None:
         """Request fresh data from the car (wakes TCU, polls until done)."""
         try:
             result = await self.hass.async_add_executor_job(self._refresh_from_car)
@@ -147,12 +147,13 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                         result.status,
                         result.reason,
                     )
-                    pn_async_create(
-                        self.hass,
-                        f"Dashboard refresh for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
-                        title="My Honda+",
-                        notification_id=f"{DOMAIN}_refresh_timeout",
-                    )
+                    if notify_on_timeout:
+                        pn_async_create(
+                            self.hass,
+                            f"Dashboard refresh for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
+                            title="My Honda+",
+                            notification_id=f"{DOMAIN}_refresh_timeout",
+                        )
                 else:
                     LOGGER.warning(
                         "Dashboard refresh did not succeed (status=%s, reason=%s)",
@@ -184,7 +185,9 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         self._persist_tokens_if_changed()
         return result
 
-    async def async_send_command_and_wait(self, func, *args, timeout: int = 90) -> bool:
+    async def async_send_command_and_wait(
+        self, func, *args, timeout: int = 90, notify_on_timeout: bool = True,
+    ) -> bool:
         """Send a command and wait for confirmation. Raises on send failure."""
         command_id = await self.async_send_command(func, *args)
         if not command_id:
@@ -200,12 +203,13 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                     result.status,
                     result.reason,
                 )
-                pn_async_create(
-                    self.hass,
-                    f"A command for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
-                    title="My Honda+",
-                    notification_id=f"{DOMAIN}_command_timeout",
-                )
+                if notify_on_timeout:
+                    pn_async_create(
+                        self.hass,
+                        f"A command for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
+                        title="My Honda+",
+                        notification_id=f"{DOMAIN}_command_timeout",
+                    )
             else:
                 LOGGER.warning(
                     "Command did not succeed (id=%s, status=%s, reason=%s)",
@@ -215,7 +219,7 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                 )
         return result.success
 
-    async def async_refresh_location(self) -> None:
+    async def async_refresh_location(self, *, notify_on_timeout: bool = True) -> None:
         """Request fresh GPS location from the car and update dashboard."""
         try:
             command_id = await self.async_send_command(
@@ -232,12 +236,13 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                         result.status,
                         result.reason,
                     )
-                    pn_async_create(
-                        self.hass,
-                        f"Location refresh for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
-                        title="My Honda+",
-                        notification_id=f"{DOMAIN}_location_timeout",
-                    )
+                    if notify_on_timeout:
+                        pn_async_create(
+                            self.hass,
+                            f"Location refresh for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
+                            title="My Honda+",
+                            notification_id=f"{DOMAIN}_location_timeout",
+                        )
                 else:
                     LOGGER.warning(
                         "Location refresh command did not succeed (id=%s, status=%s, reason=%s)",
