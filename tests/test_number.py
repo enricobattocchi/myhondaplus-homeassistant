@@ -46,10 +46,17 @@ class TestChargeLimitNumber:
         mock_coordinator.async_send_command_and_wait.assert_awaited_once_with(
             mock_coordinator.api.set_charge_limit, MOCK_VIN, 85, 100,
         )
-        # Optimistic update via async_set_updated_data
+        # Confirmed update via async_set_updated_data
         mock_coordinator.async_set_updated_data.assert_called_once()
         data = mock_coordinator.async_set_updated_data.call_args[0][0]
         assert data["charge_limit_home"] == 85
+
+    @pytest.mark.asyncio
+    async def test_set_home_limit_no_update_on_failure(self, mock_coordinator):
+        mock_coordinator.async_send_command_and_wait.return_value = False
+        number = make_number(mock_coordinator, "charge_limit_home")
+        await number.async_set_native_value(85.0)
+        mock_coordinator.async_set_updated_data.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_set_away_limit(self, mock_coordinator):

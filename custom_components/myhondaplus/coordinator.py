@@ -2,6 +2,9 @@
 
 from datetime import timedelta
 
+from homeassistant.components.persistent_notification import (
+    async_create as pn_async_create,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
@@ -23,6 +26,7 @@ from .const import (
     CONF_REFRESH_TOKEN,
     CONF_SCAN_INTERVAL,
     CONF_USER_ID,
+    CONF_VEHICLE_NAME,
     CONF_VIN,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TRIP_INTERVAL,
@@ -55,6 +59,7 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         self.entry = entry
         self.vin: str = entry.data[CONF_VIN]
+        self._vehicle_name: str = entry.data.get(CONF_VEHICLE_NAME, "")
         self.api = HondaAPI()
         self._service_available = True
         self._apply_tokens()
@@ -127,17 +132,37 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         self._log_recovered_once()
         return data
 
-    def _fetch_data_fresh(self) -> dict:
-        dashboard = self.api.get_dashboard(self.vin, fresh=True)
-        data = parse_ev_status(dashboard)
-        data["charge_schedule"] = parse_charge_schedule(dashboard)
-        data["climate_schedule"] = parse_climate_schedule(dashboard)
-        return data
+    def _refresh_from_car(self):
+        """Request fresh data from the car and return the command result."""
+        return self.api.refresh_dashboard(self.vin)
 
     async def async_refresh_from_car(self) -> None:
         """Request fresh data from the car (wakes TCU, polls until done)."""
         try:
-            data = await self.hass.async_add_executor_job(self._fetch_data_fresh)
+            result = await self.hass.async_add_executor_job(self._refresh_from_car)
+            if not result.success:
+                if result.timed_out:
+                    LOGGER.warning(
+                        "Dashboard refresh timed out waiting for the car to respond (status=%s, reason=%s)",
+                        result.status,
+                        result.reason,
+                    )
+                    pn_async_create(
+                        self.hass,
+                        f"Dashboard refresh for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
+                        title="My Honda+",
+                        notification_id=f"{DOMAIN}_refresh_timeout",
+                    )
+                else:
+                    LOGGER.warning(
+                        "Dashboard refresh did not succeed (status=%s, reason=%s)",
+                        result.status,
+                        result.reason,
+                    )
+                raise HomeAssistantError(
+                    "Unable to refresh data from vehicle"
+                )
+            data = await self.hass.async_add_executor_job(self._fetch_data)
         except HondaAPIError as err:
             _handle_api_error(err, self._persist_tokens_if_changed)
             LOGGER.error("Dashboard refresh failed: %s", err)
@@ -159,7 +184,7 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         self._persist_tokens_if_changed()
         return result
 
-    async def async_send_command_and_wait(self, func, *args, timeout: int = 60) -> bool:
+    async def async_send_command_and_wait(self, func, *args, timeout: int = 90) -> bool:
         """Send a command and wait for confirmation. Raises on send failure."""
         command_id = await self.async_send_command(func, *args)
         if not command_id:
@@ -168,7 +193,26 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             self.api.wait_for_command, command_id, timeout,
         )
         if not result.success:
-            LOGGER.warning("Command did not succeed (id=%s, status=%s)", command_id, result.status)
+            if result.timed_out:
+                LOGGER.warning(
+                    "Command timed out waiting for the car to respond (id=%s, status=%s, reason=%s)",
+                    command_id,
+                    result.status,
+                    result.reason,
+                )
+                pn_async_create(
+                    self.hass,
+                    f"A command for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
+                    title="My Honda+",
+                    notification_id=f"{DOMAIN}_command_timeout",
+                )
+            else:
+                LOGGER.warning(
+                    "Command did not succeed (id=%s, status=%s, reason=%s)",
+                    command_id,
+                    result.status,
+                    result.reason,
+                )
         return result.success
 
     async def async_refresh_location(self) -> None:
@@ -178,13 +222,29 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                 self.api.request_car_location, self.vin,
             )
             result = await self.hass.async_add_executor_job(
-                self.api.wait_for_command, command_id,
+                self.api.wait_for_command, command_id, 90,
             )
             if not result.success:
-                LOGGER.warning(
-                    "Location refresh command did not succeed (id=%s, status=%s)",
-                    command_id, result.status,
-                )
+                if result.timed_out:
+                    LOGGER.warning(
+                        "Location refresh timed out waiting for the car to respond (id=%s, status=%s, reason=%s)",
+                        command_id,
+                        result.status,
+                        result.reason,
+                    )
+                    pn_async_create(
+                        self.hass,
+                        f"Location refresh for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
+                        title="My Honda+",
+                        notification_id=f"{DOMAIN}_location_timeout",
+                    )
+                else:
+                    LOGGER.warning(
+                        "Location refresh command did not succeed (id=%s, status=%s, reason=%s)",
+                        command_id,
+                        result.status,
+                        result.reason,
+                    )
                 raise HomeAssistantError(
                     "Unable to refresh location from vehicle"
                 )
