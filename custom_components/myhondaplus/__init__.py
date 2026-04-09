@@ -20,6 +20,7 @@ from .const import (
 )
 from .coordinator import HondaDataUpdateCoordinator, HondaTripCoordinator
 from .data import MyHondaPlusConfigEntry, MyHondaPlusData
+from .entry_options import get_entry_value
 
 PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.DEVICE_TRACKER, Platform.LOCK, Platform.NUMBER, Platform.SELECT, Platform.SENSOR, Platform.SWITCH]
 
@@ -97,6 +98,12 @@ SERVICE_CHARGE_SCHEDULE_SCHEMA = vol.Schema(SERVICE_CHARGE_SCHEDULE_FIELDS)
 SERVICE_CLIMATE_SCHEDULE_SCHEMA = vol.Schema(SERVICE_CLIMATE_SCHEDULE_FIELDS)
 
 
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up the My Honda+ integration."""
+    _register_services(hass)
+    return True
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> bool:
     """Set up My Honda+ from a config entry."""
     coordinator = HondaDataUpdateCoordinator(hass, entry)
@@ -117,7 +124,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
     _schedule_location_refresh(hass, entry)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    _register_services(hass)
     return True
 
 
@@ -125,7 +131,9 @@ def _schedule_car_refresh(
     hass: HomeAssistant, entry: MyHondaPlusConfigEntry,
 ) -> None:
     """Schedule a recurring refresh-from-car if configured."""
-    interval = entry.data.get(CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL)
+    interval = get_entry_value(
+        entry, CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL,
+    )
     if not interval or interval <= 0:
         return
 
@@ -156,7 +164,9 @@ def _schedule_location_refresh(
     hass: HomeAssistant, entry: MyHondaPlusConfigEntry,
 ) -> None:
     """Schedule a recurring location refresh if configured."""
-    interval = entry.data.get(CONF_LOCATION_REFRESH_INTERVAL, DEFAULT_LOCATION_REFRESH_INTERVAL)
+    interval = get_entry_value(
+        entry, CONF_LOCATION_REFRESH_INTERVAL, DEFAULT_LOCATION_REFRESH_INTERVAL,
+    )
     if not interval or interval <= 0:
         return
 
@@ -290,12 +300,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry)
     if entry.runtime_data.location_refresh_unsub:
         entry.runtime_data.location_refresh_unsub()
         entry.runtime_data.location_refresh_unsub = None
-    result = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if result and not hass.config_entries.async_entries(DOMAIN):
-        hass.services.async_remove(DOMAIN, SERVICE_SET_CHARGE_SCHEDULE)
-        hass.services.async_remove(DOMAIN, SERVICE_SET_CLIMATE_SCHEDULE)
-        hass.services.async_remove(DOMAIN, SERVICE_CLIMATE_ON)
-    return result
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> None:

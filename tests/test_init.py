@@ -15,6 +15,7 @@ from custom_components.myhondaplus import (
     SERVICE_SET_CLIMATE_SCHEDULE,
     _get_coordinator,
     _register_services,
+    async_setup,
 )
 from custom_components.myhondaplus.const import DOMAIN
 
@@ -86,6 +87,11 @@ class TestGetCoordinator:
 
 
 class TestRegisterServices:
+    @pytest.mark.asyncio
+    async def test_async_setup_registers_services(self, mock_hass_with_services):
+        assert await async_setup(mock_hass_with_services, {}) is True
+        assert mock_hass_with_services.services.async_register.call_count == 3
+
     def test_registers_three_services(self, mock_hass_with_services):
         _register_services(mock_hass_with_services)
         assert mock_hass_with_services.services.async_register.call_count == 3
