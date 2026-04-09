@@ -157,9 +157,17 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             command_id = await self.async_send_command(
                 self.api.request_car_location, self.vin,
             )
-            await self.hass.async_add_executor_job(
+            result = await self.hass.async_add_executor_job(
                 self.api.wait_for_command, command_id,
             )
+            if not result.success:
+                LOGGER.warning(
+                    "Location refresh command did not succeed (id=%s, status=%s)",
+                    command_id, result.status,
+                )
+                raise HomeAssistantError(
+                    "Unable to refresh location from vehicle"
+                )
             data = await self.hass.async_add_executor_job(self._fetch_data)
         except HondaAPIError as err:
             _handle_api_error(err, self._persist_tokens_if_changed)

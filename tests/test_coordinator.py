@@ -1,6 +1,7 @@
 """Tests for the coordinator."""
 
 from collections import namedtuple
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -153,6 +154,42 @@ class TestHondaDataUpdateCoordinator:
         coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(500, "Error")
         with pytest.raises(HomeAssistantError, match="Unable to send command"):
             await coordinator.async_send_command(func)
+
+    @pytest.mark.asyncio
+    async def test_refresh_location_success(self, coordinator):
+        coordinator.async_send_command = AsyncMock(return_value="cmd-123")
+        coordinator.hass.async_add_executor_job.side_effect = [
+            SimpleNamespace(success=True, status="success"),
+            dict(MOCK_DASHBOARD_DATA),
+        ]
+
+        await coordinator.async_refresh_location()
+
+        coordinator.async_send_command.assert_awaited_once_with(
+            coordinator.api.request_car_location, MOCK_VIN,
+        )
+        assert coordinator.hass.async_add_executor_job.await_args_list[0].args == (
+            coordinator.api.wait_for_command, "cmd-123",
+        )
+        assert coordinator.hass.async_add_executor_job.await_args_list[1].args == (
+            coordinator._fetch_data,
+        )
+        coordinator.async_set_updated_data.assert_called_once_with(dict(MOCK_DASHBOARD_DATA))
+
+    @pytest.mark.asyncio
+    async def test_refresh_location_command_failure_raises(self, coordinator):
+        coordinator.async_send_command = AsyncMock(return_value="cmd-123")
+        coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
+            success=False, status="timeout",
+        )
+
+        with pytest.raises(HomeAssistantError, match="Unable to refresh location"):
+            await coordinator.async_refresh_location()
+
+        coordinator.async_set_updated_data.assert_not_called()
+        coordinator.hass.async_add_executor_job.assert_awaited_once_with(
+            coordinator.api.wait_for_command, "cmd-123",
+        )
 
 
 class TestHondaTripCoordinator:

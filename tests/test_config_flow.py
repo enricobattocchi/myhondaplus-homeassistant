@@ -11,6 +11,7 @@ from custom_components.myhondaplus.config_flow import (
 )
 from custom_components.myhondaplus.const import (
     CONF_CAR_REFRESH_INTERVAL,
+    CONF_LOCATION_REFRESH_INTERVAL,
     CONF_SCAN_INTERVAL,
     CONF_VEHICLE_NAME,
     CONF_VIN,
@@ -76,6 +77,7 @@ class TestAsyncStepUser:
                 "password": "pass123",
                 "scan_interval": 600,
                 "car_refresh_interval": 43200,
+                "location_refresh_interval": 1800,
             })
 
         flow.async_create_entry.assert_called_once()
@@ -83,6 +85,7 @@ class TestAsyncStepUser:
         assert entry_data[CONF_VIN] == MOCK_VIN
         assert entry_data[CONF_VEHICLE_NAME] == MOCK_VEHICLE_NAME
         assert entry_data[CONF_SCAN_INTERVAL] == 600
+        assert entry_data[CONF_LOCATION_REFRESH_INTERVAL] == 1800
 
     @pytest.mark.asyncio
     async def test_invalid_credentials(self, flow):
