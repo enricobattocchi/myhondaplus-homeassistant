@@ -50,7 +50,7 @@ The integration will ask for:
 - **Refresh from car interval**: How often to wake the TCU for fresh data (default: 43200 seconds / 12 hours, 0 to disable)
 - **Location refresh interval**: How often to request fresh GPS data from the car (default: 3600 seconds / 1 hour, 0 to disable)
 
-These intervals can be changed later from **Settings > Integrations > My Honda+ > Configure**.
+These refresh settings are stored as integration options and can be changed later from **Settings > Integrations > My Honda+ > Configure**.
 
 Vehicles on your account are auto-detected. If you have multiple vehicles, you'll be asked to pick one. The vehicle's Honda+ nickname is used as the device name in Home Assistant.
 
