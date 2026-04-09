@@ -9,13 +9,17 @@ import pytest
 
 from custom_components.myhondaplus.const import (
     CONF_ACCESS_TOKEN,
+    CONF_CAR_REFRESH_INTERVAL,
     CONF_FUEL_TYPE,
+    CONF_LOCATION_REFRESH_INTERVAL,
     CONF_PERSONAL_ID,
     CONF_REFRESH_TOKEN,
     CONF_SCAN_INTERVAL,
     CONF_USER_ID,
     CONF_VEHICLE_NAME,
     CONF_VIN,
+    DEFAULT_CAR_REFRESH_INTERVAL,
+    DEFAULT_LOCATION_REFRESH_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -30,8 +34,13 @@ MOCK_ENTRY_DATA = {
     CONF_REFRESH_TOKEN: "fake-refresh-token",
     CONF_USER_ID: "fake-user-id",
     CONF_PERSONAL_ID: "fake-personal-id",
-    CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
     CONF_FUEL_TYPE: "E",
+}
+
+MOCK_ENTRY_OPTIONS = {
+    CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
+    CONF_CAR_REFRESH_INTERVAL: DEFAULT_CAR_REFRESH_INTERVAL,
+    CONF_LOCATION_REFRESH_INTERVAL: DEFAULT_LOCATION_REFRESH_INTERVAL,
 }
 
 MOCK_DASHBOARD_DATA = {
@@ -126,6 +135,7 @@ def mock_config_entry():
     """Return a mocked ConfigEntry."""
     entry = MagicMock()
     entry.data = dict(MOCK_ENTRY_DATA)
+    entry.options = dict(MOCK_ENTRY_OPTIONS)
     entry.entry_id = "test_entry_id"
     entry.domain = DOMAIN
     entry.title = MOCK_VEHICLE_NAME

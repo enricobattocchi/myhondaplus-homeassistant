@@ -81,11 +81,14 @@ class TestAsyncStepUser:
             })
 
         flow.async_create_entry.assert_called_once()
-        entry_data = flow.async_create_entry.call_args[1]["data"]
+        entry_kwargs = flow.async_create_entry.call_args[1]
+        entry_data = entry_kwargs["data"]
+        entry_options = entry_kwargs["options"]
         assert entry_data[CONF_VIN] == MOCK_VIN
         assert entry_data[CONF_VEHICLE_NAME] == MOCK_VEHICLE_NAME
-        assert entry_data[CONF_SCAN_INTERVAL] == 600
-        assert entry_data[CONF_LOCATION_REFRESH_INTERVAL] == 1800
+        assert CONF_SCAN_INTERVAL not in entry_data
+        assert entry_options[CONF_SCAN_INTERVAL] == 600
+        assert entry_options[CONF_LOCATION_REFRESH_INTERVAL] == 1800
 
     @pytest.mark.asyncio
     async def test_invalid_credentials(self, flow):
@@ -144,6 +147,42 @@ class TestAsyncStepUser:
         # Should show the verify form
         flow.async_show_form.assert_called()
         assert flow.async_show_form.call_args[1]["step_id"] == "verify"
+
+    @pytest.mark.asyncio
+    async def test_device_reset_failure_shows_cannot_connect(self, flow):
+        with patch("custom_components.myhondaplus.config_flow.DeviceKey"), \
+             patch("custom_components.myhondaplus.config_flow.HondaAuth") as mock_auth_cls:
+            mock_auth = MagicMock()
+            mock_auth_cls.return_value = mock_auth
+
+            flow.hass.async_add_executor_job.side_effect = [
+                HondaAuthError(401, "device-authenticator-not-registered"),
+                HondaAuthError(401, "reset failed"),
+            ]
+            await flow.async_step_user({
+                "email": "test@test.com",
+                "password": "pass",
+                "scan_interval": 600,
+                "car_refresh_interval": 43200,
+            })
+
+        errors = flow.async_show_form.call_args[1]["errors"]
+        assert errors["base"] == "cannot_connect"
+
+    @pytest.mark.asyncio
+    async def test_unknown_honda_auth_error_shows_cannot_connect(self, flow):
+        with patch("custom_components.myhondaplus.config_flow.DeviceKey"), \
+             patch("custom_components.myhondaplus.config_flow.HondaAuth"):
+            flow.hass.async_add_executor_job.side_effect = HondaAuthError(500, "something-else")
+            await flow.async_step_user({
+                "email": "test@test.com",
+                "password": "pass",
+                "scan_interval": 600,
+                "car_refresh_interval": 43200,
+            })
+
+        errors = flow.async_show_form.call_args[1]["errors"]
+        assert errors["base"] == "cannot_connect"
 
     @pytest.mark.asyncio
     async def test_generic_exception(self, flow):
@@ -208,6 +247,24 @@ class TestAsyncStepVerify:
 
         flow.async_create_entry.assert_called_once()
 
+    @pytest.mark.asyncio
+    async def test_valid_link_failed_login_shows_verification_failed(self, flow):
+        flow._email = "test@test.com"
+        flow._password = "pass"
+        flow._auth = MagicMock()
+
+        with patch("custom_components.myhondaplus.config_flow.HondaAuth") as mock_auth_cls:
+            mock_auth_cls.parse_verify_link_key.return_value = ("key123", "link_type")
+            flow.hass.async_add_executor_job.side_effect = [
+                None,
+                HondaAuthError(401, "invalid-credentials"),
+            ]
+
+            await flow.async_step_verify({"verification_link": "https://honda.com/verify?key=abc"})
+
+        errors = flow.async_show_form.call_args[1]["errors"]
+        assert errors["base"] == "verification_failed"
+
 
 class TestAsyncStepSelectVehicle:
     @pytest.mark.asyncio
@@ -215,6 +272,18 @@ class TestAsyncStepSelectVehicle:
         """Multiple vehicles shows selection form."""
         flow._vehicles = MOCK_VEHICLES_MULTI
         await flow.async_step_select_vehicle(None)
+        flow.async_show_form.assert_called_once()
+        assert flow.async_show_form.call_args[1]["step_id"] == "select_vehicle"
+
+    @pytest.mark.asyncio
+    async def test_multiple_vehicles_without_plate_still_show_selection(self, flow):
+        flow._vehicles = [
+            {"vin": MOCK_VIN, "name": MOCK_VEHICLE_NAME, "fuel_type": "E"},
+            {"vin": "ZHWGE11S00LA00002", "name": "", "fuel_type": "E"},
+        ]
+
+        await flow.async_step_select_vehicle(None)
+
         flow.async_show_form.assert_called_once()
         assert flow.async_show_form.call_args[1]["step_id"] == "select_vehicle"
 
@@ -275,9 +344,16 @@ class TestAsyncStepManualVin:
         entry_data = flow.async_create_entry.call_args[1]["data"]
         assert entry_data[CONF_VIN] == "MANUAL12345678901"
         assert entry_data[CONF_VEHICLE_NAME] == ""
+        assert CONF_SCAN_INTERVAL not in entry_data
 
 
 class TestOptionsFlow:
+    def test_config_flow_returns_options_flow(self):
+        assert isinstance(
+            MyHondaPlusConfigFlow.async_get_options_flow(MagicMock()),
+            MyHondaPlusOptionsFlow,
+        )
+
     @pytest.mark.asyncio
     async def test_shows_form_on_first_call(self):
         mock_entry = MagicMock()
@@ -313,9 +389,12 @@ class TestOptionsFlow:
                 CONF_CAR_REFRESH_INTERVAL: 7200,
             })
 
-        flow.hass.config_entries.async_update_entry.assert_called_once()
-        flow.hass.config_entries.async_reload.assert_awaited_once()
+        flow.hass.config_entries.async_reload.assert_not_called()
         flow.async_create_entry.assert_called_once()
+        assert flow.async_create_entry.call_args[1]["data"] == {
+            CONF_SCAN_INTERVAL: 300,
+            CONF_CAR_REFRESH_INTERVAL: 7200,
+        }
 
 
 class TestReauthFlow:
@@ -380,3 +459,165 @@ class TestReauthFlow:
 
         errors = reauth_flow.async_show_form.call_args[1]["errors"]
         assert errors["base"] == "invalid_auth"
+
+    @pytest.mark.asyncio
+    async def test_reauth_device_not_registered_goes_to_verify(self, reauth_flow):
+        reauth_flow.context = {"entry_id": "test_entry"}
+        await reauth_flow.async_step_reauth({})
+
+        with patch("custom_components.myhondaplus.config_flow.DeviceKey"), \
+             patch("custom_components.myhondaplus.config_flow.HondaAuth") as mock_auth_cls:
+            mock_auth = MagicMock()
+            mock_auth_cls.return_value = mock_auth
+            reauth_flow.hass.async_add_executor_job.side_effect = [
+                HondaAuthError(401, "device-authenticator-not-registered"),
+                None,
+            ]
+
+            await reauth_flow.async_step_reauth_confirm({
+                "email": "test@test.com",
+                "password": "newpass",
+            })
+
+        assert reauth_flow.async_show_form.call_args[1]["step_id"] == "verify"
+
+    @pytest.mark.asyncio
+    async def test_reauth_device_reset_failure_shows_cannot_connect(self, reauth_flow):
+        reauth_flow.context = {"entry_id": "test_entry"}
+        await reauth_flow.async_step_reauth({})
+
+        with patch("custom_components.myhondaplus.config_flow.DeviceKey"), \
+             patch("custom_components.myhondaplus.config_flow.HondaAuth") as mock_auth_cls:
+            mock_auth = MagicMock()
+            mock_auth_cls.return_value = mock_auth
+            reauth_flow.hass.async_add_executor_job.side_effect = [
+                HondaAuthError(401, "device-authenticator-not-registered"),
+                HondaAuthError(401, "reset failed"),
+            ]
+
+            await reauth_flow.async_step_reauth_confirm({
+                "email": "test@test.com",
+                "password": "newpass",
+            })
+
+        errors = reauth_flow.async_show_form.call_args[1]["errors"]
+        assert errors["base"] == "cannot_connect"
+
+    @pytest.mark.asyncio
+    async def test_reauth_locked_account(self, reauth_flow):
+        reauth_flow.context = {"entry_id": "test_entry"}
+        await reauth_flow.async_step_reauth({})
+
+        with patch("custom_components.myhondaplus.config_flow.DeviceKey"), \
+             patch("custom_components.myhondaplus.config_flow.HondaAuth"):
+            reauth_flow.hass.async_add_executor_job.side_effect = HondaAuthError(401, "locked-account")
+            await reauth_flow.async_step_reauth_confirm({
+                "email": "test@test.com",
+                "password": "wrong",
+            })
+
+        errors = reauth_flow.async_show_form.call_args[1]["errors"]
+        assert errors["base"] == "account_locked"
+
+    @pytest.mark.asyncio
+    async def test_reauth_unknown_honda_auth_error_shows_cannot_connect(self, reauth_flow):
+        reauth_flow.context = {"entry_id": "test_entry"}
+        await reauth_flow.async_step_reauth({})
+
+        with patch("custom_components.myhondaplus.config_flow.DeviceKey"), \
+             patch("custom_components.myhondaplus.config_flow.HondaAuth"):
+            reauth_flow.hass.async_add_executor_job.side_effect = HondaAuthError(500, "something-else")
+            await reauth_flow.async_step_reauth_confirm({
+                "email": "test@test.com",
+                "password": "wrong",
+            })
+
+        errors = reauth_flow.async_show_form.call_args[1]["errors"]
+        assert errors["base"] == "cannot_connect"
+
+    @pytest.mark.asyncio
+    async def test_reauth_generic_exception_shows_cannot_connect(self, reauth_flow):
+        reauth_flow.context = {"entry_id": "test_entry"}
+        await reauth_flow.async_step_reauth({})
+
+        with patch("custom_components.myhondaplus.config_flow.DeviceKey"), \
+             patch("custom_components.myhondaplus.config_flow.HondaAuth"):
+            reauth_flow.hass.async_add_executor_job.side_effect = Exception("unexpected")
+            await reauth_flow.async_step_reauth_confirm({
+                "email": "test@test.com",
+                "password": "wrong",
+            })
+
+        errors = reauth_flow.async_show_form.call_args[1]["errors"]
+        assert errors["base"] == "cannot_connect"
+
+
+class TestFetchVehiclesAndCreateEntry:
+    @pytest.mark.asyncio
+    async def test_fetch_vehicles_reauth_short_circuits(self, flow):
+        flow._reauth_entry = MagicMock()
+        flow._tokens = MOCK_TOKENS
+        flow._update_reauth_entry = MagicMock(return_value={"type": "abort"})
+
+        result = await flow._fetch_vehicles_and_continue()
+
+        assert result == {"type": "abort"}
+        flow._update_reauth_entry.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_fetch_vehicles_exception_falls_back_to_manual_vin(self, flow):
+        flow._tokens = MOCK_TOKENS
+        flow.async_step_manual_vin = AsyncMock(return_value={"type": "form", "step_id": "manual_vin"})
+
+        with patch("custom_components.myhondaplus.config_flow.HondaAuth") as mock_auth_cls, \
+             patch("custom_components.myhondaplus.config_flow.HondaAPI") as mock_api_cls:
+            mock_auth_cls.extract_user_id.return_value = "fake-user-id"
+            mock_api = MagicMock()
+            mock_api_cls.return_value = mock_api
+            flow.hass.async_add_executor_job.side_effect = [Exception("boom")]
+
+            result = await flow._fetch_vehicles_and_continue()
+
+        assert result["step_id"] == "manual_vin"
+        flow.async_step_manual_vin.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_fetch_vehicles_multiple_entries_goes_to_selection(self, flow):
+        flow._tokens = MOCK_TOKENS
+        flow.async_step_select_vehicle = AsyncMock(return_value={"type": "form", "step_id": "select_vehicle"})
+
+        with patch("custom_components.myhondaplus.config_flow.HondaAuth") as mock_auth_cls, \
+             patch("custom_components.myhondaplus.config_flow.HondaAPI") as mock_api_cls:
+            mock_auth_cls.extract_user_id.return_value = "fake-user-id"
+            mock_api = MagicMock()
+            mock_api_cls.return_value = mock_api
+            flow.hass.async_add_executor_job.side_effect = [MOCK_VEHICLES_MULTI]
+
+            result = await flow._fetch_vehicles_and_continue()
+
+        assert result["step_id"] == "select_vehicle"
+        flow.async_step_select_vehicle.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_create_entry_personal_id_fallback_and_title_fallback(self, flow):
+        flow._tokens = MOCK_TOKENS
+        flow._email = "test@test.com"
+        flow._scan_interval = DEFAULT_SCAN_INTERVAL
+        flow._car_refresh_interval = DEFAULT_CAR_REFRESH_INTERVAL
+        flow._device_key = MagicMock()
+        flow._device_key.pem_bytes = b"fake-pem"
+        flow._api = None
+
+        with patch("custom_components.myhondaplus.config_flow.HondaAuth") as mock_auth_cls, \
+             patch("custom_components.myhondaplus.config_flow.HondaAPI") as mock_api_cls:
+            mock_auth_cls.extract_user_id.return_value = "fake-user-id"
+            mock_api = MagicMock()
+            mock_api_cls.return_value = mock_api
+            flow.hass.async_add_executor_job.side_effect = [Exception("boom")]
+
+            await flow._create_entry("VIN12345678901234", "", "")
+
+        flow.async_create_entry.assert_called_once()
+        assert flow.async_create_entry.call_args[1]["title"] == "Honda 901234"
+        assert flow.async_create_entry.call_args[1]["data"]["personal_id"] == ""
+        assert flow.async_create_entry.call_args[1]["options"][CONF_SCAN_INTERVAL] == DEFAULT_SCAN_INTERVAL
