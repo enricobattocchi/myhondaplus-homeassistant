@@ -457,6 +457,25 @@ class TestCoordinatorCoverage:
         logger.warning.assert_called_once()
 
     @pytest.mark.asyncio
+    async def test_send_command_and_wait_timeout_without_notification(self):
+        coord = HondaDataUpdateCoordinator.__new__(HondaDataUpdateCoordinator)
+        coord.async_send_command = AsyncMock(return_value="cmd")
+        coord.hass = MagicMock()
+        coord.api = MagicMock()
+        coord._vehicle_name = MOCK_VEHICLE_NAME
+        coord.hass.async_add_executor_job = AsyncMock(
+            return_value=SimpleNamespace(
+                success=False, status="timeout", timed_out=True, reason=None,
+            ),
+        )
+        with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
+            result = await HondaDataUpdateCoordinator.async_send_command_and_wait(
+                coord, MagicMock(), notify_on_timeout=False,
+            )
+        assert result is False
+        pn_create.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_refresh_location_api_failure_raises(self):
         coord = HondaDataUpdateCoordinator.__new__(HondaDataUpdateCoordinator)
         coord.vin = MOCK_VIN

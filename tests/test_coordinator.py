@@ -323,6 +323,19 @@ class TestHondaDataUpdateCoordinator:
             notification_id="myhondaplus_location_timeout",
         )
 
+    @pytest.mark.asyncio
+    async def test_refresh_location_timeout_without_notification(self, coordinator):
+        coordinator.async_send_command = AsyncMock(return_value="cmd-123")
+        coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
+            success=False, status="timeout", timed_out=True, reason=None,
+        )
+
+        with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
+            with pytest.raises(HomeAssistantError, match="Unable to refresh location"):
+                await coordinator.async_refresh_location(notify_on_timeout=False)
+
+        pn_create.assert_not_called()
+
 
 class TestHondaTripCoordinator:
     @pytest.mark.asyncio
