@@ -13,6 +13,7 @@ from homeassistant.helpers.event import async_call_later
 from .const import (
     CONF_CAR_REFRESH_INTERVAL,
     CONF_LOCATION_REFRESH_INTERVAL,
+    CONF_SCAN_INTERVAL,
     DEFAULT_CAR_REFRESH_INTERVAL,
     DEFAULT_LOCATION_REFRESH_INTERVAL,
     DOMAIN,
@@ -20,6 +21,7 @@ from .const import (
 )
 from .coordinator import HondaDataUpdateCoordinator, HondaTripCoordinator
 from .data import MyHondaPlusConfigEntry, MyHondaPlusData
+from .entry_options import get_entry_value
 
 PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.DEVICE_TRACKER, Platform.LOCK, Platform.NUMBER, Platform.SELECT, Platform.SENSOR, Platform.SWITCH]
 
@@ -97,8 +99,43 @@ SERVICE_CHARGE_SCHEDULE_SCHEMA = vol.Schema(SERVICE_CHARGE_SCHEDULE_FIELDS)
 SERVICE_CLIMATE_SCHEDULE_SCHEMA = vol.Schema(SERVICE_CLIMATE_SCHEDULE_FIELDS)
 
 
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Set up the My Honda+ integration."""
+    _register_services(hass)
+    return True
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> bool:
+    """Migrate old config entries to the latest version."""
+    if entry.version == 1:
+        option_keys = (
+            CONF_SCAN_INTERVAL,
+            CONF_CAR_REFRESH_INTERVAL,
+            CONF_LOCATION_REFRESH_INTERVAL,
+        )
+        new_data = dict(entry.data)
+        new_options = dict(entry.options)
+
+        for key in option_keys:
+            if key in new_data:
+                value = new_data.pop(key)
+                if key not in new_options:
+                    new_options[key] = value
+
+        hass.config_entries.async_update_entry(
+            entry,
+            data=new_data,
+            options=new_options,
+            version=2,
+        )
+
+    return True
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> bool:
     """Set up My Honda+ from a config entry."""
+    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+
     coordinator = HondaDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 
@@ -117,7 +154,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
     _schedule_location_refresh(hass, entry)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    _register_services(hass)
     return True
 
 
@@ -125,7 +161,9 @@ def _schedule_car_refresh(
     hass: HomeAssistant, entry: MyHondaPlusConfigEntry,
 ) -> None:
     """Schedule a recurring refresh-from-car if configured."""
-    interval = entry.data.get(CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL)
+    interval = get_entry_value(
+        entry, CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL,
+    )
     if not interval or interval <= 0:
         return
 
@@ -156,7 +194,9 @@ def _schedule_location_refresh(
     hass: HomeAssistant, entry: MyHondaPlusConfigEntry,
 ) -> None:
     """Schedule a recurring location refresh if configured."""
-    interval = entry.data.get(CONF_LOCATION_REFRESH_INTERVAL, DEFAULT_LOCATION_REFRESH_INTERVAL)
+    interval = get_entry_value(
+        entry, CONF_LOCATION_REFRESH_INTERVAL, DEFAULT_LOCATION_REFRESH_INTERVAL,
+    )
     if not interval or interval <= 0:
         return
 
@@ -290,15 +330,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry)
     if entry.runtime_data.location_refresh_unsub:
         entry.runtime_data.location_refresh_unsub()
         entry.runtime_data.location_refresh_unsub = None
-    result = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if result and not hass.config_entries.async_entries(DOMAIN):
-        hass.services.async_remove(DOMAIN, SERVICE_SET_CHARGE_SCHEDULE)
-        hass.services.async_remove(DOMAIN, SERVICE_SET_CLIMATE_SCHEDULE)
-        hass.services.async_remove(DOMAIN, SERVICE_CLIMATE_ON)
-    return result
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> None:
     """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
+    await hass.config_entries.async_reload(entry.entry_id)

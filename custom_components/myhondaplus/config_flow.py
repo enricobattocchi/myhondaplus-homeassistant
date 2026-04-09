@@ -23,6 +23,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
+from .entry_options import get_entry_value
 
 STEP_USER_DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_EMAIL): str,
@@ -48,33 +49,31 @@ class MyHondaPlusOptionsFlow(config_entries.OptionsFlow):
     async def async_step_init(self, user_input=None):
         """Handle options."""
         if user_input is not None:
-            # Store options in entry data so coordinators pick them up
-            new_data = {**self.config_entry.data, **user_input}
-            self.hass.config_entries.async_update_entry(
-                self.config_entry, data=new_data,
-            )
-            await self.hass.config_entries.async_reload(self.config_entry.entry_id)
-            return self.async_create_entry(title="", data={})
+            return self.async_create_entry(title="", data=user_input)
 
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema({
                 vol.Optional(
                     CONF_SCAN_INTERVAL,
-                    default=self.config_entry.data.get(
-                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL,
+                    default=get_entry_value(
+                        self.config_entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL,
                     ),
                 ): int,
                 vol.Optional(
                     CONF_CAR_REFRESH_INTERVAL,
-                    default=self.config_entry.data.get(
-                        CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL,
+                    default=get_entry_value(
+                        self.config_entry,
+                        CONF_CAR_REFRESH_INTERVAL,
+                        DEFAULT_CAR_REFRESH_INTERVAL,
                     ),
                 ): int,
                 vol.Optional(
                     CONF_LOCATION_REFRESH_INTERVAL,
-                    default=self.config_entry.data.get(
-                        CONF_LOCATION_REFRESH_INTERVAL, DEFAULT_LOCATION_REFRESH_INTERVAL,
+                    default=get_entry_value(
+                        self.config_entry,
+                        CONF_LOCATION_REFRESH_INTERVAL,
+                        DEFAULT_LOCATION_REFRESH_INTERVAL,
                     ),
                 ): int,
             }),
@@ -82,7 +81,7 @@ class MyHondaPlusOptionsFlow(config_entries.OptionsFlow):
 
 
 class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    VERSION = 1
+    VERSION = 2
 
     @staticmethod
     def async_get_options_flow(config_entry):
@@ -356,14 +355,16 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_EMAIL: self._email,
                 CONF_VIN: vin,
                 CONF_VEHICLE_NAME: vehicle_name,
-                CONF_SCAN_INTERVAL: self._scan_interval,
-                CONF_CAR_REFRESH_INTERVAL: self._car_refresh_interval,
-                CONF_LOCATION_REFRESH_INTERVAL: self._location_refresh_interval,
                 CONF_ACCESS_TOKEN: self._tokens["access_token"],
                 CONF_REFRESH_TOKEN: self._tokens["refresh_token"],
                 CONF_USER_ID: user_id,
                 CONF_PERSONAL_ID: personal_id,
                 CONF_DEVICE_KEY_PEM: self._device_key.pem_bytes.decode(),
                 CONF_FUEL_TYPE: fuel_type,
+            },
+            options={
+                CONF_SCAN_INTERVAL: self._scan_interval,
+                CONF_CAR_REFRESH_INTERVAL: self._car_refresh_interval,
+                CONF_LOCATION_REFRESH_INTERVAL: self._location_refresh_interval,
             },
         )

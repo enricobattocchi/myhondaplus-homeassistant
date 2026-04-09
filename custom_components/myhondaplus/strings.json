@@ -10,6 +10,13 @@
           "scan_interval": "Update interval (seconds)",
           "car_refresh_interval": "Refresh from car interval (seconds, 0 to disable)",
           "location_refresh_interval": "Location refresh interval (seconds, 0 to disable)"
+        },
+        "data_description": {
+          "email": "Email address used to sign in to the My Honda+ app.",
+          "password": "Password for your My Honda+ account.",
+          "scan_interval": "How often Home Assistant polls Honda's cached vehicle data.",
+          "car_refresh_interval": "How often Home Assistant wakes the vehicle for fresh status data. Set to 0 to disable.",
+          "location_refresh_interval": "How often Home Assistant requests fresh GPS data from the vehicle. Set to 0 to disable."
         }
       },
       "select_vehicle": {
@@ -17,6 +24,9 @@
         "description": "Multiple vehicles found on your account. Select which one to add.",
         "data": {
           "vin": "Vehicle"
+        },
+        "data_description": {
+          "vin": "Choose the vehicle from your My Honda+ account that should be added to Home Assistant."
         }
       },
       "manual_vin": {
@@ -24,6 +34,9 @@
         "description": "Could not auto-detect vehicles. Enter the VIN manually.",
         "data": {
           "vin": "Vehicle Identification Number (VIN)"
+        },
+        "data_description": {
+          "vin": "Enter the VIN exactly as reported by Honda if automatic vehicle detection did not work."
         }
       },
       "verify": {
@@ -31,6 +44,9 @@
         "description": "Honda sent a verification email. Copy the link URL from the email (do NOT click it) and paste it below.",
         "data": {
           "verification_link": "Verification link from email"
+        },
+        "data_description": {
+          "verification_link": "Paste the full verification URL from the Honda email."
         }
       },
       "reauth_confirm": {
@@ -39,6 +55,10 @@
         "data": {
           "email": "Email",
           "password": "Password"
+        },
+        "data_description": {
+          "email": "Email address used to sign in to the My Honda+ app.",
+          "password": "Password for your My Honda+ account."
         }
       }
     },
@@ -61,6 +81,11 @@
           "scan_interval": "Update interval (seconds)",
           "car_refresh_interval": "Refresh from car interval (seconds, 0 to disable)",
           "location_refresh_interval": "Location refresh interval (seconds, 0 to disable)"
+        },
+        "data_description": {
+          "scan_interval": "How often Home Assistant polls Honda's cached vehicle data.",
+          "car_refresh_interval": "How often Home Assistant wakes the vehicle for fresh status data. Set to 0 to disable.",
+          "location_refresh_interval": "How often Home Assistant requests fresh GPS data from the vehicle. Set to 0 to disable."
         }
       }
     }
