@@ -29,6 +29,18 @@ HACS will track updates automatically, making it easy to upgrade.
 
 </details>
 
+## Removal
+
+To remove the integration cleanly:
+
+1. In Home Assistant, go to **Settings > Devices & Services > Integrations**
+2. Open **My Honda+**
+3. Use the menu and choose **Delete**
+4. Restart Home Assistant if you installed the integration manually and want to remove the files from disk
+
+If you installed through HACS, uninstall it from HACS after removing the integration entry.
+If you installed manually, delete the `custom_components/myhondaplus` directory from your Home Assistant `config/custom_components/` folder.
+
 ## Configuration
 
 The integration will ask for:
