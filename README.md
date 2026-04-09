@@ -36,6 +36,7 @@ The integration will ask for:
 - **Password**: Your My Honda+ account password
 - **Update interval**: How often to poll Honda's cached data (default: 600 seconds / 10 minutes)
 - **Refresh from car interval**: How often to wake the TCU for fresh data (default: 43200 seconds / 12 hours, 0 to disable)
+- **Location refresh interval**: How often to request fresh GPS data from the car (default: 3600 seconds / 1 hour, 0 to disable)
 
 These intervals can be changed later from **Settings > Integrations > My Honda+ > Configure**.
 
@@ -91,6 +92,8 @@ Remote commands update the UI optimistically (the state changes immediately) and
 
 ## Services
 
+If you have multiple Honda vehicles configured, each service call requires selecting which vehicle to control via the **config_entry** field (shown as a "Vehicle" dropdown in the UI).
+
 ### `myhondaplus.climate_on`
 
 Start climate pre-conditioning with specific settings. Applies the settings and starts climate.
@@ -98,6 +101,7 @@ Start climate pre-conditioning with specific settings. Applies the settings and 
 ```yaml
 service: myhondaplus.climate_on
 data:
+  config_entry: "<config_entry_id>"
   temp: "normal"      # cooler, normal, hotter
   duration: 30         # 10, 20, 30
   defrost: true
@@ -107,9 +111,12 @@ data:
 
 Set the charge prohibition schedule (up to 2 rules). All fields are required. Pass `rules: []` to clear.
 
+Days must be a comma-separated list of `mon,tue,wed,thu,fri,sat,sun`. Times must be in `HH:MM` format (24-hour).
+
 ```yaml
 service: myhondaplus.set_charge_schedule
 data:
+  config_entry: "<config_entry_id>"
   rules:
     - days: "mon,tue,wed,thu,fri"
       location: "home"       # home, all
@@ -121,9 +128,12 @@ data:
 
 Set the climate pre-conditioning schedule (up to 7 rules). `days` and `start_time` are required. Pass `rules: []` to clear.
 
+Days must be a comma-separated list of `mon,tue,wed,thu,fri,sat,sun`. Times must be in `HH:MM` format (24-hour).
+
 ```yaml
 service: myhondaplus.set_climate_schedule
 data:
+  config_entry: "<config_entry_id>"
   rules:
     - days: "mon,tue,wed,thu,fri"
       start_time: "07:00"
