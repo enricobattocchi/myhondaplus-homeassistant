@@ -29,6 +29,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
+from .entry_options import get_entry_value
 
 
 def _handle_api_error(
@@ -58,7 +59,7 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         self.api = HondaAPI()
         self._apply_tokens()
 
-        interval = entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+        interval = get_entry_value(entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
         super().__init__(
             hass,
             LOGGER,
