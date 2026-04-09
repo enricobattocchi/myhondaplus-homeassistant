@@ -49,11 +49,7 @@ class MyHondaPlusOptionsFlow(config_entries.OptionsFlow):
     async def async_step_init(self, user_input=None):
         """Handle options."""
         if user_input is not None:
-            self.hass.config_entries.async_update_entry(
-                self.config_entry, options=user_input,
-            )
-            await self.hass.config_entries.async_reload(self.config_entry.entry_id)
-            return self.async_create_entry(title="", data={})
+            return self.async_create_entry(title="", data=user_input)
 
         return self.async_show_form(
             step_id="init",

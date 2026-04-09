@@ -389,13 +389,12 @@ class TestOptionsFlow:
                 CONF_CAR_REFRESH_INTERVAL: 7200,
             })
 
-        flow.hass.config_entries.async_update_entry.assert_called_once()
-        assert flow.hass.config_entries.async_update_entry.call_args[1]["options"] == {
+        flow.hass.config_entries.async_reload.assert_not_called()
+        flow.async_create_entry.assert_called_once()
+        assert flow.async_create_entry.call_args[1]["data"] == {
             CONF_SCAN_INTERVAL: 300,
             CONF_CAR_REFRESH_INTERVAL: 7200,
         }
-        flow.hass.config_entries.async_reload.assert_awaited_once()
-        flow.async_create_entry.assert_called_once()
 
 
 class TestReauthFlow:
