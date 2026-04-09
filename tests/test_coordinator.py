@@ -14,7 +14,7 @@ from custom_components.myhondaplus.coordinator import (
     HondaTripCoordinator,
 )
 
-from .conftest import MOCK_DASHBOARD_DATA, MOCK_ENTRY_DATA, MOCK_VIN
+from .conftest import MOCK_DASHBOARD_DATA, MOCK_ENTRY_DATA, MOCK_VEHICLE_NAME, MOCK_VIN
 
 Tokens = namedtuple("Tokens", ["access_token", "refresh_token"])
 
@@ -46,6 +46,7 @@ def coordinator(mock_hass, mock_entry):
         coord.data = dict(MOCK_DASHBOARD_DATA)
         coord.logger = MagicMock()
         coord._service_available = True
+        coord._vehicle_name = MOCK_VEHICLE_NAME
         coord.async_set_updated_data = MagicMock()
         return coord
 
@@ -169,8 +170,9 @@ class TestHondaDataUpdateCoordinator:
         )
 
         with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
-            with pytest.raises(HomeAssistantError, match="Unable to refresh data"):
-                await coordinator.async_refresh_from_car()
+            with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
+                with pytest.raises(HomeAssistantError, match="Unable to refresh data"):
+                    await coordinator.async_refresh_from_car()
 
         coordinator.async_set_updated_data.assert_not_called()
         logger.warning.assert_called_once_with(
@@ -178,6 +180,24 @@ class TestHondaDataUpdateCoordinator:
             "pending",
             None,
         )
+        pn_create.assert_called_once_with(
+            coordinator.hass,
+            f"Dashboard refresh for {MOCK_VEHICLE_NAME} timed out waiting for the car to respond.",
+            title="My Honda+",
+            notification_id="myhondaplus_refresh_timeout",
+        )
+
+    @pytest.mark.asyncio
+    async def test_refresh_from_car_failure_no_notification(self, coordinator):
+        coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
+            success=False, status="failed", timed_out=False, reason="error",
+        )
+
+        with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
+            with pytest.raises(HomeAssistantError, match="Unable to refresh data"):
+                await coordinator.async_refresh_from_car()
+
+        pn_create.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_send_command_success(self, coordinator):
@@ -216,7 +236,7 @@ class TestHondaDataUpdateCoordinator:
         )
 
     @pytest.mark.asyncio
-    async def test_send_command_and_wait_timeout_logs_specific_message(self, coordinator):
+    async def test_send_command_and_wait_timeout_logs_and_notifies(self, coordinator):
         func = MagicMock()
         coordinator.async_send_command = AsyncMock(return_value="cmd-123")
         coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
@@ -224,7 +244,8 @@ class TestHondaDataUpdateCoordinator:
         )
 
         with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
-            assert await coordinator.async_send_command_and_wait(func, "arg1") is False
+            with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
+                assert await coordinator.async_send_command_and_wait(func, "arg1") is False
 
         logger.warning.assert_called_once_with(
             "Command timed out waiting for the car to respond (id=%s, status=%s, reason=%s)",
@@ -232,6 +253,25 @@ class TestHondaDataUpdateCoordinator:
             "timeout",
             None,
         )
+        pn_create.assert_called_once_with(
+            coordinator.hass,
+            f"A command for {MOCK_VEHICLE_NAME} timed out waiting for the car to respond.",
+            title="My Honda+",
+            notification_id="myhondaplus_command_timeout",
+        )
+
+    @pytest.mark.asyncio
+    async def test_send_command_and_wait_failure_no_notification(self, coordinator):
+        func = MagicMock()
+        coordinator.async_send_command = AsyncMock(return_value="cmd-123")
+        coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
+            success=False, status="failed", timed_out=False, reason="error",
+        )
+
+        with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
+            assert await coordinator.async_send_command_and_wait(func, "arg1") is False
+
+        pn_create.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_refresh_location_success(self, coordinator):
@@ -262,8 +302,9 @@ class TestHondaDataUpdateCoordinator:
         )
 
         with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
-            with pytest.raises(HomeAssistantError, match="Unable to refresh location"):
-                await coordinator.async_refresh_location()
+            with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
+                with pytest.raises(HomeAssistantError, match="Unable to refresh location"):
+                    await coordinator.async_refresh_location()
 
         coordinator.async_set_updated_data.assert_not_called()
         coordinator.hass.async_add_executor_job.assert_awaited_once_with(
@@ -274,6 +315,12 @@ class TestHondaDataUpdateCoordinator:
             "cmd-123",
             "timeout",
             None,
+        )
+        pn_create.assert_called_once_with(
+            coordinator.hass,
+            f"Location refresh for {MOCK_VEHICLE_NAME} timed out waiting for the car to respond.",
+            title="My Honda+",
+            notification_id="myhondaplus_location_timeout",
         )
 
 

@@ -2,6 +2,9 @@
 
 from datetime import timedelta
 
+from homeassistant.components.persistent_notification import (
+    async_create as pn_async_create,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
@@ -23,6 +26,7 @@ from .const import (
     CONF_REFRESH_TOKEN,
     CONF_SCAN_INTERVAL,
     CONF_USER_ID,
+    CONF_VEHICLE_NAME,
     CONF_VIN,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TRIP_INTERVAL,
@@ -55,6 +59,7 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         self.entry = entry
         self.vin: str = entry.data[CONF_VIN]
+        self._vehicle_name: str = entry.data.get(CONF_VEHICLE_NAME, "")
         self.api = HondaAPI()
         self._service_available = True
         self._apply_tokens()
@@ -142,6 +147,12 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                         result.status,
                         result.reason,
                     )
+                    pn_async_create(
+                        self.hass,
+                        f"Dashboard refresh for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
+                        title="My Honda+",
+                        notification_id=f"{DOMAIN}_refresh_timeout",
+                    )
                 else:
                     LOGGER.warning(
                         "Dashboard refresh did not succeed (status=%s, reason=%s)",
@@ -189,6 +200,12 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                     result.status,
                     result.reason,
                 )
+                pn_async_create(
+                    self.hass,
+                    f"A command for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
+                    title="My Honda+",
+                    notification_id=f"{DOMAIN}_command_timeout",
+                )
             else:
                 LOGGER.warning(
                     "Command did not succeed (id=%s, status=%s, reason=%s)",
@@ -214,6 +231,12 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                         command_id,
                         result.status,
                         result.reason,
+                    )
+                    pn_async_create(
+                        self.hass,
+                        f"Location refresh for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
+                        title="My Honda+",
+                        notification_id=f"{DOMAIN}_location_timeout",
                     )
                 else:
                     LOGGER.warning(

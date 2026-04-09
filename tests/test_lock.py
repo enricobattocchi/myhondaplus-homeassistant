@@ -83,9 +83,24 @@ class TestDoorLock:
 
     @pytest.mark.asyncio
     async def test_unlock_does_not_mutate_original(self, door_lock):
-        """Ensure optimistic update creates a copy."""
+        """Ensure confirmed update creates a copy."""
         original_data = door_lock.coordinator.data
         original_locked = original_data["doors_locked"]
         await door_lock.async_unlock()
         # Original data should not have been changed
         assert original_data["doors_locked"] == original_locked
+
+    @pytest.mark.asyncio
+    async def test_lock_no_update_on_failure(self, door_lock):
+        door_lock.coordinator.async_send_command_and_wait.return_value = False
+        await door_lock.async_lock()
+        door_lock.coordinator.async_set_updated_data.assert_not_called()
+        # Pending flags should still be cleared
+        assert door_lock._attr_is_locking is False
+
+    @pytest.mark.asyncio
+    async def test_unlock_no_update_on_failure(self, door_lock):
+        door_lock.coordinator.async_send_command_and_wait.return_value = False
+        await door_lock.async_unlock()
+        door_lock.coordinator.async_set_updated_data.assert_not_called()
+        assert door_lock._attr_is_unlocking is False
