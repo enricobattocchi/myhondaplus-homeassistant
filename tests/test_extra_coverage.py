@@ -445,7 +445,9 @@ class TestCoordinatorCoverage:
         coord.hass = MagicMock()
         coord.api = MagicMock()
         coord.hass.async_add_executor_job = AsyncMock(
-            return_value=SimpleNamespace(success=False, status="timeout"),
+            return_value=SimpleNamespace(
+                success=False, status="timeout", timed_out=True, reason=None,
+            ),
         )
         with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
             result = await HondaDataUpdateCoordinator.async_send_command_and_wait(coord, MagicMock())
@@ -479,7 +481,7 @@ class TestCoordinatorCoverage:
         HondaDataUpdateCoordinator._persist_tokens_if_changed(coord)
         coord.hass.config_entries.async_update_entry.assert_called_once()
 
-    def test_fetch_data_and_fresh(self):
+    def test_fetch_data_and_refresh_command(self):
         coord = HondaDataUpdateCoordinator.__new__(HondaDataUpdateCoordinator)
         coord.vin = MOCK_VIN
         coord.api = MagicMock()
@@ -487,9 +489,9 @@ class TestCoordinatorCoverage:
              patch("custom_components.myhondaplus.coordinator.parse_charge_schedule", return_value=["a"]), \
              patch("custom_components.myhondaplus.coordinator.parse_climate_schedule", return_value=["b"]):
             coord.api.get_dashboard_cached.return_value = {"dash": 1}
-            coord.api.get_dashboard.return_value = {"dash": 2}
+            coord.api.refresh_dashboard.return_value = SimpleNamespace(success=True)
             assert HondaDataUpdateCoordinator._fetch_data(coord) == {"x": 1, "charge_schedule": ["a"], "climate_schedule": ["b"]}
-            assert HondaDataUpdateCoordinator._fetch_data_fresh(coord) == {"x": 1, "charge_schedule": ["a"], "climate_schedule": ["b"]}
+            assert HondaDataUpdateCoordinator._refresh_from_car(coord).success is True
 
     def test_trip_fetch_data_uses_main_coordinator_distance(self):
         coord = HondaTripCoordinator.__new__(HondaTripCoordinator)
