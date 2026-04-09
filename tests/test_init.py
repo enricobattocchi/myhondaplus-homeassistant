@@ -4,8 +4,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import voluptuous as vol
+from homeassistant.config_entries import ConfigEntryState
+from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.myhondaplus import (
+    ATTR_CONFIG_ENTRY,
     SERVICE_CLIMATE_ON,
     SERVICE_CLIMATE_ON_SCHEMA,
     SERVICE_SET_CHARGE_SCHEDULE,
@@ -13,6 +16,7 @@ from custom_components.myhondaplus import (
     _get_coordinator,
     _register_services,
 )
+from custom_components.myhondaplus.const import DOMAIN
 
 
 @pytest.fixture
@@ -42,23 +46,43 @@ class TestGetCoordinator:
         entry = MagicMock()
         entry.runtime_data = MagicMock()
         entry.runtime_data.coordinator = mock_coordinator
-        hass.config_entries.async_entries.return_value = [entry]
-        assert _get_coordinator(hass) is mock_coordinator
+        entry.entry_id = "entry_1"
+        entry.domain = DOMAIN
+        entry.state = ConfigEntryState.LOADED
+        hass.config_entries.async_get_entry.return_value = entry
+        assert _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"})) is mock_coordinator
 
     def test_raises_when_no_entries(self):
         hass = MagicMock()
-        hass.config_entries.async_entries.return_value = []
-        with pytest.raises(ValueError, match="No My Honda\\+"):
-            _get_coordinator(hass)
+        hass.config_entries.async_get_entry.return_value = None
+        with pytest.raises(ServiceValidationError, match="Config entry 'entry_1' not found"):
+            _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"}))
 
-    def test_skips_entries_without_runtime_data(self, mock_coordinator):
+    def test_raises_when_unloaded(self, mock_coordinator):
         hass = MagicMock()
-        entry_no_data = MagicMock(spec=[])  # no runtime_data attr
-        entry_with_data = MagicMock()
-        entry_with_data.runtime_data = MagicMock()
-        entry_with_data.runtime_data.coordinator = mock_coordinator
-        hass.config_entries.async_entries.return_value = [entry_no_data, entry_with_data]
-        assert _get_coordinator(hass) is mock_coordinator
+        entry = MagicMock()
+        entry.entry_id = "entry_1"
+        entry.domain = DOMAIN
+        entry.state = "not_loaded"
+        entry.runtime_data = MagicMock()
+        entry.runtime_data.coordinator = mock_coordinator
+        hass.config_entries.async_get_entry.return_value = entry
+
+        with pytest.raises(ServiceValidationError, match="Config entry 'entry_1' not loaded"):
+            _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"}))
+
+    def test_raises_when_wrong_domain(self, mock_coordinator):
+        hass = MagicMock()
+        entry = MagicMock()
+        entry.entry_id = "entry_1"
+        entry.domain = "wrong_domain"
+        entry.state = ConfigEntryState.LOADED
+        entry.runtime_data = MagicMock()
+        entry.runtime_data.coordinator = mock_coordinator
+        hass.config_entries.async_get_entry.return_value = entry
+
+        with pytest.raises(ServiceValidationError, match="Config entry 'entry_1' not found"):
+            _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"}))
 
 
 class TestRegisterServices:
@@ -89,6 +113,7 @@ class TestChargeScheduleSchema:
         from custom_components.myhondaplus import SERVICE_CHARGE_SCHEDULE_SCHEMA
 
         result = SERVICE_CHARGE_SCHEDULE_SCHEMA({
+            "config_entry": "entry_1",
             "rules": [{
                 "days": "mon,tue,wed",
                 "location": "home",
@@ -96,6 +121,7 @@ class TestChargeScheduleSchema:
                 "end_time": "06:00",
             }],
         })
+        assert result["config_entry"] == "entry_1"
         assert result["rules"][0]["enabled"] is True
 
     def test_missing_required_field(self):
@@ -119,14 +145,82 @@ class TestChargeScheduleSchema:
                 }],
             })
 
+    def test_invalid_day_token(self):
+        from custom_components.myhondaplus import SERVICE_CHARGE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CHARGE_SCHEDULE_SCHEMA({
+                "rules": [{
+                    "days": "mon,holiday",
+                    "location": "home",
+                    "start_time": "22:00",
+                    "end_time": "06:00",
+                }],
+            })
+
+    def test_duplicate_days(self):
+        from custom_components.myhondaplus import SERVICE_CHARGE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CHARGE_SCHEDULE_SCHEMA({
+                "rules": [{
+                    "days": "mon,mon",
+                    "location": "home",
+                    "start_time": "22:00",
+                    "end_time": "06:00",
+                }],
+            })
+
+    def test_invalid_time(self):
+        from custom_components.myhondaplus import SERVICE_CHARGE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CHARGE_SCHEDULE_SCHEMA({
+                "rules": [{
+                    "days": "mon",
+                    "location": "home",
+                    "start_time": "25:00",
+                    "end_time": "06:00",
+                }],
+            })
+
+    def test_max_two_rules(self):
+        from custom_components.myhondaplus import SERVICE_CHARGE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CHARGE_SCHEDULE_SCHEMA({
+                "rules": [
+                    {
+                        "days": "mon",
+                        "location": "home",
+                        "start_time": "22:00",
+                        "end_time": "06:00",
+                    },
+                    {
+                        "days": "tue",
+                        "location": "home",
+                        "start_time": "22:00",
+                        "end_time": "06:00",
+                    },
+                    {
+                        "days": "wed",
+                        "location": "home",
+                        "start_time": "22:00",
+                        "end_time": "06:00",
+                    },
+                ],
+            })
+
 
 class TestClimateScheduleSchema:
     def test_valid_climate_rule(self):
         from custom_components.myhondaplus import SERVICE_CLIMATE_SCHEDULE_SCHEMA
 
         result = SERVICE_CLIMATE_SCHEDULE_SCHEMA({
+            "config_entry": "entry_1",
             "rules": [{"days": "mon,fri", "start_time": "07:00"}],
         })
+        assert result["config_entry"] == "entry_1"
         assert result["rules"][0]["enabled"] is True
 
     def test_missing_days(self):
@@ -137,20 +231,56 @@ class TestClimateScheduleSchema:
                 "rules": [{"start_time": "07:00"}],
             })
 
+    def test_invalid_time(self):
+        from custom_components.myhondaplus import SERVICE_CLIMATE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CLIMATE_SCHEDULE_SCHEMA({
+                "rules": [{"days": "mon", "start_time": "7:00"}],
+            })
+
+    def test_invalid_day_token(self):
+        from custom_components.myhondaplus import SERVICE_CLIMATE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CLIMATE_SCHEDULE_SCHEMA({
+                "rules": [{"days": "mon,foo", "start_time": "07:00"}],
+            })
+
+    def test_max_seven_rules(self):
+        from custom_components.myhondaplus import SERVICE_CLIMATE_SCHEDULE_SCHEMA
+
+        with pytest.raises(vol.Invalid):
+            SERVICE_CLIMATE_SCHEDULE_SCHEMA({
+                "rules": [
+                    {"days": "mon", "start_time": "07:00"},
+                    {"days": "tue", "start_time": "07:00"},
+                    {"days": "wed", "start_time": "07:00"},
+                    {"days": "thu", "start_time": "07:00"},
+                    {"days": "fri", "start_time": "07:00"},
+                    {"days": "sat", "start_time": "07:00"},
+                    {"days": "sun", "start_time": "07:00"},
+                    {"days": "mon", "start_time": "08:00"},
+                ],
+            })
+
 
 class TestClimateOnSchema:
     def test_defaults(self):
-        result = SERVICE_CLIMATE_ON_SCHEMA({})
+        result = SERVICE_CLIMATE_ON_SCHEMA({"config_entry": "entry_1"})
+        assert result["config_entry"] == "entry_1"
         assert result["temp"] == "normal"
         assert result["duration"] == 30
         assert result["defrost"] is True
 
     def test_valid_values(self):
         result = SERVICE_CLIMATE_ON_SCHEMA({
+            "config_entry": "entry_1",
             "temp": "cooler",
             "duration": 10,
             "defrost": False,
         })
+        assert result["config_entry"] == "entry_1"
         assert result["temp"] == "cooler"
         assert result["duration"] == 10
         assert result["defrost"] is False
@@ -228,3 +358,26 @@ class TestServiceHandlers:
 
         mock_coordinator.async_send_command.assert_awaited_once()
         mock_coordinator.async_set_updated_data.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_handlers_pass_service_call_to_target_resolution(
+        self, mock_hass_with_services, mock_coordinator,
+    ):
+        _register_services(mock_hass_with_services)
+        handlers = {
+            call[0][1]: call[0][2]
+            for call in mock_hass_with_services.services.async_register.call_args_list
+        }
+
+        call = MagicMock()
+        call.data = {
+            "entity_id": "sensor.honda_two_battery_level",
+            "rules": [{"days": "mon", "start_time": "07:00"}],
+        }
+        with patch(
+            "custom_components.myhondaplus._get_coordinator",
+            return_value=mock_coordinator,
+        ) as get_coordinator:
+            await handlers[SERVICE_SET_CLIMATE_SCHEDULE](call)
+
+        get_coordinator.assert_called_once_with(mock_hass_with_services, call)

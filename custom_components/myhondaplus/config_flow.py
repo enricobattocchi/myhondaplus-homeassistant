@@ -93,6 +93,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._password = None
         self._scan_interval = DEFAULT_SCAN_INTERVAL
         self._car_refresh_interval = DEFAULT_CAR_REFRESH_INTERVAL
+        self._location_refresh_interval = DEFAULT_LOCATION_REFRESH_INTERVAL
         self._device_key = None
         self._auth = None
         self._tokens = None
@@ -108,6 +109,9 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._password = user_input[CONF_PASSWORD]
             self._scan_interval = user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
             self._car_refresh_interval = user_input.get(CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL)
+            self._location_refresh_interval = user_input.get(
+                CONF_LOCATION_REFRESH_INTERVAL, DEFAULT_LOCATION_REFRESH_INTERVAL,
+            )
 
             self._device_key = DeviceKey()
             self._auth = HondaAuth(device_key=self._device_key)
@@ -354,6 +358,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_VEHICLE_NAME: vehicle_name,
                 CONF_SCAN_INTERVAL: self._scan_interval,
                 CONF_CAR_REFRESH_INTERVAL: self._car_refresh_interval,
+                CONF_LOCATION_REFRESH_INTERVAL: self._location_refresh_interval,
                 CONF_ACCESS_TOKEN: self._tokens["access_token"],
                 CONF_REFRESH_TOKEN: self._tokens["refresh_token"],
                 CONF_USER_ID: user_id,

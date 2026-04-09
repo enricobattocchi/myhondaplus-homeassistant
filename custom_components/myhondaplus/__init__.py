@@ -1,8 +1,13 @@
 """My Honda+ integration for Home Assistant."""
 
+import re
+
 import voluptuous as vol
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
+from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import selector
 from homeassistant.helpers.event import async_call_later
 
 from .const import (
@@ -21,32 +26,75 @@ PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.DEVICE_TRACKER, P
 SERVICE_SET_CHARGE_SCHEDULE = "set_charge_schedule"
 SERVICE_SET_CLIMATE_SCHEDULE = "set_climate_schedule"
 SERVICE_CLIMATE_ON = "climate_on"
+ATTR_CONFIG_ENTRY = "config_entry"
+
+
+VALID_DAYS = {"mon", "tue", "wed", "thu", "fri", "sat", "sun"}
+TIME_PATTERN = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")
+
+
+def _validate_days(value: str) -> str:
+    """Validate a comma-separated weekday list."""
+    if not isinstance(value, str):
+        raise vol.Invalid("days must be a comma-separated string")
+    days = [day.strip().lower() for day in value.split(",") if day.strip()]
+    if not days:
+        raise vol.Invalid("at least one day is required")
+    if any(day not in VALID_DAYS for day in days):
+        raise vol.Invalid("days must only contain mon-sun")
+    if len(days) != len(set(days)):
+        raise vol.Invalid("days must not contain duplicates")
+    return ",".join(days)
+
+
+def _validate_time(value: str) -> str:
+    """Validate a time string in HH:MM format."""
+    if not isinstance(value, str):
+        raise vol.Invalid("time must be a string")
+    if not TIME_PATTERN.match(value):
+        raise vol.Invalid("time must be in HH:MM format")
+    return value
+
 
 CHARGE_RULE_SCHEMA = vol.Schema({
-    vol.Required("days"): str,
+    vol.Required("days"): _validate_days,
     vol.Required("location"): vol.In(["home", "all"]),
-    vol.Required("start_time"): str,
-    vol.Required("end_time"): str,
+    vol.Required("start_time"): _validate_time,
+    vol.Required("end_time"): _validate_time,
     vol.Optional("enabled", default=True): bool,
 })
 
 CLIMATE_RULE_SCHEMA = vol.Schema({
-    vol.Required("days"): str,
-    vol.Required("start_time"): str,
+    vol.Required("days"): _validate_days,
+    vol.Required("start_time"): _validate_time,
     vol.Optional("enabled", default=True): bool,
 })
 
-SERVICE_CLIMATE_ON_SCHEMA = vol.Schema({
+BASE_SERVICE_FIELDS = {
+    vol.Required(ATTR_CONFIG_ENTRY): selector.ConfigEntrySelector(
+        {
+            "integration": DOMAIN,
+        }
+    ),
+}
+SERVICE_CLIMATE_ON_FIELDS = {
+    **BASE_SERVICE_FIELDS,
     vol.Optional("temp", default="normal"): vol.In(["cooler", "normal", "hotter"]),
     vol.Optional("duration", default=30): vol.In([10, 20, 30]),
     vol.Optional("defrost", default=True): bool,
-})
-SERVICE_CHARGE_SCHEDULE_SCHEMA = vol.Schema({
-    vol.Required("rules"): [CHARGE_RULE_SCHEMA],
-})
-SERVICE_CLIMATE_SCHEDULE_SCHEMA = vol.Schema({
-    vol.Required("rules"): [CLIMATE_RULE_SCHEMA],
-})
+}
+SERVICE_CHARGE_SCHEDULE_FIELDS = {
+    **BASE_SERVICE_FIELDS,
+    vol.Required("rules"): vol.All([CHARGE_RULE_SCHEMA], vol.Length(max=2)),
+}
+SERVICE_CLIMATE_SCHEDULE_FIELDS = {
+    **BASE_SERVICE_FIELDS,
+    vol.Required("rules"): vol.All([CLIMATE_RULE_SCHEMA], vol.Length(max=7)),
+}
+
+SERVICE_CLIMATE_ON_SCHEMA = vol.Schema(SERVICE_CLIMATE_ON_FIELDS)
+SERVICE_CHARGE_SCHEDULE_SCHEMA = vol.Schema(SERVICE_CHARGE_SCHEDULE_FIELDS)
+SERVICE_CLIMATE_SCHEDULE_SCHEMA = vol.Schema(SERVICE_CLIMATE_SCHEDULE_FIELDS)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> bool:
@@ -134,12 +182,25 @@ def _schedule_location_refresh(
     )
 
 
-def _get_coordinator(hass: HomeAssistant) -> HondaDataUpdateCoordinator:
-    """Get the first available coordinator."""
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        if hasattr(entry, "runtime_data") and entry.runtime_data:
-            return entry.runtime_data.coordinator
-    raise ValueError("No My Honda+ config entry found")
+def _get_coordinator(
+    hass: HomeAssistant, call: ServiceCall,
+) -> HondaDataUpdateCoordinator:
+    """Resolve the coordinator for a service call config entry."""
+    entry_id = call.data[ATTR_CONFIG_ENTRY]
+    entry = hass.config_entries.async_get_entry(entry_id)
+    if entry is None or entry.domain != DOMAIN:
+        raise ServiceValidationError(
+            f"Failed to call service '{call.service}'. Config entry '{entry_id}' not found"
+        )
+    if entry.state != ConfigEntryState.LOADED:
+        raise ServiceValidationError(
+            f"Failed to call service '{call.service}'. Config entry '{entry_id}' not loaded"
+        )
+    if not hasattr(entry, "runtime_data") or not entry.runtime_data:
+        raise ServiceValidationError(
+            f"Failed to call service '{call.service}'. Config entry '{entry_id}' has no runtime data"
+        )
+    return entry.runtime_data.coordinator
 
 
 def _register_services(hass: HomeAssistant) -> None:
@@ -172,7 +233,7 @@ def _register_services(hass: HomeAssistant) -> None:
         async_call_later(hass, 30, _refresh)
 
     async def handle_set_charge_schedule(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(hass, call)
         rules = call.data["rules"]
         await coordinator.async_send_command(
             coordinator.api.set_charge_schedule, coordinator.vin, rules,
@@ -180,7 +241,7 @@ def _register_services(hass: HomeAssistant) -> None:
         _optimistic_schedule_update(coordinator, "charge_schedule", rules)
 
     async def handle_set_climate_schedule(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(hass, call)
         rules = call.data["rules"]
         await coordinator.async_send_command(
             coordinator.api.set_climate_schedule, coordinator.vin, rules,
@@ -188,7 +249,7 @@ def _register_services(hass: HomeAssistant) -> None:
         _optimistic_schedule_update(coordinator, "climate_schedule", rules)
 
     async def handle_climate_on(call: ServiceCall) -> None:
-        coordinator = _get_coordinator(hass)
+        coordinator = _get_coordinator(hass, call)
         temp = call.data.get("temp", "normal")
         duration = call.data.get("duration", 30)
         defrost = call.data.get("defrost", True)
