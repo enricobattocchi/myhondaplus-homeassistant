@@ -112,16 +112,32 @@
   },
   "entity": {
     "binary_sensor": {
-      "doors_open": { "name": "Dveře" },
-      "windows_open": { "name": "Okna" },
-      "hood": { "name": "Kapota" },
-      "trunk": { "name": "Kufr" },
-      "lights": { "name": "Světla" }
+      "doors_open": {
+        "name": "Dveře"
+      },
+      "windows_open": {
+        "name": "Okna"
+      },
+      "hood": {
+        "name": "Kapota"
+      },
+      "trunk": {
+        "name": "Kufr"
+      },
+      "lights": {
+        "name": "Světla"
+      }
     },
     "sensor": {
-      "battery_level": { "name": "Baterie" },
-      "range": { "name": "Dojezd" },
-      "total_range": { "name": "Celkový dojezd" },
+      "battery_level": {
+        "name": "Baterie"
+      },
+      "range": {
+        "name": "Dojezd"
+      },
+      "total_range": {
+        "name": "Celkový dojezd"
+      },
       "charge_status": {
         "name": "Stav nabíjení",
         "state": {
@@ -150,30 +166,64 @@
           "unknown": "Neznámý"
         }
       },
-      "climate_active": { "name": "Klimatizace aktivní" },
-      "cabin_temperature": { "name": "Teplota kabiny" },
-      "odometer": { "name": "Počítadlo kilometrů" },
-      "doors_locked": { "name": "Zamknuto" },
-      "ignition": { "name": "Zapalování" },
-      "speed": { "name": "Rychlost" },
+      "climate_active": {
+        "name": "Klimatizace aktivní"
+      },
+      "cabin_temperature": {
+        "name": "Teplota kabiny"
+      },
+      "odometer": {
+        "name": "Počítadlo kilometrů"
+      },
+      "doors_locked": {
+        "name": "Zamknuto"
+      },
+      "ignition": {
+        "name": "Zapalování"
+      },
+      "speed": {
+        "name": "Rychlost"
+      },
       "charge_mode": {
         "name": "Režim nabíjení",
         "state": {
           "unconfirmed": "Nepotvrzeno",
+          "100v charging": "Nabíjení 100V",
           "200v charging": "Nabíjení 200V",
+          "fast charging": "Rychlé nabíjení",
           "unknown": "Neznámý"
         }
       },
-      "time_to_charge": { "name": "Čas do plného nabití" },
-      "interior_temperature": { "name": "Vnitřní teplota" },
-      "headlights": { "name": "Přední světla" },
-      "parking_lights": { "name": "Parkovací světla" },
-      "warnings": { "name": "Výstražné kontrolky" },
-      "last_updated": { "name": "Poslední aktualizace" },
-      "trips_this_month": { "name": "Cesty tento měsíc" },
-      "distance_this_month": { "name": "Vzdálenost tento měsíc" },
-      "driving_time_this_month": { "name": "Doba jízdy tento měsíc" },
-      "avg_consumption_this_month": { "name": "Průměrná spotřeba tento měsíc" },
+      "time_to_charge": {
+        "name": "Čas do plného nabití"
+      },
+      "interior_temperature": {
+        "name": "Vnitřní teplota"
+      },
+      "headlights": {
+        "name": "Přední světla"
+      },
+      "parking_lights": {
+        "name": "Parkovací světla"
+      },
+      "warnings": {
+        "name": "Výstražné kontrolky"
+      },
+      "last_updated": {
+        "name": "Poslední aktualizace"
+      },
+      "trips_this_month": {
+        "name": "Cesty tento měsíc"
+      },
+      "distance_this_month": {
+        "name": "Vzdálenost tento měsíc"
+      },
+      "driving_time_this_month": {
+        "name": "Doba jízdy tento měsíc"
+      },
+      "avg_consumption_this_month": {
+        "name": "Průměrná spotřeba tento měsíc"
+      },
       "climate_temp": {
         "name": "Teplota klimatizace",
         "state": {
@@ -183,27 +233,53 @@
           "unknown": "Neznámý"
         }
       },
-      "climate_duration": { "name": "Doba klimatizace" },
-      "climate_defrost": { "name": "Odmrazování" },
-      "charge_schedule": { "name": "Plán nabíjení" },
-      "climate_schedule": { "name": "Plán klimatizace" }
+      "climate_duration": {
+        "name": "Doba klimatizace"
+      },
+      "climate_defrost": {
+        "name": "Odmrazování"
+      },
+      "charge_schedule": {
+        "name": "Plán nabíjení"
+      },
+      "climate_schedule": {
+        "name": "Plán klimatizace"
+      }
     },
     "device_tracker": {
-      "vehicle_location": { "name": "Poloha" }
+      "vehicle_location": {
+        "name": "Poloha"
+      }
     },
     "button": {
-      "horn_lights": { "name": "Klakson a světla" },
-      "refresh_cached": { "name": "Aktualizovat" },
-      "refresh_data": { "name": "Aktualizovat z vozidla" }
+      "horn_lights": {
+        "name": "Klakson a světla"
+      },
+      "refresh_cached": {
+        "name": "Aktualizovat"
+      },
+      "refresh_data": {
+        "name": "Aktualizovat z vozidla"
+      }
     },
     "lock": {
-      "doors": { "name": "Dveře" }
+      "doors": {
+        "name": "Dveře"
+      }
     },
     "switch": {
-      "climate": { "name": "Klimatizace" },
-      "charging": { "name": "Nabíjení" },
-      "climate_defrost_setting": { "name": "Odmrazování" },
-      "auto_refresh": { "name": "Automatická aktualizace z vozidla" }
+      "climate": {
+        "name": "Klimatizace"
+      },
+      "charging": {
+        "name": "Nabíjení"
+      },
+      "climate_defrost_setting": {
+        "name": "Odmrazování"
+      },
+      "auto_refresh": {
+        "name": "Automatická aktualizace z vozidla"
+      }
     },
     "select": {
       "climate_temp_setting": {
@@ -214,11 +290,17 @@
           "hotter": "Tepleji"
         }
       },
-      "climate_duration_setting": { "name": "Doba klimatizace (min)" }
+      "climate_duration_setting": {
+        "name": "Doba klimatizace (min)"
+      }
     },
     "number": {
-      "charge_limit_home": { "name": "Limit nabíjení (doma)" },
-      "charge_limit_away": { "name": "Limit nabíjení (pryč)" }
+      "charge_limit_home": {
+        "name": "Limit nabíjení (doma)"
+      },
+      "charge_limit_away": {
+        "name": "Limit nabíjení (pryč)"
+      }
     }
   }
 }

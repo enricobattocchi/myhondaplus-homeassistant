@@ -40,7 +40,7 @@
         }
       },
       "verify": {
-        "title": "E-mail verifi\u00ebren",
+        "title": "E-mail verifiëren",
         "description": "Honda heeft een verificatie-e-mail gestuurd. Kopieer de URL van de link uit de e-mail (klik er NIET op) en plak deze hieronder.",
         "data": {
           "verification_link": "Verificatielink uit de e-mail"
@@ -50,7 +50,7 @@
         }
       },
       "reauth_confirm": {
-        "title": "My Honda+ opnieuw verifi\u00ebren",
+        "title": "My Honda+ opnieuw verifiëren",
         "description": "De sessie is verlopen. Voer je inloggegevens opnieuw in.",
         "data": {
           "email": "Email",
@@ -112,16 +112,32 @@
   },
   "entity": {
     "binary_sensor": {
-      "doors_open": { "name": "Portieren" },
-      "windows_open": { "name": "Ramen" },
-      "hood": { "name": "Motorkap" },
-      "trunk": { "name": "Kofferbak" },
-      "lights": { "name": "Verlichting" }
+      "doors_open": {
+        "name": "Portieren"
+      },
+      "windows_open": {
+        "name": "Ramen"
+      },
+      "hood": {
+        "name": "Motorkap"
+      },
+      "trunk": {
+        "name": "Kofferbak"
+      },
+      "lights": {
+        "name": "Verlichting"
+      }
     },
     "sensor": {
-      "battery_level": { "name": "Batterij" },
-      "range": { "name": "Bereik" },
-      "total_range": { "name": "Totaal bereik" },
+      "battery_level": {
+        "name": "Batterij"
+      },
+      "range": {
+        "name": "Bereik"
+      },
+      "total_range": {
+        "name": "Totaal bereik"
+      },
       "charge_status": {
         "name": "Laadstatus",
         "state": {
@@ -150,30 +166,64 @@
           "unknown": "Onbekend"
         }
       },
-      "climate_active": { "name": "Airco actief" },
-      "cabin_temperature": { "name": "Cabinetemperatuur" },
-      "odometer": { "name": "Kilometerteller" },
-      "doors_locked": { "name": "Portieren vergrendeld" },
-      "ignition": { "name": "Contact" },
-      "speed": { "name": "Snelheid" },
+      "climate_active": {
+        "name": "Airco actief"
+      },
+      "cabin_temperature": {
+        "name": "Cabinetemperatuur"
+      },
+      "odometer": {
+        "name": "Kilometerteller"
+      },
+      "doors_locked": {
+        "name": "Portieren vergrendeld"
+      },
+      "ignition": {
+        "name": "Contact"
+      },
+      "speed": {
+        "name": "Snelheid"
+      },
       "charge_mode": {
         "name": "Laadmodus",
         "state": {
           "unconfirmed": "Niet bevestigd",
+          "100v charging": "100V laden",
           "200v charging": "200V laden",
+          "fast charging": "Snel laden",
           "unknown": "Onbekend"
         }
       },
-      "time_to_charge": { "name": "Tijd tot volledig opgeladen" },
-      "interior_temperature": { "name": "Binnentemperatuur" },
-      "headlights": { "name": "Koplampen" },
-      "parking_lights": { "name": "Parkeerlichten" },
-      "warnings": { "name": "Waarschuwingen" },
-      "last_updated": { "name": "Laatst bijgewerkt" },
-      "trips_this_month": { "name": "Ritten deze maand" },
-      "distance_this_month": { "name": "Afstand deze maand" },
-      "driving_time_this_month": { "name": "Rijtijd deze maand" },
-      "avg_consumption_this_month": { "name": "Gemiddeld verbruik deze maand" },
+      "time_to_charge": {
+        "name": "Tijd tot volledig opgeladen"
+      },
+      "interior_temperature": {
+        "name": "Binnentemperatuur"
+      },
+      "headlights": {
+        "name": "Koplampen"
+      },
+      "parking_lights": {
+        "name": "Parkeerlichten"
+      },
+      "warnings": {
+        "name": "Waarschuwingen"
+      },
+      "last_updated": {
+        "name": "Laatst bijgewerkt"
+      },
+      "trips_this_month": {
+        "name": "Ritten deze maand"
+      },
+      "distance_this_month": {
+        "name": "Afstand deze maand"
+      },
+      "driving_time_this_month": {
+        "name": "Rijtijd deze maand"
+      },
+      "avg_consumption_this_month": {
+        "name": "Gemiddeld verbruik deze maand"
+      },
       "climate_temp": {
         "name": "Aircotemperatuur",
         "state": {
@@ -183,27 +233,53 @@
           "unknown": "Onbekend"
         }
       },
-      "climate_duration": { "name": "Aircoduur" },
-      "climate_defrost": { "name": "Ontdooien" },
-      "charge_schedule": { "name": "Laadschema" },
-      "climate_schedule": { "name": "Aircoschema" }
+      "climate_duration": {
+        "name": "Aircoduur"
+      },
+      "climate_defrost": {
+        "name": "Ontdooien"
+      },
+      "charge_schedule": {
+        "name": "Laadschema"
+      },
+      "climate_schedule": {
+        "name": "Aircoschema"
+      }
     },
     "device_tracker": {
-      "vehicle_location": { "name": "Locatie" }
+      "vehicle_location": {
+        "name": "Locatie"
+      }
     },
     "button": {
-      "horn_lights": { "name": "Claxon en verlichting" },
-      "refresh_cached": { "name": "Vernieuwen" },
-      "refresh_data": { "name": "Vernieuwen vanaf voertuig" }
+      "horn_lights": {
+        "name": "Claxon en verlichting"
+      },
+      "refresh_cached": {
+        "name": "Vernieuwen"
+      },
+      "refresh_data": {
+        "name": "Vernieuwen vanaf voertuig"
+      }
     },
     "lock": {
-      "doors": { "name": "Portieren" }
+      "doors": {
+        "name": "Portieren"
+      }
     },
     "switch": {
-      "climate": { "name": "Airco" },
-      "charging": { "name": "Opladen" },
-      "climate_defrost_setting": { "name": "Ontdooien" },
-      "auto_refresh": { "name": "Automatisch vernieuwen vanaf voertuig" }
+      "climate": {
+        "name": "Airco"
+      },
+      "charging": {
+        "name": "Opladen"
+      },
+      "climate_defrost_setting": {
+        "name": "Ontdooien"
+      },
+      "auto_refresh": {
+        "name": "Automatisch vernieuwen vanaf voertuig"
+      }
     },
     "select": {
       "climate_temp_setting": {
@@ -214,11 +290,17 @@
           "hotter": "Warmer"
         }
       },
-      "climate_duration_setting": { "name": "Aircoduur (min)" }
+      "climate_duration_setting": {
+        "name": "Aircoduur (min)"
+      }
     },
     "number": {
-      "charge_limit_home": { "name": "Laadlimiet (thuis)" },
-      "charge_limit_away": { "name": "Laadlimiet (weg)" }
+      "charge_limit_home": {
+        "name": "Laadlimiet (thuis)"
+      },
+      "charge_limit_away": {
+        "name": "Laadlimiet (weg)"
+      }
     }
   }
 }

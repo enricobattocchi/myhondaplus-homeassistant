@@ -21,7 +21,7 @@
       },
       "select_vehicle": {
         "title": "Seleziona veicolo",
-        "description": "Sono stati trovati pi\u00f9 veicoli nel tuo account. Seleziona quale aggiungere.",
+        "description": "Sono stati trovati più veicoli nel tuo account. Seleziona quale aggiungere.",
         "data": {
           "vin": "Veicolo"
         },
@@ -51,7 +51,7 @@
       },
       "reauth_confirm": {
         "title": "Riautentica My Honda+",
-        "description": "La sessione \u00e8 scaduta. Reinserisci le tue credenziali.",
+        "description": "La sessione è scaduta. Reinserisci le tue credenziali.",
         "data": {
           "email": "Email",
           "password": "Password"
@@ -68,7 +68,7 @@
     "error": {
       "cannot_connect": "Impossibile connettersi all'API Honda",
       "invalid_auth": "Email o password non validi",
-      "account_locked": "Account bloccato. Riprova pi\u00f9 tardi.",
+      "account_locked": "Account bloccato. Riprova più tardi.",
       "invalid_link": "Impossibile analizzare il link di verifica. Copia l'URL completo.",
       "verification_failed": "Verifica fallita. Riprova."
     }
@@ -112,16 +112,32 @@
   },
   "entity": {
     "binary_sensor": {
-      "doors_open": { "name": "Portiere" },
-      "windows_open": { "name": "Finestrini" },
-      "hood": { "name": "Cofano" },
-      "trunk": { "name": "Bagagliaio" },
-      "lights": { "name": "Luci" }
+      "doors_open": {
+        "name": "Portiere"
+      },
+      "windows_open": {
+        "name": "Finestrini"
+      },
+      "hood": {
+        "name": "Cofano"
+      },
+      "trunk": {
+        "name": "Bagagliaio"
+      },
+      "lights": {
+        "name": "Luci"
+      }
     },
     "sensor": {
-      "battery_level": { "name": "Batteria" },
-      "range": { "name": "Autonomia" },
-      "total_range": { "name": "Autonomia totale" },
+      "battery_level": {
+        "name": "Batteria"
+      },
+      "range": {
+        "name": "Autonomia"
+      },
+      "total_range": {
+        "name": "Autonomia totale"
+      },
       "charge_status": {
         "name": "Stato ricarica",
         "state": {
@@ -150,75 +166,141 @@
           "unknown": "Sconosciuto"
         }
       },
-      "climate_active": { "name": "Climatizzatore attivo" },
-      "cabin_temperature": { "name": "Temperatura abitacolo" },
-      "odometer": { "name": "Contachilometri" },
-      "doors_locked": { "name": "Portiere bloccate" },
-      "ignition": { "name": "Accensione" },
-      "speed": { "name": "Velocit\u00e0" },
+      "climate_active": {
+        "name": "Climatizzatore attivo"
+      },
+      "cabin_temperature": {
+        "name": "Temperatura abitacolo"
+      },
+      "odometer": {
+        "name": "Contachilometri"
+      },
+      "doors_locked": {
+        "name": "Portiere bloccate"
+      },
+      "ignition": {
+        "name": "Accensione"
+      },
+      "speed": {
+        "name": "Velocità"
+      },
       "charge_mode": {
-        "name": "Modalit\u00e0 ricarica",
+        "name": "Modalità ricarica",
         "state": {
           "unconfirmed": "Non confermato",
+          "100v charging": "Ricarica 100V",
           "200v charging": "Ricarica 200V",
+          "fast charging": "Ricarica veloce",
           "unknown": "Sconosciuto"
         }
       },
-      "time_to_charge": { "name": "Tempo a ricarica completa" },
-      "interior_temperature": { "name": "Temperatura interna" },
-      "headlights": { "name": "Fari" },
-      "parking_lights": { "name": "Luci di posizione" },
-      "warnings": { "name": "Spie di avviso" },
-      "last_updated": { "name": "Ultimo aggiornamento" },
-      "trips_this_month": { "name": "Viaggi questo mese" },
-      "distance_this_month": { "name": "Distanza questo mese" },
-      "driving_time_this_month": { "name": "Tempo di guida questo mese" },
-      "avg_consumption_this_month": { "name": "Consumo medio questo mese" },
+      "time_to_charge": {
+        "name": "Tempo a ricarica completa"
+      },
+      "interior_temperature": {
+        "name": "Temperatura interna"
+      },
+      "headlights": {
+        "name": "Fari"
+      },
+      "parking_lights": {
+        "name": "Luci di posizione"
+      },
+      "warnings": {
+        "name": "Spie di avviso"
+      },
+      "last_updated": {
+        "name": "Ultimo aggiornamento"
+      },
+      "trips_this_month": {
+        "name": "Viaggi questo mese"
+      },
+      "distance_this_month": {
+        "name": "Distanza questo mese"
+      },
+      "driving_time_this_month": {
+        "name": "Tempo di guida questo mese"
+      },
+      "avg_consumption_this_month": {
+        "name": "Consumo medio questo mese"
+      },
       "climate_temp": {
         "name": "Temperatura climatizzatore",
         "state": {
-          "cooler": "Pi\u00f9 fresco",
+          "cooler": "Più fresco",
           "normal": "Normale",
-          "hotter": "Pi\u00f9 caldo",
+          "hotter": "Più caldo",
           "unknown": "Sconosciuto"
         }
       },
-      "climate_duration": { "name": "Durata climatizzatore" },
-      "climate_defrost": { "name": "Sbrinamento" },
-      "charge_schedule": { "name": "Programmazione ricarica" },
-      "climate_schedule": { "name": "Programmazione climatizzatore" }
+      "climate_duration": {
+        "name": "Durata climatizzatore"
+      },
+      "climate_defrost": {
+        "name": "Sbrinamento"
+      },
+      "charge_schedule": {
+        "name": "Programmazione ricarica"
+      },
+      "climate_schedule": {
+        "name": "Programmazione climatizzatore"
+      }
     },
     "device_tracker": {
-      "vehicle_location": { "name": "Posizione" }
+      "vehicle_location": {
+        "name": "Posizione"
+      }
     },
     "button": {
-      "horn_lights": { "name": "Clacson e luci" },
-      "refresh_cached": { "name": "Aggiorna" },
-      "refresh_data": { "name": "Aggiorna dal veicolo" }
+      "horn_lights": {
+        "name": "Clacson e luci"
+      },
+      "refresh_cached": {
+        "name": "Aggiorna"
+      },
+      "refresh_data": {
+        "name": "Aggiorna dal veicolo"
+      }
     },
     "lock": {
-      "doors": { "name": "Portiere" }
+      "doors": {
+        "name": "Portiere"
+      }
     },
     "switch": {
-      "climate": { "name": "Climatizzatore" },
-      "charging": { "name": "Ricarica" },
-      "climate_defrost_setting": { "name": "Sbrinamento" },
-      "auto_refresh": { "name": "Aggiornamento automatico dal veicolo" }
+      "climate": {
+        "name": "Climatizzatore"
+      },
+      "charging": {
+        "name": "Ricarica"
+      },
+      "climate_defrost_setting": {
+        "name": "Sbrinamento"
+      },
+      "auto_refresh": {
+        "name": "Aggiornamento automatico dal veicolo"
+      }
     },
     "select": {
       "climate_temp_setting": {
         "name": "Temperatura climatizzatore",
         "state": {
-          "cooler": "Pi\u00f9 fresco",
+          "cooler": "Più fresco",
           "normal": "Normale",
-          "hotter": "Pi\u00f9 caldo"
+          "hotter": "Più caldo"
         }
       },
-      "climate_duration_setting": { "name": "Durata climatizzatore (min)" }
+      "climate_duration_setting": {
+        "name": "Durata climatizzatore (min)"
+      }
     },
     "number": {
-      "charge_limit_home": { "name": "Limite ricarica (casa)" },
-      "charge_limit_away": { "name": "Limite ricarica (fuori)" }
+      "charge_limit_home": {
+        "name": "Limite ricarica (casa)"
+      },
+      "charge_limit_away": {
+        "name": "Limite ricarica (fuori)"
+      }
     }
   }
 }

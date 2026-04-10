@@ -112,16 +112,32 @@
   },
   "entity": {
     "binary_sensor": {
-      "doors_open": { "name": "Ajtók" },
-      "windows_open": { "name": "Ablakok" },
-      "hood": { "name": "Motorháztető" },
-      "trunk": { "name": "Csomagtartó" },
-      "lights": { "name": "Lámpák" }
+      "doors_open": {
+        "name": "Ajtók"
+      },
+      "windows_open": {
+        "name": "Ablakok"
+      },
+      "hood": {
+        "name": "Motorháztető"
+      },
+      "trunk": {
+        "name": "Csomagtartó"
+      },
+      "lights": {
+        "name": "Lámpák"
+      }
     },
     "sensor": {
-      "battery_level": { "name": "Akkumulátor" },
-      "range": { "name": "Hatótáv" },
-      "total_range": { "name": "Teljes hatótáv" },
+      "battery_level": {
+        "name": "Akkumulátor"
+      },
+      "range": {
+        "name": "Hatótáv"
+      },
+      "total_range": {
+        "name": "Teljes hatótáv"
+      },
       "charge_status": {
         "name": "Töltés állapota",
         "state": {
@@ -150,30 +166,64 @@
           "unknown": "Ismeretlen"
         }
       },
-      "climate_active": { "name": "Klíma aktív" },
-      "cabin_temperature": { "name": "Utastér hőmérséklet" },
-      "odometer": { "name": "Kilométeróra" },
-      "doors_locked": { "name": "Ajtók zárva" },
-      "ignition": { "name": "Gyújtás" },
-      "speed": { "name": "Sebesség" },
+      "climate_active": {
+        "name": "Klíma aktív"
+      },
+      "cabin_temperature": {
+        "name": "Utastér hőmérséklet"
+      },
+      "odometer": {
+        "name": "Kilométeróra"
+      },
+      "doors_locked": {
+        "name": "Ajtók zárva"
+      },
+      "ignition": {
+        "name": "Gyújtás"
+      },
+      "speed": {
+        "name": "Sebesség"
+      },
       "charge_mode": {
         "name": "Töltési mód",
         "state": {
           "unconfirmed": "Nem megerősített",
+          "100v charging": "100V töltés",
           "200v charging": "200V töltés",
+          "fast charging": "Gyorstöltés",
           "unknown": "Ismeretlen"
         }
       },
-      "time_to_charge": { "name": "Hátralévő töltési idő" },
-      "interior_temperature": { "name": "Belső hőmérséklet" },
-      "headlights": { "name": "Fényszórók" },
-      "parking_lights": { "name": "Parkolólámpák" },
-      "warnings": { "name": "Figyelmeztető jelzések" },
-      "last_updated": { "name": "Utolsó frissítés" },
-      "trips_this_month": { "name": "Utak ebben a hónapban" },
-      "distance_this_month": { "name": "Távolság ebben a hónapban" },
-      "driving_time_this_month": { "name": "Vezetési idő ebben a hónapban" },
-      "avg_consumption_this_month": { "name": "Átlagfogyasztás ebben a hónapban" },
+      "time_to_charge": {
+        "name": "Hátralévő töltési idő"
+      },
+      "interior_temperature": {
+        "name": "Belső hőmérséklet"
+      },
+      "headlights": {
+        "name": "Fényszórók"
+      },
+      "parking_lights": {
+        "name": "Parkolólámpák"
+      },
+      "warnings": {
+        "name": "Figyelmeztető jelzések"
+      },
+      "last_updated": {
+        "name": "Utolsó frissítés"
+      },
+      "trips_this_month": {
+        "name": "Utak ebben a hónapban"
+      },
+      "distance_this_month": {
+        "name": "Távolság ebben a hónapban"
+      },
+      "driving_time_this_month": {
+        "name": "Vezetési idő ebben a hónapban"
+      },
+      "avg_consumption_this_month": {
+        "name": "Átlagfogyasztás ebben a hónapban"
+      },
       "climate_temp": {
         "name": "Klíma hőmérséklet",
         "state": {
@@ -183,27 +233,53 @@
           "unknown": "Ismeretlen"
         }
       },
-      "climate_duration": { "name": "Klíma időtartam" },
-      "climate_defrost": { "name": "Páramentesítés" },
-      "charge_schedule": { "name": "Töltés ütemezés" },
-      "climate_schedule": { "name": "Klíma ütemezés" }
+      "climate_duration": {
+        "name": "Klíma időtartam"
+      },
+      "climate_defrost": {
+        "name": "Páramentesítés"
+      },
+      "charge_schedule": {
+        "name": "Töltés ütemezés"
+      },
+      "climate_schedule": {
+        "name": "Klíma ütemezés"
+      }
     },
     "device_tracker": {
-      "vehicle_location": { "name": "Helyzet" }
+      "vehicle_location": {
+        "name": "Helyzet"
+      }
     },
     "button": {
-      "horn_lights": { "name": "Kürt és lámpák" },
-      "refresh_cached": { "name": "Frissítés" },
-      "refresh_data": { "name": "Frissítés a járműtől" }
+      "horn_lights": {
+        "name": "Kürt és lámpák"
+      },
+      "refresh_cached": {
+        "name": "Frissítés"
+      },
+      "refresh_data": {
+        "name": "Frissítés a járműtől"
+      }
     },
     "lock": {
-      "doors": { "name": "Ajtók" }
+      "doors": {
+        "name": "Ajtók"
+      }
     },
     "switch": {
-      "climate": { "name": "Klíma" },
-      "charging": { "name": "Töltés" },
-      "climate_defrost_setting": { "name": "Páramentesítés" },
-      "auto_refresh": { "name": "Automatikus frissítés a járműtől" }
+      "climate": {
+        "name": "Klíma"
+      },
+      "charging": {
+        "name": "Töltés"
+      },
+      "climate_defrost_setting": {
+        "name": "Páramentesítés"
+      },
+      "auto_refresh": {
+        "name": "Automatikus frissítés a járműtől"
+      }
     },
     "select": {
       "climate_temp_setting": {
@@ -214,11 +290,17 @@
           "hotter": "Melegebb"
         }
       },
-      "climate_duration_setting": { "name": "Klíma időtartam (perc)" }
+      "climate_duration_setting": {
+        "name": "Klíma időtartam (perc)"
+      }
     },
     "number": {
-      "charge_limit_home": { "name": "Töltési limit (otthon)" },
-      "charge_limit_away": { "name": "Töltési limit (távol)" }
+      "charge_limit_home": {
+        "name": "Töltési limit (otthon)"
+      },
+      "charge_limit_away": {
+        "name": "Töltési limit (távol)"
+      }
     }
   }
 }

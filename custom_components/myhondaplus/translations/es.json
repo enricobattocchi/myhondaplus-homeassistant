@@ -112,16 +112,32 @@
   },
   "entity": {
     "binary_sensor": {
-      "doors_open": { "name": "Puertas" },
-      "windows_open": { "name": "Ventanas" },
-      "hood": { "name": "Capó" },
-      "trunk": { "name": "Maletero" },
-      "lights": { "name": "Luces" }
+      "doors_open": {
+        "name": "Puertas"
+      },
+      "windows_open": {
+        "name": "Ventanas"
+      },
+      "hood": {
+        "name": "Capó"
+      },
+      "trunk": {
+        "name": "Maletero"
+      },
+      "lights": {
+        "name": "Luces"
+      }
     },
     "sensor": {
-      "battery_level": { "name": "Batería" },
-      "range": { "name": "Autonomía" },
-      "total_range": { "name": "Autonomía total" },
+      "battery_level": {
+        "name": "Batería"
+      },
+      "range": {
+        "name": "Autonomía"
+      },
+      "total_range": {
+        "name": "Autonomía total"
+      },
       "charge_status": {
         "name": "Estado de carga",
         "state": {
@@ -150,30 +166,64 @@
           "unknown": "Desconocido"
         }
       },
-      "climate_active": { "name": "Climatización activa" },
-      "cabin_temperature": { "name": "Temperatura del habitáculo" },
-      "odometer": { "name": "Cuentakilómetros" },
-      "doors_locked": { "name": "Puertas cerradas" },
-      "ignition": { "name": "Encendido" },
-      "speed": { "name": "Velocidad" },
+      "climate_active": {
+        "name": "Climatización activa"
+      },
+      "cabin_temperature": {
+        "name": "Temperatura del habitáculo"
+      },
+      "odometer": {
+        "name": "Cuentakilómetros"
+      },
+      "doors_locked": {
+        "name": "Puertas cerradas"
+      },
+      "ignition": {
+        "name": "Encendido"
+      },
+      "speed": {
+        "name": "Velocidad"
+      },
       "charge_mode": {
         "name": "Modo de carga",
         "state": {
           "unconfirmed": "No confirmado",
+          "100v charging": "Carga 100V",
           "200v charging": "Carga 200V",
+          "fast charging": "Carga rápida",
           "unknown": "Desconocido"
         }
       },
-      "time_to_charge": { "name": "Tiempo de carga restante" },
-      "interior_temperature": { "name": "Temperatura interior" },
-      "headlights": { "name": "Faros" },
-      "parking_lights": { "name": "Luces de posición" },
-      "warnings": { "name": "Indicadores de aviso" },
-      "last_updated": { "name": "Última actualización" },
-      "trips_this_month": { "name": "Viajes este mes" },
-      "distance_this_month": { "name": "Distancia este mes" },
-      "driving_time_this_month": { "name": "Tiempo de conducción este mes" },
-      "avg_consumption_this_month": { "name": "Consumo medio este mes" },
+      "time_to_charge": {
+        "name": "Tiempo de carga restante"
+      },
+      "interior_temperature": {
+        "name": "Temperatura interior"
+      },
+      "headlights": {
+        "name": "Faros"
+      },
+      "parking_lights": {
+        "name": "Luces de posición"
+      },
+      "warnings": {
+        "name": "Indicadores de aviso"
+      },
+      "last_updated": {
+        "name": "Última actualización"
+      },
+      "trips_this_month": {
+        "name": "Viajes este mes"
+      },
+      "distance_this_month": {
+        "name": "Distancia este mes"
+      },
+      "driving_time_this_month": {
+        "name": "Tiempo de conducción este mes"
+      },
+      "avg_consumption_this_month": {
+        "name": "Consumo medio este mes"
+      },
       "climate_temp": {
         "name": "Temperatura climatización",
         "state": {
@@ -183,27 +233,53 @@
           "unknown": "Desconocido"
         }
       },
-      "climate_duration": { "name": "Duración climatización" },
-      "climate_defrost": { "name": "Desempañado" },
-      "charge_schedule": { "name": "Programación de carga" },
-      "climate_schedule": { "name": "Programación de climatización" }
+      "climate_duration": {
+        "name": "Duración climatización"
+      },
+      "climate_defrost": {
+        "name": "Desempañado"
+      },
+      "charge_schedule": {
+        "name": "Programación de carga"
+      },
+      "climate_schedule": {
+        "name": "Programación de climatización"
+      }
     },
     "device_tracker": {
-      "vehicle_location": { "name": "Ubicación" }
+      "vehicle_location": {
+        "name": "Ubicación"
+      }
     },
     "button": {
-      "horn_lights": { "name": "Claxon y luces" },
-      "refresh_cached": { "name": "Actualizar" },
-      "refresh_data": { "name": "Actualizar desde el vehículo" }
+      "horn_lights": {
+        "name": "Claxon y luces"
+      },
+      "refresh_cached": {
+        "name": "Actualizar"
+      },
+      "refresh_data": {
+        "name": "Actualizar desde el vehículo"
+      }
     },
     "lock": {
-      "doors": { "name": "Puertas" }
+      "doors": {
+        "name": "Puertas"
+      }
     },
     "switch": {
-      "climate": { "name": "Climatización" },
-      "charging": { "name": "Carga" },
-      "climate_defrost_setting": { "name": "Desempañado" },
-      "auto_refresh": { "name": "Actualización automática del vehículo" }
+      "climate": {
+        "name": "Climatización"
+      },
+      "charging": {
+        "name": "Carga"
+      },
+      "climate_defrost_setting": {
+        "name": "Desempañado"
+      },
+      "auto_refresh": {
+        "name": "Actualización automática del vehículo"
+      }
     },
     "select": {
       "climate_temp_setting": {
@@ -214,11 +290,17 @@
           "hotter": "Más cálido"
         }
       },
-      "climate_duration_setting": { "name": "Duración climatización (min)" }
+      "climate_duration_setting": {
+        "name": "Duración climatización (min)"
+      }
     },
     "number": {
-      "charge_limit_home": { "name": "Límite de carga (casa)" },
-      "charge_limit_away": { "name": "Límite de carga (fuera)" }
+      "charge_limit_home": {
+        "name": "Límite de carga (casa)"
+      },
+      "charge_limit_away": {
+        "name": "Límite de carga (fuera)"
+      }
     }
   }
 }

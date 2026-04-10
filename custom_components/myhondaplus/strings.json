@@ -160,7 +160,9 @@
         "name": "Charge mode",
         "state": {
           "unconfirmed": "Unconfirmed",
+          "100v charging": "100V charging",
           "200v charging": "200V charging",
+          "fast charging": "Fast charging",
           "unknown": "Unknown"
         }
       },

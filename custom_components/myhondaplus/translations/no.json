@@ -112,16 +112,32 @@
   },
   "entity": {
     "binary_sensor": {
-      "doors_open": { "name": "Dører" },
-      "windows_open": { "name": "Vinduer" },
-      "hood": { "name": "Panser" },
-      "trunk": { "name": "Bagasjerom" },
-      "lights": { "name": "Lys" }
+      "doors_open": {
+        "name": "Dører"
+      },
+      "windows_open": {
+        "name": "Vinduer"
+      },
+      "hood": {
+        "name": "Panser"
+      },
+      "trunk": {
+        "name": "Bagasjerom"
+      },
+      "lights": {
+        "name": "Lys"
+      }
     },
     "sensor": {
-      "battery_level": { "name": "Batteri" },
-      "range": { "name": "Rekkevidde" },
-      "total_range": { "name": "Total rekkevidde" },
+      "battery_level": {
+        "name": "Batteri"
+      },
+      "range": {
+        "name": "Rekkevidde"
+      },
+      "total_range": {
+        "name": "Total rekkevidde"
+      },
       "charge_status": {
         "name": "Ladestatus",
         "state": {
@@ -150,30 +166,64 @@
           "unknown": "Ukjent"
         }
       },
-      "climate_active": { "name": "Klimaanlegg aktivt" },
-      "cabin_temperature": { "name": "Kupétemperatur" },
-      "odometer": { "name": "Kilometerstand" },
-      "doors_locked": { "name": "Dører låst" },
-      "ignition": { "name": "Tenning" },
-      "speed": { "name": "Hastighet" },
+      "climate_active": {
+        "name": "Klimaanlegg aktivt"
+      },
+      "cabin_temperature": {
+        "name": "Kupétemperatur"
+      },
+      "odometer": {
+        "name": "Kilometerstand"
+      },
+      "doors_locked": {
+        "name": "Dører låst"
+      },
+      "ignition": {
+        "name": "Tenning"
+      },
+      "speed": {
+        "name": "Hastighet"
+      },
       "charge_mode": {
         "name": "Lademodus",
         "state": {
           "unconfirmed": "Ikke bekreftet",
+          "100v charging": "100V lading",
           "200v charging": "200V lading",
+          "fast charging": "Hurtiglading",
           "unknown": "Ukjent"
         }
       },
-      "time_to_charge": { "name": "Tid til fulladet" },
-      "interior_temperature": { "name": "Innvendig temperatur" },
-      "headlights": { "name": "Frontlys" },
-      "parking_lights": { "name": "Parkeringslys" },
-      "warnings": { "name": "Advarsler" },
-      "last_updated": { "name": "Sist oppdatert" },
-      "trips_this_month": { "name": "Turer denne måneden" },
-      "distance_this_month": { "name": "Distanse denne måneden" },
-      "driving_time_this_month": { "name": "Kjøretid denne måneden" },
-      "avg_consumption_this_month": { "name": "Gjennomsnittlig forbruk denne måneden" },
+      "time_to_charge": {
+        "name": "Tid til fulladet"
+      },
+      "interior_temperature": {
+        "name": "Innvendig temperatur"
+      },
+      "headlights": {
+        "name": "Frontlys"
+      },
+      "parking_lights": {
+        "name": "Parkeringslys"
+      },
+      "warnings": {
+        "name": "Advarsler"
+      },
+      "last_updated": {
+        "name": "Sist oppdatert"
+      },
+      "trips_this_month": {
+        "name": "Turer denne måneden"
+      },
+      "distance_this_month": {
+        "name": "Distanse denne måneden"
+      },
+      "driving_time_this_month": {
+        "name": "Kjøretid denne måneden"
+      },
+      "avg_consumption_this_month": {
+        "name": "Gjennomsnittlig forbruk denne måneden"
+      },
       "climate_temp": {
         "name": "Klimatemperatur",
         "state": {
@@ -183,27 +233,53 @@
           "unknown": "Ukjent"
         }
       },
-      "climate_duration": { "name": "Klimavarighet" },
-      "climate_defrost": { "name": "Avising" },
-      "charge_schedule": { "name": "Ladeplan" },
-      "climate_schedule": { "name": "Klimaplan" }
+      "climate_duration": {
+        "name": "Klimavarighet"
+      },
+      "climate_defrost": {
+        "name": "Avising"
+      },
+      "charge_schedule": {
+        "name": "Ladeplan"
+      },
+      "climate_schedule": {
+        "name": "Klimaplan"
+      }
     },
     "device_tracker": {
-      "vehicle_location": { "name": "Posisjon" }
+      "vehicle_location": {
+        "name": "Posisjon"
+      }
     },
     "button": {
-      "horn_lights": { "name": "Horn og lys" },
-      "refresh_cached": { "name": "Oppdater" },
-      "refresh_data": { "name": "Oppdater fra kjøretøyet" }
+      "horn_lights": {
+        "name": "Horn og lys"
+      },
+      "refresh_cached": {
+        "name": "Oppdater"
+      },
+      "refresh_data": {
+        "name": "Oppdater fra kjøretøyet"
+      }
     },
     "lock": {
-      "doors": { "name": "Dører" }
+      "doors": {
+        "name": "Dører"
+      }
     },
     "switch": {
-      "climate": { "name": "Klimaanlegg" },
-      "charging": { "name": "Lading" },
-      "climate_defrost_setting": { "name": "Avising" },
-      "auto_refresh": { "name": "Automatisk oppdatering fra kjøretøyet" }
+      "climate": {
+        "name": "Klimaanlegg"
+      },
+      "charging": {
+        "name": "Lading"
+      },
+      "climate_defrost_setting": {
+        "name": "Avising"
+      },
+      "auto_refresh": {
+        "name": "Automatisk oppdatering fra kjøretøyet"
+      }
     },
     "select": {
       "climate_temp_setting": {
@@ -214,11 +290,17 @@
           "hotter": "Varmere"
         }
       },
-      "climate_duration_setting": { "name": "Klimavarighet (min)" }
+      "climate_duration_setting": {
+        "name": "Klimavarighet (min)"
+      }
     },
     "number": {
-      "charge_limit_home": { "name": "Ladegrense (hjemme)" },
-      "charge_limit_away": { "name": "Ladegrense (borte)" }
+      "charge_limit_home": {
+        "name": "Ladegrense (hjemme)"
+      },
+      "charge_limit_away": {
+        "name": "Ladegrense (borte)"
+      }
     }
   }
 }

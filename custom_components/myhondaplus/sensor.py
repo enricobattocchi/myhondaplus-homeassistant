@@ -121,7 +121,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         key="charge_mode",
         translation_key="charge_mode",
         device_class=SensorDeviceClass.ENUM,
-        options=["unconfirmed", "200v charging", "unknown"],
+        options=["unconfirmed", "100v charging", "200v charging", "fast charging", "unknown"],
         icon="mdi:ev-station",
     ),
     HondaSensorDescription(
