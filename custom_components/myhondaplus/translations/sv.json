@@ -135,6 +135,12 @@
       "range": {
         "name": "Räckvidd"
       },
+      "range_climate_on": {
+        "name": "Räckvidd (klimat på)"
+      },
+      "range_climate_off": {
+        "name": "Räckvidd (klimat av)"
+      },
       "total_range": {
         "name": "Total räckvidd"
       },

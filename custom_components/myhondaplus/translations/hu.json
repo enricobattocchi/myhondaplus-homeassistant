@@ -135,6 +135,12 @@
       "range": {
         "name": "Hatótáv"
       },
+      "range_climate_on": {
+        "name": "Hatótáv (klíma be)"
+      },
+      "range_climate_off": {
+        "name": "Hatótáv (klíma ki)"
+      },
       "total_range": {
         "name": "Teljes hatótáv"
       },

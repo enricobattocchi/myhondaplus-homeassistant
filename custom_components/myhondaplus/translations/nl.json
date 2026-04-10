@@ -135,6 +135,12 @@
       "range": {
         "name": "Bereik"
       },
+      "range_climate_on": {
+        "name": "Bereik (airco aan)"
+      },
+      "range_climate_off": {
+        "name": "Bereik (airco uit)"
+      },
       "total_range": {
         "name": "Totaal bereik"
       },

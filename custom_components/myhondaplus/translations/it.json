@@ -135,6 +135,12 @@
       "range": {
         "name": "Autonomia"
       },
+      "range_climate_on": {
+        "name": "Autonomia (clima acceso)"
+      },
+      "range_climate_off": {
+        "name": "Autonomia (clima spento)"
+      },
       "total_range": {
         "name": "Autonomia totale"
       },

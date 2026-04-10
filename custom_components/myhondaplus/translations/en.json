@@ -135,6 +135,12 @@
       "range": {
         "name": "Range"
       },
+      "range_climate_on": {
+        "name": "Range (climate on)"
+      },
+      "range_climate_off": {
+        "name": "Range (climate off)"
+      },
       "total_range": {
         "name": "Total range"
       },

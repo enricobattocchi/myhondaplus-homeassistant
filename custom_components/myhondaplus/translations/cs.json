@@ -135,6 +135,12 @@
       "range": {
         "name": "Dojezd"
       },
+      "range_climate_on": {
+        "name": "Dojezd (klimatizace zapnuta)"
+      },
+      "range_climate_off": {
+        "name": "Dojezd (klimatizace vypnuta)"
+      },
       "total_range": {
         "name": "Celkový dojezd"
       },

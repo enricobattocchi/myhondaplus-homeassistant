@@ -135,6 +135,12 @@
       "range": {
         "name": "Zasięg"
       },
+      "range_climate_on": {
+        "name": "Zasięg (klimatyzacja wł.)"
+      },
+      "range_climate_off": {
+        "name": "Zasięg (klimatyzacja wył.)"
+      },
       "total_range": {
         "name": "Całkowity zasięg"
       },

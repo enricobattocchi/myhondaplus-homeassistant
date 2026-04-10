@@ -51,6 +51,22 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         dynamic_unit="distance",
     ),
     HondaSensorDescription(
+        key="range_climate_on",
+        translation_key="range_climate_on",
+        device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:map-marker-distance",
+        dynamic_unit="distance",
+    ),
+    HondaSensorDescription(
+        key="range_climate_off",
+        translation_key="range_climate_off",
+        device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:map-marker-distance",
+        dynamic_unit="distance",
+    ),
+    HondaSensorDescription(
         key="total_range",
         translation_key="total_range",
         device_class=SensorDeviceClass.DISTANCE,

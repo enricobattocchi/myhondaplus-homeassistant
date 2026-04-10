@@ -135,6 +135,12 @@
       "range": {
         "name": "Rækkevidde"
       },
+      "range_climate_on": {
+        "name": "Rækkevidde (klima til)"
+      },
+      "range_climate_off": {
+        "name": "Rækkevidde (klima fra)"
+      },
       "total_range": {
         "name": "Samlet rækkevidde"
       },

@@ -135,6 +135,12 @@
       "range": {
         "name": "Reichweite"
       },
+      "range_climate_on": {
+        "name": "Reichweite (Klima ein)"
+      },
+      "range_climate_off": {
+        "name": "Reichweite (Klima aus)"
+      },
       "total_range": {
         "name": "Gesamtreichweite"
       },
