@@ -206,7 +206,14 @@
       "auto_refresh": { "name": "Aggiornamento automatico dal veicolo" }
     },
     "select": {
-      "climate_temp_setting": { "name": "Temperatura climatizzatore" },
+      "climate_temp_setting": {
+        "name": "Temperatura climatizzatore",
+        "state": {
+          "cooler": "Pi\u00f9 fresco",
+          "normal": "Normale",
+          "hotter": "Pi\u00f9 caldo"
+        }
+      },
       "climate_duration_setting": { "name": "Durata climatizzatore (min)" }
     },
     "number": {

@@ -179,7 +179,7 @@
         "state": {
           "cooler": "Cooler",
           "normal": "Normal",
-          "hotter": "Hotter",
+          "hotter": "Warmer",
           "unknown": "Unknown"
         }
       },
@@ -206,7 +206,14 @@
       "auto_refresh": { "name": "Auto refresh from car" }
     },
     "select": {
-      "climate_temp_setting": { "name": "Climate temperature" },
+      "climate_temp_setting": {
+        "name": "Climate temperature",
+        "state": {
+          "cooler": "Cooler",
+          "normal": "Normal",
+          "hotter": "Warmer"
+        }
+      },
       "climate_duration_setting": { "name": "Climate duration (min)" }
     },
     "number": {
