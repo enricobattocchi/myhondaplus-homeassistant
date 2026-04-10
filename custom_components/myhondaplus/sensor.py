@@ -43,14 +43,6 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
     ),
     HondaSensorDescription(
-        key="range",
-        translation_key="range",
-        device_class=SensorDeviceClass.DISTANCE,
-        state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:map-marker-distance",
-        dynamic_unit="distance",
-    ),
-    HondaSensorDescription(
         key="range_climate_on",
         translation_key="range_climate_on",
         device_class=SensorDeviceClass.DISTANCE,

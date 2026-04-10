@@ -132,9 +132,6 @@
       "battery_level": {
         "name": "Battery"
       },
-      "range": {
-        "name": "Range"
-      },
       "range_climate_on": {
         "name": "Range (climate on)"
       },

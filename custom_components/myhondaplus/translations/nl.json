@@ -132,9 +132,6 @@
       "battery_level": {
         "name": "Batterij"
       },
-      "range": {
-        "name": "Bereik"
-      },
       "range_climate_on": {
         "name": "Bereik (airco aan)"
       },

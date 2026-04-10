@@ -132,9 +132,6 @@
       "battery_level": {
         "name": "Batéria"
       },
-      "range": {
-        "name": "Dojazd"
-      },
       "range_climate_on": {
         "name": "Dojazd (klimatizácia zapnutá)"
       },

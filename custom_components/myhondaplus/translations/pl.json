@@ -132,9 +132,6 @@
       "battery_level": {
         "name": "Bateria"
       },
-      "range": {
-        "name": "Zasięg"
-      },
       "range_climate_on": {
         "name": "Zasięg (klimatyzacja wł.)"
       },

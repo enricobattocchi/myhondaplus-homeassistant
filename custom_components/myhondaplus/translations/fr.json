@@ -132,9 +132,6 @@
       "battery_level": {
         "name": "Batterie"
       },
-      "range": {
-        "name": "Autonomie"
-      },
       "range_climate_on": {
         "name": "Autonomie (clim. activée)"
       },

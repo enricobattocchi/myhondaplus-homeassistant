@@ -132,9 +132,6 @@
       "battery_level": {
         "name": "Batteri"
       },
-      "range": {
-        "name": "Räckvidd"
-      },
       "range_climate_on": {
         "name": "Räckvidd (klimat på)"
       },
