@@ -175,7 +175,9 @@ def _schedule_car_refresh(
         async def _refresh():
             if entry.runtime_data.car_refresh_enabled:
                 try:
-                    await coordinator.async_refresh_from_car()
+                    await coordinator.async_refresh_from_car(
+                        notify_on_timeout=False,
+                    )
                     LOGGER.debug("Scheduled refresh from car completed")
                 except Exception:
                     LOGGER.warning("Scheduled refresh from car failed", exc_info=True)
@@ -207,7 +209,9 @@ def _schedule_location_refresh(
         """Refresh location and reschedule."""
         async def _refresh():
             try:
-                await coordinator.async_refresh_location()
+                await coordinator.async_refresh_location(
+                    notify_on_timeout=False,
+                )
                 LOGGER.debug("Scheduled location refresh completed")
             except Exception:
                 LOGGER.warning("Scheduled location refresh failed", exc_info=True)
