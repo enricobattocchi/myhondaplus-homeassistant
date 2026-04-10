@@ -61,16 +61,22 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
     HondaSensorDescription(
         key="charge_status",
         translation_key="charge_status",
+        device_class=SensorDeviceClass.ENUM,
+        options=["stopped", "charging", "complete", "notcharging", "unknown"],
         icon="mdi:ev-station",
     ),
     HondaSensorDescription(
         key="plug_status",
         translation_key="plug_status",
+        device_class=SensorDeviceClass.ENUM,
+        options=["plugged in", "connected", "unplugged", "disconnected", "unknown"],
         icon="mdi:power-plug",
     ),
     HondaSensorDescription(
         key="home_away",
         translation_key="home_away",
+        device_class=SensorDeviceClass.ENUM,
+        options=["home", "away", "unknown"],
         icon="mdi:home-map-marker",
     ),
     HondaSensorDescription(
@@ -114,6 +120,8 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
     HondaSensorDescription(
         key="charge_mode",
         translation_key="charge_mode",
+        device_class=SensorDeviceClass.ENUM,
+        options=["unconfirmed", "200v charging", "unknown"],
         icon="mdi:ev-station",
     ),
     HondaSensorDescription(
@@ -156,6 +164,8 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
     HondaSensorDescription(
         key="climate_temp",
         translation_key="climate_temp",
+        device_class=SensorDeviceClass.ENUM,
+        options=["cooler", "normal", "hotter", "unknown"],
         icon="mdi:thermometer",
     ),
     HondaSensorDescription(

@@ -122,16 +122,48 @@
       "battery_level": { "name": "Batteria" },
       "range": { "name": "Autonomia" },
       "total_range": { "name": "Autonomia totale" },
-      "charge_status": { "name": "Stato ricarica" },
-      "plug_status": { "name": "Stato presa" },
-      "home_away": { "name": "Casa / Fuori" },
+      "charge_status": {
+        "name": "Stato ricarica",
+        "state": {
+          "stopped": "Fermo",
+          "charging": "In carica",
+          "complete": "Completato",
+          "notcharging": "Non in carica",
+          "unknown": "Sconosciuto"
+        }
+      },
+      "plug_status": {
+        "name": "Stato presa",
+        "state": {
+          "plugged in": "Collegato",
+          "connected": "Collegato",
+          "unplugged": "Scollegato",
+          "disconnected": "Scollegato",
+          "unknown": "Sconosciuto"
+        }
+      },
+      "home_away": {
+        "name": "Casa / Fuori",
+        "state": {
+          "home": "Casa",
+          "away": "Fuori",
+          "unknown": "Sconosciuto"
+        }
+      },
       "climate_active": { "name": "Climatizzatore attivo" },
       "cabin_temperature": { "name": "Temperatura abitacolo" },
       "odometer": { "name": "Contachilometri" },
       "doors_locked": { "name": "Portiere bloccate" },
       "ignition": { "name": "Accensione" },
       "speed": { "name": "Velocit\u00e0" },
-      "charge_mode": { "name": "Modalit\u00e0 ricarica" },
+      "charge_mode": {
+        "name": "Modalit\u00e0 ricarica",
+        "state": {
+          "unconfirmed": "Non confermato",
+          "200v charging": "Ricarica 200V",
+          "unknown": "Sconosciuto"
+        }
+      },
       "time_to_charge": { "name": "Tempo a ricarica completa" },
       "interior_temperature": { "name": "Temperatura interna" },
       "headlights": { "name": "Fari" },
@@ -142,7 +174,15 @@
       "distance_this_month": { "name": "Distanza questo mese" },
       "driving_time_this_month": { "name": "Tempo di guida questo mese" },
       "avg_consumption_this_month": { "name": "Consumo medio questo mese" },
-      "climate_temp": { "name": "Temperatura climatizzatore" },
+      "climate_temp": {
+        "name": "Temperatura climatizzatore",
+        "state": {
+          "cooler": "Pi\u00f9 fresco",
+          "normal": "Normale",
+          "hotter": "Pi\u00f9 caldo",
+          "unknown": "Sconosciuto"
+        }
+      },
       "climate_duration": { "name": "Durata climatizzatore" },
       "climate_defrost": { "name": "Sbrinamento" },
       "charge_schedule": { "name": "Programmazione ricarica" },
