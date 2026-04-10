@@ -161,7 +161,7 @@
       "home_away": {
         "name": "Casa / Fuera",
         "state": {
-          "home": "Casa",
+          "home": "En casa",
           "away": "Fuera",
           "unknown": "Desconocido"
         }
@@ -229,7 +229,7 @@
         "state": {
           "cooler": "Más frío",
           "normal": "Normal",
-          "hotter": "Más cálido",
+          "hotter": "Más calor",
           "unknown": "Desconocido"
         }
       },
@@ -287,7 +287,7 @@
         "state": {
           "cooler": "Más frío",
           "normal": "Normal",
-          "hotter": "Más cálido"
+          "hotter": "Más calor"
         }
       },
       "climate_duration_setting": {

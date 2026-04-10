@@ -179,7 +179,7 @@
       "climate_temp": {
         "name": "Climate temperature",
         "state": {
-          "cooler": "Cooler",
+          "cooler": "Colder",
           "normal": "Normal",
           "hotter": "Warmer",
           "unknown": "Unknown"
@@ -211,7 +211,7 @@
       "climate_temp_setting": {
         "name": "Climate temperature",
         "state": {
-          "cooler": "Cooler",
+          "cooler": "Colder",
           "normal": "Normal",
           "hotter": "Warmer"
         }

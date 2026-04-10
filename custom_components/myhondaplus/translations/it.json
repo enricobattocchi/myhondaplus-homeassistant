@@ -161,7 +161,7 @@
       "home_away": {
         "name": "Casa / Fuori",
         "state": {
-          "home": "Casa",
+          "home": "A casa",
           "away": "Fuori",
           "unknown": "Sconosciuto"
         }
@@ -227,7 +227,7 @@
       "climate_temp": {
         "name": "Temperatura climatizzatore",
         "state": {
-          "cooler": "Più fresco",
+          "cooler": "Più freddo",
           "normal": "Normale",
           "hotter": "Più caldo",
           "unknown": "Sconosciuto"
@@ -285,7 +285,7 @@
       "climate_temp_setting": {
         "name": "Temperatura climatizzatore",
         "state": {
-          "cooler": "Più fresco",
+          "cooler": "Più freddo",
           "normal": "Normale",
           "hotter": "Più caldo"
         }

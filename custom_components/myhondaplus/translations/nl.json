@@ -227,7 +227,7 @@
       "climate_temp": {
         "name": "Aircotemperatuur",
         "state": {
-          "cooler": "Koeler",
+          "cooler": "Kouder",
           "normal": "Normaal",
           "hotter": "Warmer",
           "unknown": "Onbekend"
@@ -285,7 +285,7 @@
       "climate_temp_setting": {
         "name": "Aircotemperatuur",
         "state": {
-          "cooler": "Koeler",
+          "cooler": "Kouder",
           "normal": "Normaal",
           "hotter": "Warmer"
         }

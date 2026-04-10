@@ -161,7 +161,7 @@
       "home_away": {
         "name": "Dom / Poza domem",
         "state": {
-          "home": "Dom",
+          "home": "W domu",
           "away": "Poza domem",
           "unknown": "Nieznany"
         }
@@ -227,9 +227,9 @@
       "climate_temp": {
         "name": "Temperatura klimatyzacji",
         "state": {
-          "cooler": "Chłodniej",
-          "normal": "Normalnie",
-          "hotter": "Cieplej",
+          "cooler": "Temperatura niższa",
+          "normal": "Normalna",
+          "hotter": "Temperatura wyższa",
           "unknown": "Nieznany"
         }
       },
@@ -285,9 +285,9 @@
       "climate_temp_setting": {
         "name": "Temperatura klimatyzacji",
         "state": {
-          "cooler": "Chłodniej",
-          "normal": "Normalnie",
-          "hotter": "Cieplej"
+          "cooler": "Temperatura niższa",
+          "normal": "Normalna",
+          "hotter": "Temperatura wyższa"
         }
       },
       "climate_duration_setting": {

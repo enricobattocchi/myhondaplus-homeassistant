@@ -112,16 +112,32 @@
   },
   "entity": {
     "binary_sensor": {
-      "doors_open": { "name": "Doors" },
-      "windows_open": { "name": "Windows" },
-      "hood": { "name": "Hood" },
-      "trunk": { "name": "Trunk" },
-      "lights": { "name": "Lights" }
+      "doors_open": {
+        "name": "Doors"
+      },
+      "windows_open": {
+        "name": "Windows"
+      },
+      "hood": {
+        "name": "Hood"
+      },
+      "trunk": {
+        "name": "Trunk"
+      },
+      "lights": {
+        "name": "Lights"
+      }
     },
     "sensor": {
-      "battery_level": { "name": "Battery" },
-      "range": { "name": "Range" },
-      "total_range": { "name": "Total range" },
+      "battery_level": {
+        "name": "Battery"
+      },
+      "range": {
+        "name": "Range"
+      },
+      "total_range": {
+        "name": "Total range"
+      },
       "charge_status": {
         "name": "Charge status",
         "state": {
@@ -138,7 +154,7 @@
           "plugged in": "Plugged in",
           "connected": "Connected",
           "unplugged": "Unplugged",
-          "disconnected": "Disconnected",
+          "disconnected": "Unplugged",
           "unknown": "Unknown"
         }
       },
@@ -150,12 +166,24 @@
           "unknown": "Unknown"
         }
       },
-      "climate_active": { "name": "Climate active" },
-      "cabin_temperature": { "name": "Cabin temperature" },
-      "odometer": { "name": "Odometer" },
-      "doors_locked": { "name": "Doors locked" },
-      "ignition": { "name": "Ignition" },
-      "speed": { "name": "Speed" },
+      "climate_active": {
+        "name": "Climate active"
+      },
+      "cabin_temperature": {
+        "name": "Cabin temperature"
+      },
+      "odometer": {
+        "name": "Odometer"
+      },
+      "doors_locked": {
+        "name": "Doors locked"
+      },
+      "ignition": {
+        "name": "Ignition"
+      },
+      "speed": {
+        "name": "Speed"
+      },
       "charge_mode": {
         "name": "Charge mode",
         "state": {
@@ -166,61 +194,113 @@
           "unknown": "Unknown"
         }
       },
-      "time_to_charge": { "name": "Time to full charge" },
-      "interior_temperature": { "name": "Interior temperature" },
-      "headlights": { "name": "Headlights" },
-      "parking_lights": { "name": "Parking lights" },
-      "warnings": { "name": "Warning lamps" },
-      "last_updated": { "name": "Last updated" },
-      "trips_this_month": { "name": "Trips this month" },
-      "distance_this_month": { "name": "Distance this month" },
-      "driving_time_this_month": { "name": "Driving time this month" },
-      "avg_consumption_this_month": { "name": "Avg consumption this month" },
+      "time_to_charge": {
+        "name": "Time to full charge"
+      },
+      "interior_temperature": {
+        "name": "Interior temperature"
+      },
+      "headlights": {
+        "name": "Headlights"
+      },
+      "parking_lights": {
+        "name": "Parking lights"
+      },
+      "warnings": {
+        "name": "Warning lamps"
+      },
+      "last_updated": {
+        "name": "Last updated"
+      },
+      "trips_this_month": {
+        "name": "Trips this month"
+      },
+      "distance_this_month": {
+        "name": "Distance this month"
+      },
+      "driving_time_this_month": {
+        "name": "Driving time this month"
+      },
+      "avg_consumption_this_month": {
+        "name": "Avg consumption this month"
+      },
       "climate_temp": {
         "name": "Climate temperature",
         "state": {
-          "cooler": "Cooler",
+          "cooler": "Colder",
           "normal": "Normal",
           "hotter": "Warmer",
           "unknown": "Unknown"
         }
       },
-      "climate_duration": { "name": "Climate duration" },
-      "climate_defrost": { "name": "Climate defrost" },
-      "charge_schedule": { "name": "Charge schedule" },
-      "climate_schedule": { "name": "Climate schedule" }
+      "climate_duration": {
+        "name": "Climate duration"
+      },
+      "climate_defrost": {
+        "name": "Climate defrost"
+      },
+      "charge_schedule": {
+        "name": "Charge schedule"
+      },
+      "climate_schedule": {
+        "name": "Climate schedule"
+      }
     },
     "device_tracker": {
-      "vehicle_location": { "name": "Location" }
+      "vehicle_location": {
+        "name": "Location"
+      }
     },
     "button": {
-      "horn_lights": { "name": "Horn & lights" },
-      "refresh_cached": { "name": "Refresh" },
-      "refresh_data": { "name": "Refresh from car" }
+      "horn_lights": {
+        "name": "Horn & lights"
+      },
+      "refresh_cached": {
+        "name": "Refresh"
+      },
+      "refresh_data": {
+        "name": "Refresh from car"
+      }
     },
     "lock": {
-      "doors": { "name": "Doors" }
+      "doors": {
+        "name": "Doors"
+      }
     },
     "switch": {
-      "climate": { "name": "Climate" },
-      "charging": { "name": "Charging" },
-      "climate_defrost_setting": { "name": "Climate defrost" },
-      "auto_refresh": { "name": "Auto refresh from car" }
+      "climate": {
+        "name": "Climate"
+      },
+      "charging": {
+        "name": "Charging"
+      },
+      "climate_defrost_setting": {
+        "name": "Climate defrost"
+      },
+      "auto_refresh": {
+        "name": "Auto refresh from car"
+      }
     },
     "select": {
       "climate_temp_setting": {
         "name": "Climate temperature",
         "state": {
-          "cooler": "Cooler",
+          "cooler": "Colder",
           "normal": "Normal",
           "hotter": "Warmer"
         }
       },
-      "climate_duration_setting": { "name": "Climate duration (min)" }
+      "climate_duration_setting": {
+        "name": "Climate duration (min)"
+      }
     },
     "number": {
-      "charge_limit_home": { "name": "Charge limit (home)" },
-      "charge_limit_away": { "name": "Charge limit (away)" }
+      "charge_limit_home": {
+        "name": "Charge limit (home)"
+      },
+      "charge_limit_away": {
+        "name": "Charge limit (away)"
+      }
     }
   }
 }

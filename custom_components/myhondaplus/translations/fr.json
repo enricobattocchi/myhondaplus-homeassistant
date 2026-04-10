@@ -227,8 +227,8 @@
       "climate_temp": {
         "name": "Température climatisation",
         "state": {
-          "cooler": "Plus frais",
-          "normal": "Normal",
+          "cooler": "Plus froid",
+          "normal": "Normale",
           "hotter": "Plus chaud",
           "unknown": "Inconnu"
         }
@@ -285,8 +285,8 @@
       "climate_temp_setting": {
         "name": "Température climatisation",
         "state": {
-          "cooler": "Plus frais",
-          "normal": "Normal",
+          "cooler": "Plus froid",
+          "normal": "Normale",
           "hotter": "Plus chaud"
         }
       },

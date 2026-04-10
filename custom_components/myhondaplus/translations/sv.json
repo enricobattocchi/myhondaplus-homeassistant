@@ -227,8 +227,8 @@
       "climate_temp": {
         "name": "Klimattemperatur",
         "state": {
-          "cooler": "Svalare",
-          "normal": "Normal",
+          "cooler": "Kallare",
+          "normal": "Normalt",
           "hotter": "Varmare",
           "unknown": "Okänd"
         }
@@ -285,8 +285,8 @@
       "climate_temp_setting": {
         "name": "Klimattemperatur",
         "state": {
-          "cooler": "Svalare",
-          "normal": "Normal",
+          "cooler": "Kallare",
+          "normal": "Normalt",
           "hotter": "Varmare"
         }
       },

@@ -227,7 +227,7 @@
       "climate_temp": {
         "name": "Klimasteuerung Temperatur",
         "state": {
-          "cooler": "Kühler",
+          "cooler": "Kälter",
           "normal": "Normal",
           "hotter": "Wärmer",
           "unknown": "Unbekannt"
@@ -285,7 +285,7 @@
       "climate_temp_setting": {
         "name": "Klimasteuerung Temperatur",
         "state": {
-          "cooler": "Kühler",
+          "cooler": "Kälter",
           "normal": "Normal",
           "hotter": "Wärmer"
         }

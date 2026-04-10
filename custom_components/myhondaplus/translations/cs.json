@@ -227,9 +227,9 @@
       "climate_temp": {
         "name": "Teplota klimatizace",
         "state": {
-          "cooler": "Chladněji",
+          "cooler": "Chladnější",
           "normal": "Normální",
-          "hotter": "Tepleji",
+          "hotter": "Teplejší",
           "unknown": "Neznámý"
         }
       },
@@ -285,9 +285,9 @@
       "climate_temp_setting": {
         "name": "Teplota klimatizace",
         "state": {
-          "cooler": "Chladněji",
+          "cooler": "Chladnější",
           "normal": "Normální",
-          "hotter": "Tepleji"
+          "hotter": "Teplejší"
         }
       },
       "climate_duration_setting": {

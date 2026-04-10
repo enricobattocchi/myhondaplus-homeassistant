@@ -161,7 +161,7 @@
       "home_away": {
         "name": "Hjemme / Ude",
         "state": {
-          "home": "Hjemme",
+          "home": "Hjem",
           "away": "Ude",
           "unknown": "Ukendt"
         }
@@ -227,7 +227,7 @@
       "climate_temp": {
         "name": "Klimatemperatur",
         "state": {
-          "cooler": "Køligere",
+          "cooler": "Koldere",
           "normal": "Normal",
           "hotter": "Varmere",
           "unknown": "Ukendt"
@@ -285,7 +285,7 @@
       "climate_temp_setting": {
         "name": "Klimatemperatur",
         "state": {
-          "cooler": "Køligere",
+          "cooler": "Koldere",
           "normal": "Normal",
           "hotter": "Varmere"
         }

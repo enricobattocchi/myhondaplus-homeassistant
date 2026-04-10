@@ -227,7 +227,7 @@
       "climate_temp": {
         "name": "Klíma hőmérséklet",
         "state": {
-          "cooler": "Hűvösebb",
+          "cooler": "Hidegebb",
           "normal": "Normál",
           "hotter": "Melegebb",
           "unknown": "Ismeretlen"
@@ -285,7 +285,7 @@
       "climate_temp_setting": {
         "name": "Klíma hőmérséklet",
         "state": {
-          "cooler": "Hűvösebb",
+          "cooler": "Hidegebb",
           "normal": "Normál",
           "hotter": "Melegebb"
         }
