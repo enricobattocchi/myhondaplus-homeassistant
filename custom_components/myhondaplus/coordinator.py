@@ -161,14 +161,16 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                         result.reason,
                     )
                 raise HomeAssistantError(
-                    "Unable to refresh data from vehicle"
+                    translation_domain=DOMAIN,
+                    translation_key="refresh_data_failed",
                 )
             data = await self.hass.async_add_executor_job(self._fetch_data)
         except HondaAPIError as err:
             _handle_api_error(err, self._persist_tokens_if_changed)
             LOGGER.error("Dashboard refresh failed: %s", err)
             raise HomeAssistantError(
-                "Unable to refresh data from vehicle"
+                translation_domain=DOMAIN,
+                translation_key="refresh_data_failed",
             ) from err
         self._persist_tokens_if_changed()
         self.async_set_updated_data(data)
@@ -180,7 +182,8 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             _handle_api_error(err, self._persist_tokens_if_changed)
             LOGGER.error("Remote command failed: %s", err)
             raise HomeAssistantError(
-                "Unable to send command to vehicle"
+                translation_domain=DOMAIN,
+                translation_key="send_command_failed",
             ) from err
         self._persist_tokens_if_changed()
         return result
@@ -251,14 +254,16 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
                         result.reason,
                     )
                 raise HomeAssistantError(
-                    "Unable to refresh location from vehicle"
+                    translation_domain=DOMAIN,
+                    translation_key="refresh_location_failed",
                 )
             data = await self.hass.async_add_executor_job(self._fetch_data)
         except HondaAPIError as err:
             _handle_api_error(err, self._persist_tokens_if_changed)
             LOGGER.error("Location refresh failed: %s", err)
             raise HomeAssistantError(
-                "Unable to refresh location from vehicle"
+                translation_domain=DOMAIN,
+                translation_key="refresh_location_failed",
             ) from err
         self._persist_tokens_if_changed()
         self.async_set_updated_data(data)

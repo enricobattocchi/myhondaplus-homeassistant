@@ -64,8 +64,9 @@ class TestGetCoordinator:
     def test_raises_when_no_entries(self):
         hass = MagicMock()
         hass.config_entries.async_get_entry.return_value = None
-        with pytest.raises(ServiceValidationError, match="Config entry 'entry_1' not found"):
+        with pytest.raises(ServiceValidationError) as exc_info:
             _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"}))
+        assert exc_info.value.translation_key == "config_entry_not_found"
 
     def test_raises_when_unloaded(self, mock_coordinator):
         hass = MagicMock()
@@ -77,8 +78,9 @@ class TestGetCoordinator:
         entry.runtime_data.coordinator = mock_coordinator
         hass.config_entries.async_get_entry.return_value = entry
 
-        with pytest.raises(ServiceValidationError, match="Config entry 'entry_1' not loaded"):
+        with pytest.raises(ServiceValidationError) as exc_info:
             _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"}))
+        assert exc_info.value.translation_key == "config_entry_not_loaded"
 
     def test_raises_when_wrong_domain(self, mock_coordinator):
         hass = MagicMock()
@@ -90,8 +92,9 @@ class TestGetCoordinator:
         entry.runtime_data.coordinator = mock_coordinator
         hass.config_entries.async_get_entry.return_value = entry
 
-        with pytest.raises(ServiceValidationError, match="Config entry 'entry_1' not found"):
+        with pytest.raises(ServiceValidationError) as exc_info:
             _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"}))
+        assert exc_info.value.translation_key == "config_entry_not_found"
 
     def test_raises_when_runtime_data_missing(self):
         hass = MagicMock()
@@ -102,8 +105,9 @@ class TestGetCoordinator:
         entry.runtime_data = None
         hass.config_entries.async_get_entry.return_value = entry
 
-        with pytest.raises(ServiceValidationError, match="has no runtime data"):
+        with pytest.raises(ServiceValidationError) as exc_info:
             _get_coordinator(hass, MagicMock(service="test", data={ATTR_CONFIG_ENTRY: "entry_1"}))
+        assert exc_info.value.translation_key == "config_entry_no_data"
 
 
 class TestRegisterServices:
