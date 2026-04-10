@@ -187,7 +187,7 @@
       "charge_mode": {
         "name": "Lademodus",
         "state": {
-          "unconfirmed": "Ikke bekreftet",
+          "unconfirmed": "Ubekreftet",
           "100v charging": "100V lading",
           "200v charging": "200V lading",
           "fast charging": "Hurtiglading",
@@ -237,7 +237,7 @@
         "name": "Klimavarighet"
       },
       "climate_defrost": {
-        "name": "Avising"
+        "name": "Automatisk defroster"
       },
       "charge_schedule": {
         "name": "Ladeplan"
@@ -275,7 +275,7 @@
         "name": "Lading"
       },
       "climate_defrost_setting": {
-        "name": "Avising"
+        "name": "Automatisk defroster"
       },
       "auto_refresh": {
         "name": "Automatisk oppdatering fra kjøretøyet"

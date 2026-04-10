@@ -237,7 +237,7 @@
         "name": "Climate duration"
       },
       "climate_defrost": {
-        "name": "Climate defrost"
+        "name": "Auto-Defrost"
       },
       "charge_schedule": {
         "name": "Charge schedule"
@@ -275,7 +275,7 @@
         "name": "Charging"
       },
       "climate_defrost_setting": {
-        "name": "Climate defrost"
+        "name": "Auto-Defrost"
       },
       "auto_refresh": {
         "name": "Auto refresh from car"

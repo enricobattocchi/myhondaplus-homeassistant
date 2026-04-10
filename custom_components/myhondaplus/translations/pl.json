@@ -119,10 +119,10 @@
         "name": "Szyby"
       },
       "hood": {
-        "name": "Maska"
+        "name": "Pokrywa silnika"
       },
       "trunk": {
-        "name": "Bagażnik"
+        "name": "Osłona bagażnika"
       },
       "lights": {
         "name": "Światła"
@@ -237,7 +237,7 @@
         "name": "Czas klimatyzacji"
       },
       "climate_defrost": {
-        "name": "Odmrażanie"
+        "name": "Automatyczne ogrzewanie szyby"
       },
       "charge_schedule": {
         "name": "Harmonogram ładowania"
@@ -275,7 +275,7 @@
         "name": "Ładowanie"
       },
       "climate_defrost_setting": {
-        "name": "Odmrażanie"
+        "name": "Automatyczne ogrzewanie szyby"
       },
       "auto_refresh": {
         "name": "Automatyczne odświeżanie z pojazdu"

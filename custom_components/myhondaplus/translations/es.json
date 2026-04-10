@@ -187,7 +187,7 @@
       "charge_mode": {
         "name": "Modo de carga",
         "state": {
-          "unconfirmed": "No confirmado",
+          "unconfirmed": "Sin confirmar",
           "100v charging": "Carga 100V",
           "200v charging": "Carga 200V",
           "fast charging": "Carga rápida",
@@ -237,7 +237,7 @@
         "name": "Duración climatización"
       },
       "climate_defrost": {
-        "name": "Desempañado"
+        "name": "Descongelación automática"
       },
       "charge_schedule": {
         "name": "Programación de carga"
@@ -275,7 +275,7 @@
         "name": "Carga"
       },
       "climate_defrost_setting": {
-        "name": "Desempañado"
+        "name": "Descongelación automática"
       },
       "auto_refresh": {
         "name": "Actualización automática del vehículo"

@@ -162,7 +162,7 @@
         "name": "Zuhause / Unterwegs",
         "state": {
           "home": "Zuhause",
-          "away": "Unterwegs",
+          "away": "Nicht zuhause",
           "unknown": "Unbekannt"
         }
       },
@@ -170,7 +170,7 @@
         "name": "Klimasteuerung aktiv"
       },
       "cabin_temperature": {
-        "name": "Innenraumtemperatur"
+        "name": "Kabinentemperatur"
       },
       "odometer": {
         "name": "Kilometerstand"
@@ -187,7 +187,7 @@
       "charge_mode": {
         "name": "Lademodus",
         "state": {
-          "unconfirmed": "Nicht bestätigt",
+          "unconfirmed": "Unbestätigt",
           "100v charging": "100V-Ladung",
           "200v charging": "200V-Ladung",
           "fast charging": "Schnellladung",
@@ -198,7 +198,7 @@
         "name": "Zeit bis Ladung abgeschlossen"
       },
       "interior_temperature": {
-        "name": "Innentemperatur"
+        "name": "Innenraumtemperatur"
       },
       "headlights": {
         "name": "Scheinwerfer"
@@ -237,7 +237,7 @@
         "name": "Klimasteuerung Dauer"
       },
       "climate_defrost": {
-        "name": "Entfrostung"
+        "name": "Auto-Defrost"
       },
       "charge_schedule": {
         "name": "Ladeprogrammierung"
@@ -275,7 +275,7 @@
         "name": "Ladung"
       },
       "climate_defrost_setting": {
-        "name": "Entfrostung"
+        "name": "Auto-Defrost"
       },
       "auto_refresh": {
         "name": "Automatische Fahrzeugaktualisierung"

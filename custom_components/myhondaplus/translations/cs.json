@@ -122,7 +122,7 @@
         "name": "Kapota"
       },
       "trunk": {
-        "name": "Kufr"
+        "name": "Zavazadlový prostor"
       },
       "lights": {
         "name": "Světla"
@@ -145,7 +145,7 @@
           "charging": "Nabíjí se",
           "complete": "Dokončeno",
           "notcharging": "Nenabíjí se",
-          "unknown": "Neznámý"
+          "unknown": "Neznámé"
         }
       },
       "plug_status": {
@@ -155,15 +155,15 @@
           "connected": "Připojeno",
           "unplugged": "Odpojeno",
           "disconnected": "Odpojeno",
-          "unknown": "Neznámý"
+          "unknown": "Neznámé"
         }
       },
       "home_away": {
         "name": "Doma / Pryč",
         "state": {
           "home": "Doma",
-          "away": "Pryč",
-          "unknown": "Neznámý"
+          "away": "Mimo domov",
+          "unknown": "Neznámé"
         }
       },
       "climate_active": {
@@ -191,7 +191,7 @@
           "100v charging": "Nabíjení 100V",
           "200v charging": "Nabíjení 200V",
           "fast charging": "Rychlé nabíjení",
-          "unknown": "Neznámý"
+          "unknown": "Neznámé"
         }
       },
       "time_to_charge": {
@@ -230,14 +230,14 @@
           "cooler": "Chladnější",
           "normal": "Normální",
           "hotter": "Teplejší",
-          "unknown": "Neznámý"
+          "unknown": "Neznámé"
         }
       },
       "climate_duration": {
         "name": "Doba klimatizace"
       },
       "climate_defrost": {
-        "name": "Odmrazování"
+        "name": "Automatické odmrazování"
       },
       "charge_schedule": {
         "name": "Plán nabíjení"
@@ -275,7 +275,7 @@
         "name": "Nabíjení"
       },
       "climate_defrost_setting": {
-        "name": "Odmrazování"
+        "name": "Automatické odmrazování"
       },
       "auto_refresh": {
         "name": "Automatická aktualizace z vozidla"

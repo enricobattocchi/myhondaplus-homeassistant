@@ -122,7 +122,7 @@
         "name": "Motorhuv"
       },
       "trunk": {
-        "name": "Bagageutrymme"
+        "name": "Baklucka"
       },
       "lights": {
         "name": "Lampor"
@@ -151,7 +151,7 @@
       "plug_status": {
         "name": "Kontaktstatus",
         "state": {
-          "plugged in": "Ansluten",
+          "plugged in": "Inkopplad",
           "connected": "Ansluten",
           "unplugged": "Frånkopplad",
           "disconnected": "Frånkopplad",
@@ -237,7 +237,7 @@
         "name": "Klimatvaraktighet"
       },
       "climate_defrost": {
-        "name": "Avfrostning"
+        "name": "Automatisk avfrostning"
       },
       "charge_schedule": {
         "name": "Laddschema"
@@ -275,7 +275,7 @@
         "name": "Laddning"
       },
       "climate_defrost_setting": {
-        "name": "Avfrostning"
+        "name": "Automatisk avfrostning"
       },
       "auto_refresh": {
         "name": "Automatisk uppdatering från fordon"

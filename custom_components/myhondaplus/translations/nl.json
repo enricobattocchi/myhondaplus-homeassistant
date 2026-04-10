@@ -122,7 +122,7 @@
         "name": "Motorkap"
       },
       "trunk": {
-        "name": "Kofferbak"
+        "name": "Bagageruimte"
       },
       "lights": {
         "name": "Verlichting"
@@ -162,7 +162,7 @@
         "name": "Thuis / Weg",
         "state": {
           "home": "Thuis",
-          "away": "Weg",
+          "away": "Onderweg",
           "unknown": "Onbekend"
         }
       },
@@ -187,7 +187,7 @@
       "charge_mode": {
         "name": "Laadmodus",
         "state": {
-          "unconfirmed": "Niet bevestigd",
+          "unconfirmed": "Onbevestigd",
           "100v charging": "100V laden",
           "200v charging": "200V laden",
           "fast charging": "Snel laden",
@@ -237,7 +237,7 @@
         "name": "Aircoduur"
       },
       "climate_defrost": {
-        "name": "Ontdooien"
+        "name": "Automatisch ontdooien"
       },
       "charge_schedule": {
         "name": "Laadschema"
@@ -275,7 +275,7 @@
         "name": "Opladen"
       },
       "climate_defrost_setting": {
-        "name": "Ontdooien"
+        "name": "Automatisch ontdooien"
       },
       "auto_refresh": {
         "name": "Automatisch vernieuwen vanaf voertuig"

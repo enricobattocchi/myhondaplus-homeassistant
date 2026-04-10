@@ -119,7 +119,7 @@
         "name": "Vinduer"
       },
       "hood": {
-        "name": "Motorhjelm"
+        "name": "Frontklap"
       },
       "trunk": {
         "name": "Bagagerum"
@@ -237,7 +237,7 @@
         "name": "Klimavarighed"
       },
       "climate_defrost": {
-        "name": "Afrimning"
+        "name": "Automatisk afrimning"
       },
       "charge_schedule": {
         "name": "Ladeplan"
@@ -275,7 +275,7 @@
         "name": "Opladning"
       },
       "climate_defrost_setting": {
-        "name": "Afrimning"
+        "name": "Automatisk afrimning"
       },
       "auto_refresh": {
         "name": "Automatisk opdatering fra køretøj"

@@ -237,7 +237,7 @@
         "name": "Klíma időtartam"
       },
       "climate_defrost": {
-        "name": "Páramentesítés"
+        "name": "Automatikus jégtelenítés"
       },
       "charge_schedule": {
         "name": "Töltés ütemezés"
@@ -275,7 +275,7 @@
         "name": "Töltés"
       },
       "climate_defrost_setting": {
-        "name": "Páramentesítés"
+        "name": "Automatikus jégtelenítés"
       },
       "auto_refresh": {
         "name": "Automatikus frissítés a járműtől"

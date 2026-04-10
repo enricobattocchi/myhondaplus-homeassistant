@@ -162,7 +162,7 @@
         "name": "Domicile / Extérieur",
         "state": {
           "home": "Domicile",
-          "away": "Extérieur",
+          "away": "Absent",
           "unknown": "Inconnu"
         }
       },
@@ -237,7 +237,7 @@
         "name": "Durée climatisation"
       },
       "climate_defrost": {
-        "name": "Dégivrage"
+        "name": "Dégivrage automatique"
       },
       "charge_schedule": {
         "name": "Programmation de charge"
@@ -275,7 +275,7 @@
         "name": "Charge"
       },
       "climate_defrost_setting": {
-        "name": "Dégivrage"
+        "name": "Dégivrage automatique"
       },
       "auto_refresh": {
         "name": "Mise à jour automatique du véhicule"

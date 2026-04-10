@@ -122,7 +122,7 @@
         "name": "Kapota"
       },
       "trunk": {
-        "name": "Kufor"
+        "name": "Batožinový priestor"
       },
       "lights": {
         "name": "Svetlá"
@@ -145,7 +145,7 @@
           "charging": "Nabíjanie",
           "complete": "Dokončené",
           "notcharging": "Nenabíja sa",
-          "unknown": "Neznámy"
+          "unknown": "Neznáme"
         }
       },
       "plug_status": {
@@ -155,15 +155,15 @@
           "connected": "Pripojené",
           "unplugged": "Odpojené",
           "disconnected": "Odpojené",
-          "unknown": "Neznámy"
+          "unknown": "Neznáme"
         }
       },
       "home_away": {
         "name": "Doma / Preč",
         "state": {
           "home": "Doma",
-          "away": "Preč",
-          "unknown": "Neznámy"
+          "away": "Mimo domova",
+          "unknown": "Neznáme"
         }
       },
       "climate_active": {
@@ -191,7 +191,7 @@
           "100v charging": "Nabíjanie 100V",
           "200v charging": "Nabíjanie 200V",
           "fast charging": "Rýchle nabíjanie",
-          "unknown": "Neznámy"
+          "unknown": "Neznáme"
         }
       },
       "time_to_charge": {
@@ -230,14 +230,14 @@
           "cooler": "Chladnejšie",
           "normal": "Normálne",
           "hotter": "Teplejšie",
-          "unknown": "Neznámy"
+          "unknown": "Neznáme"
         }
       },
       "climate_duration": {
         "name": "Trvanie klimatizácie"
       },
       "climate_defrost": {
-        "name": "Odmrazovanie"
+        "name": "Automatické odmrazovanie"
       },
       "charge_schedule": {
         "name": "Plán nabíjania"
@@ -275,7 +275,7 @@
         "name": "Nabíjanie"
       },
       "climate_defrost_setting": {
-        "name": "Odmrazovanie"
+        "name": "Automatické odmrazovanie"
       },
       "auto_refresh": {
         "name": "Automatická aktualizácia z vozidla"

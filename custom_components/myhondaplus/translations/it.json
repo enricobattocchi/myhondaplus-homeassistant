@@ -162,7 +162,7 @@
         "name": "Casa / Fuori",
         "state": {
           "home": "A casa",
-          "away": "Fuori",
+          "away": "Fuori casa",
           "unknown": "Sconosciuto"
         }
       },
@@ -237,7 +237,7 @@
         "name": "Durata climatizzatore"
       },
       "climate_defrost": {
-        "name": "Sbrinamento"
+        "name": "Sbrinamento automatico"
       },
       "charge_schedule": {
         "name": "Programmazione ricarica"
@@ -275,7 +275,7 @@
         "name": "Ricarica"
       },
       "climate_defrost_setting": {
-        "name": "Sbrinamento"
+        "name": "Sbrinamento automatico"
       },
       "auto_refresh": {
         "name": "Aggiornamento automatico dal veicolo"
