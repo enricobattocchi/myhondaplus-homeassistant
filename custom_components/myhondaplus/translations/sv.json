@@ -1,0 +1,224 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "My Honda+",
+        "description": "Ange inloggningsuppgifterna f\u00f6r ditt My Honda+ konto",
+        "data": {
+          "email": "Email",
+          "password": "Password",
+          "scan_interval": "Uppdateringsintervall (sekunder)",
+          "car_refresh_interval": "Fordonsuppdateringsintervall (sekunder, 0 f\u00f6r att inaktivera)",
+          "location_refresh_interval": "Platsuppdateringsintervall (sekunder, 0 f\u00f6r att inaktivera)"
+        },
+        "data_description": {
+          "email": "E-postadress som anv\u00e4nds f\u00f6r att logga in i My Honda+ appen.",
+          "password": "Password f\u00f6r ditt My Honda+ konto.",
+          "scan_interval": "Hur ofta Home Assistant h\u00e4mtar lagrad data fr\u00e5n Honda.",
+          "car_refresh_interval": "Hur ofta Home Assistant v\u00e4cker fordonet f\u00f6r uppdaterad data. S\u00e4tt till 0 f\u00f6r att inaktivera.",
+          "location_refresh_interval": "Hur ofta Home Assistant beg\u00e4r GPS-position fr\u00e5n fordonet. S\u00e4tt till 0 f\u00f6r att inaktivera."
+        }
+      },
+      "select_vehicle": {
+        "title": "V\u00e4lj fordon",
+        "description": "Flera fordon hittades i ditt konto. V\u00e4lj vilket som ska l\u00e4ggas till.",
+        "data": {
+          "vin": "Fordon"
+        },
+        "data_description": {
+          "vin": "V\u00e4lj fordonet fr\u00e5n ditt My Honda+ konto att l\u00e4gga till i Home Assistant."
+        }
+      },
+      "manual_vin": {
+        "title": "Ange VIN",
+        "description": "Automatisk identifiering av fordon misslyckades. Ange VIN manuellt.",
+        "data": {
+          "vin": "Fordonsidentifieringsnummer (VIN)"
+        },
+        "data_description": {
+          "vin": "Ange VIN exakt som det rapporterats av Honda om automatisk identifiering inte fungerade."
+        }
+      },
+      "verify": {
+        "title": "Verifiera e-post",
+        "description": "Honda har skickat ett verifieringsmeddelande. Kopiera URL:en fr\u00e5n l\u00e4nken i e-postmeddelandet (klicka INTE p\u00e5 den) och klistra in den nedan.",
+        "data": {
+          "verification_link": "Verifieringsl\u00e4nk fr\u00e5n e-post"
+        },
+        "data_description": {
+          "verification_link": "Klistra in den fullst\u00e4ndiga verifierings-URL:en fr\u00e5n Hondas e-postmeddelande."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Autentisera My Honda+ igen",
+        "description": "Sessionen har g\u00e5tt ut. Ange dina inloggningsuppgifter igen.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "email": "E-postadress som anv\u00e4nds f\u00f6r att logga in i My Honda+ appen.",
+          "password": "Password f\u00f6r ditt My Honda+ konto."
+        }
+      }
+    },
+    "abort": {
+      "reauth_successful": "Omautentisering lyckades"
+    },
+    "error": {
+      "cannot_connect": "Kan inte ansluta till Honda API",
+      "invalid_auth": "Ogiltig e-postadress eller l\u00f6senord",
+      "account_locked": "Kontot \u00e4r l\u00e5st. F\u00f6rs\u00f6k igen senare.",
+      "invalid_link": "Kan inte tolka verifieringsl\u00e4nken. Kopiera den fullst\u00e4ndiga URL:en.",
+      "verification_failed": "Verifiering misslyckades. F\u00f6rs\u00f6k igen."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "My Honda+ inst\u00e4llningar",
+        "data": {
+          "scan_interval": "Uppdateringsintervall (sekunder)",
+          "car_refresh_interval": "Fordonsuppdateringsintervall (sekunder, 0 f\u00f6r att inaktivera)",
+          "location_refresh_interval": "Platsuppdateringsintervall (sekunder, 0 f\u00f6r att inaktivera)"
+        },
+        "data_description": {
+          "scan_interval": "Hur ofta Home Assistant h\u00e4mtar lagrad data fr\u00e5n Honda.",
+          "car_refresh_interval": "Hur ofta Home Assistant v\u00e4cker fordonet f\u00f6r uppdaterad data. S\u00e4tt till 0 f\u00f6r att inaktivera.",
+          "location_refresh_interval": "Hur ofta Home Assistant beg\u00e4r GPS-position fr\u00e5n fordonet. S\u00e4tt till 0 f\u00f6r att inaktivera."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "refresh_data_failed": {
+      "message": "Kunde inte uppdatera data fr\u00e5n fordonet"
+    },
+    "send_command_failed": {
+      "message": "Kunde inte skicka kommandot till fordonet"
+    },
+    "refresh_location_failed": {
+      "message": "Kunde inte uppdatera positionen fr\u00e5n fordonet"
+    },
+    "config_entry_not_found": {
+      "message": "Kan inte anropa tj\u00e4nsten {service}. Konfigurationspost {entry_id} hittades inte"
+    },
+    "config_entry_not_loaded": {
+      "message": "Kan inte anropa tj\u00e4nsten {service}. Konfigurationspost {entry_id} inte laddad"
+    },
+    "config_entry_no_data": {
+      "message": "Kan inte anropa tj\u00e4nsten {service}. Konfigurationspost {entry_id} utan data"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "doors_open": { "name": "D\u00f6rrar" },
+      "windows_open": { "name": "F\u00f6nster" },
+      "hood": { "name": "Motorhuv" },
+      "trunk": { "name": "Bagageutrymme" },
+      "lights": { "name": "Lampor" }
+    },
+    "sensor": {
+      "battery_level": { "name": "Batteri" },
+      "range": { "name": "R\u00e4ckvidd" },
+      "total_range": { "name": "Total r\u00e4ckvidd" },
+      "charge_status": {
+        "name": "Laddstatus",
+        "state": {
+          "stopped": "Stoppad",
+          "charging": "Laddar",
+          "complete": "Klar",
+          "notcharging": "Laddar inte",
+          "unknown": "Ok\u00e4nd"
+        }
+      },
+      "plug_status": {
+        "name": "Kontaktstatus",
+        "state": {
+          "plugged in": "Ansluten",
+          "connected": "Ansluten",
+          "unplugged": "Fr\u00e5nkopplad",
+          "disconnected": "Fr\u00e5nkopplad",
+          "unknown": "Ok\u00e4nd"
+        }
+      },
+      "home_away": {
+        "name": "Hemma / Borta",
+        "state": {
+          "home": "Hemma",
+          "away": "Borta",
+          "unknown": "Ok\u00e4nd"
+        }
+      },
+      "climate_active": { "name": "Klimatanl\u00e4ggning aktiv" },
+      "cabin_temperature": { "name": "Kupétemperatur" },
+      "odometer": { "name": "M\u00e4tarst\u00e4llning" },
+      "doors_locked": { "name": "D\u00f6rrar l\u00e5sta" },
+      "ignition": { "name": "T\u00e4ndning" },
+      "speed": { "name": "Hastighet" },
+      "charge_mode": {
+        "name": "Laddl\u00e4ge",
+        "state": {
+          "unconfirmed": "Obekr\u00e4ftad",
+          "200v charging": "200V laddning",
+          "unknown": "Ok\u00e4nd"
+        }
+      },
+      "time_to_charge": { "name": "Tid till fulladdat" },
+      "interior_temperature": { "name": "Innertemperatur" },
+      "headlights": { "name": "Str\u00e5lkastare" },
+      "parking_lights": { "name": "Parkeringsljus" },
+      "warnings": { "name": "Varningar" },
+      "last_updated": { "name": "Senast uppdaterad" },
+      "trips_this_month": { "name": "Resor denna m\u00e5nad" },
+      "distance_this_month": { "name": "Str\u00e4cka denna m\u00e5nad" },
+      "driving_time_this_month": { "name": "K\u00f6rtid denna m\u00e5nad" },
+      "avg_consumption_this_month": { "name": "Genomsnittlig f\u00f6rbrukning denna m\u00e5nad" },
+      "climate_temp": {
+        "name": "Klimattemperatur",
+        "state": {
+          "cooler": "Svalare",
+          "normal": "Normal",
+          "hotter": "Varmare",
+          "unknown": "Ok\u00e4nd"
+        }
+      },
+      "climate_duration": { "name": "Klimatvaraktighet" },
+      "climate_defrost": { "name": "Avfrostning" },
+      "charge_schedule": { "name": "Laddschema" },
+      "climate_schedule": { "name": "Klimatschema" }
+    },
+    "device_tracker": {
+      "vehicle_location": { "name": "Position" }
+    },
+    "button": {
+      "horn_lights": { "name": "Signalhorn och lampor" },
+      "refresh_cached": { "name": "Uppdatera" },
+      "refresh_data": { "name": "Uppdatera fr\u00e5n fordon" }
+    },
+    "lock": {
+      "doors": { "name": "D\u00f6rrar" }
+    },
+    "switch": {
+      "climate": { "name": "Klimatanl\u00e4ggning" },
+      "charging": { "name": "Laddning" },
+      "climate_defrost_setting": { "name": "Avfrostning" },
+      "auto_refresh": { "name": "Automatisk uppdatering fr\u00e5n fordon" }
+    },
+    "select": {
+      "climate_temp_setting": {
+        "name": "Klimattemperatur",
+        "state": {
+          "cooler": "Svalare",
+          "normal": "Normal",
+          "hotter": "Varmare"
+        }
+      },
+      "climate_duration_setting": { "name": "Klimatvaraktighet (min)" }
+    },
+    "number": {
+      "charge_limit_home": { "name": "Laddgr\u00e4ns (hemma)" },
+      "charge_limit_away": { "name": "Laddgr\u00e4ns (borta)" }
+    }
+  }
+}
