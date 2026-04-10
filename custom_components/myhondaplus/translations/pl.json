@@ -157,7 +157,7 @@
       "plug_status": {
         "name": "Stan wtyczki",
         "state": {
-          "plugged in": "Podłączone",
+          "plugged_in": "Podłączone",
           "connected": "Podłączone",
           "unplugged": "Niepodłączone",
           "disconnected": "Niepodłączone",
@@ -194,9 +194,9 @@
         "name": "Tryb ładowania",
         "state": {
           "unconfirmed": "Niepotwierdzone",
-          "100v charging": "Ładowanie 100V",
-          "200v charging": "Ładowanie 200V",
-          "fast charging": "Szybkie ładowanie",
+          "100v_charging": "Ładowanie 100V",
+          "200v_charging": "Ładowanie 200V",
+          "fast_charging": "Szybkie ładowanie",
           "unknown": "Nieznany"
         }
       },

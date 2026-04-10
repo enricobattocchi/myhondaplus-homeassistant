@@ -157,7 +157,7 @@
       "plug_status": {
         "name": "Estado del enchufe",
         "state": {
-          "plugged in": "Enchufado",
+          "plugged_in": "Enchufado",
           "connected": "Enchufado",
           "unplugged": "Desenchufado",
           "disconnected": "Desenchufado",
@@ -194,9 +194,9 @@
         "name": "Modo de carga",
         "state": {
           "unconfirmed": "Sin confirmar",
-          "100v charging": "Carga 100V",
-          "200v charging": "Carga 200V",
-          "fast charging": "Carga rápida",
+          "100v_charging": "Carga 100V",
+          "200v_charging": "Carga 200V",
+          "fast_charging": "Carga rápida",
           "unknown": "Desconocido"
         }
       },

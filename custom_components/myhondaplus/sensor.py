@@ -85,7 +85,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         key="plug_status",
         translation_key="plug_status",
         device_class=SensorDeviceClass.ENUM,
-        options=["plugged in", "connected", "unplugged", "disconnected", "unknown"],
+        options=["plugged_in", "connected", "unplugged", "disconnected", "unknown"],
         icon="mdi:power-plug",
     ),
     HondaSensorDescription(
@@ -137,7 +137,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         key="charge_mode",
         translation_key="charge_mode",
         device_class=SensorDeviceClass.ENUM,
-        options=["unconfirmed", "100v charging", "200v charging", "fast charging", "unknown"],
+        options=["unconfirmed", "100v_charging", "200v_charging", "fast_charging", "unknown"],
         icon="mdi:ev-station",
     ),
     HondaSensorDescription(
@@ -294,6 +294,8 @@ class HondaSensor(MyHondaPlusEntity, SensorEntity):
                 return datetime.fromisoformat(value)
             except ValueError:
                 return None
+        if self.entity_description.device_class == SensorDeviceClass.ENUM and isinstance(value, str):
+            return value.replace(" ", "_")
         return value
 
     @property

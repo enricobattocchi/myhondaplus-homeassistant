@@ -157,7 +157,7 @@
       "plug_status": {
         "name": "État de la prise",
         "state": {
-          "plugged in": "Branché",
+          "plugged_in": "Branché",
           "connected": "Branché",
           "unplugged": "Débranché",
           "disconnected": "Débranché",
@@ -194,9 +194,9 @@
         "name": "Mode de charge",
         "state": {
           "unconfirmed": "Non confirmé",
-          "100v charging": "Charge 100V",
-          "200v charging": "Charge 200V",
-          "fast charging": "Charge rapide",
+          "100v_charging": "Charge 100V",
+          "200v_charging": "Charge 200V",
+          "fast_charging": "Charge rapide",
           "unknown": "Inconnu"
         }
       },

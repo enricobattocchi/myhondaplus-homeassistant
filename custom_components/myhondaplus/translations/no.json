@@ -157,7 +157,7 @@
       "plug_status": {
         "name": "Pluggstatus",
         "state": {
-          "plugged in": "Tilkoblet",
+          "plugged_in": "Tilkoblet",
           "connected": "Tilkoblet",
           "unplugged": "Frakoblet",
           "disconnected": "Frakoblet",
@@ -194,9 +194,9 @@
         "name": "Lademodus",
         "state": {
           "unconfirmed": "Ubekreftet",
-          "100v charging": "100V lading",
-          "200v charging": "200V lading",
-          "fast charging": "Hurtiglading",
+          "100v_charging": "100V lading",
+          "200v_charging": "200V lading",
+          "fast_charging": "Hurtiglading",
           "unknown": "Ukjent"
         }
       },

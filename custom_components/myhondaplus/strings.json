@@ -137,7 +137,7 @@
       "plug_status": {
         "name": "Plug status",
         "state": {
-          "plugged in": "Plugged in",
+          "plugged_in": "Plugged in",
           "connected": "Connected",
           "unplugged": "Unplugged",
           "disconnected": "Disconnected",
@@ -162,9 +162,9 @@
         "name": "Charge mode",
         "state": {
           "unconfirmed": "Unconfirmed",
-          "100v charging": "100V charging",
-          "200v charging": "200V charging",
-          "fast charging": "Fast charging",
+          "100v_charging": "100V charging",
+          "200v_charging": "200V charging",
+          "fast_charging": "Fast charging",
           "unknown": "Unknown"
         }
       },

@@ -157,7 +157,7 @@
       "plug_status": {
         "name": "Stav zásuvky",
         "state": {
-          "plugged in": "Pripojené",
+          "plugged_in": "Pripojené",
           "connected": "Pripojené",
           "unplugged": "Odpojené",
           "disconnected": "Odpojené",
@@ -194,9 +194,9 @@
         "name": "Režim nabíjania",
         "state": {
           "unconfirmed": "Nepotvrdené",
-          "100v charging": "Nabíjanie 100V",
-          "200v charging": "Nabíjanie 200V",
-          "fast charging": "Rýchle nabíjanie",
+          "100v_charging": "Nabíjanie 100V",
+          "200v_charging": "Nabíjanie 200V",
+          "fast_charging": "Rýchle nabíjanie",
           "unknown": "Neznáme"
         }
       },

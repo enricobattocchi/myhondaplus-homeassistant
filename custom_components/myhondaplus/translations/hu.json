@@ -157,7 +157,7 @@
       "plug_status": {
         "name": "Csatlakozó állapota",
         "state": {
-          "plugged in": "Csatlakoztatva",
+          "plugged_in": "Csatlakoztatva",
           "connected": "Csatlakoztatva",
           "unplugged": "Leválasztva",
           "disconnected": "Leválasztva",
@@ -194,9 +194,9 @@
         "name": "Töltési mód",
         "state": {
           "unconfirmed": "Nem megerősített",
-          "100v charging": "100V töltés",
-          "200v charging": "200V töltés",
-          "fast charging": "Gyorstöltés",
+          "100v_charging": "100V töltés",
+          "200v_charging": "200V töltés",
+          "fast_charging": "Gyorstöltés",
           "unknown": "Ismeretlen"
         }
       },

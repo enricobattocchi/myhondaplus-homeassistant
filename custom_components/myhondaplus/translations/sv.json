@@ -157,7 +157,7 @@
       "plug_status": {
         "name": "Kontaktstatus",
         "state": {
-          "plugged in": "Inkopplad",
+          "plugged_in": "Inkopplad",
           "connected": "Ansluten",
           "unplugged": "Frånkopplad",
           "disconnected": "Frånkopplad",
@@ -194,9 +194,9 @@
         "name": "Laddläge",
         "state": {
           "unconfirmed": "Obekräftad",
-          "100v charging": "100V laddning",
-          "200v charging": "200V laddning",
-          "fast charging": "Snabbladdning",
+          "100v_charging": "100V laddning",
+          "200v_charging": "200V laddning",
+          "fast_charging": "Snabbladdning",
           "unknown": "Okänd"
         }
       },

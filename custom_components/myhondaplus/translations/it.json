@@ -157,7 +157,7 @@
       "plug_status": {
         "name": "Stato presa",
         "state": {
-          "plugged in": "Collegato",
+          "plugged_in": "Collegato",
           "connected": "Collegato",
           "unplugged": "Scollegato",
           "disconnected": "Scollegato",
@@ -194,9 +194,9 @@
         "name": "Modalità ricarica",
         "state": {
           "unconfirmed": "Non confermato",
-          "100v charging": "Ricarica 100V",
-          "200v charging": "Ricarica 200V",
-          "fast charging": "Ricarica veloce",
+          "100v_charging": "Ricarica 100V",
+          "200v_charging": "Ricarica 200V",
+          "fast_charging": "Ricarica veloce",
           "unknown": "Sconosciuto"
         }
       },

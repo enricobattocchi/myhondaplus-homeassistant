@@ -157,7 +157,7 @@
       "plug_status": {
         "name": "Steckerstatus",
         "state": {
-          "plugged in": "Angeschlossen",
+          "plugged_in": "Angeschlossen",
           "connected": "Angeschlossen",
           "unplugged": "Getrennt",
           "disconnected": "Getrennt",
@@ -194,9 +194,9 @@
         "name": "Lademodus",
         "state": {
           "unconfirmed": "Unbestätigt",
-          "100v charging": "100V-Ladung",
-          "200v charging": "200V-Ladung",
-          "fast charging": "Schnellladung",
+          "100v_charging": "100V-Ladung",
+          "200v_charging": "200V-Ladung",
+          "fast_charging": "Schnellladung",
           "unknown": "Unbekannt"
         }
       },

@@ -157,7 +157,7 @@
       "plug_status": {
         "name": "Stikstatus",
         "state": {
-          "plugged in": "Tilsluttet",
+          "plugged_in": "Tilsluttet",
           "connected": "Tilsluttet",
           "unplugged": "Ikke tilsluttet",
           "disconnected": "Ikke tilsluttet",
@@ -194,9 +194,9 @@
         "name": "Ladetilstand",
         "state": {
           "unconfirmed": "Ubekræftet",
-          "100v charging": "100V opladning",
-          "200v charging": "200V opladning",
-          "fast charging": "Hurtig opladning",
+          "100v_charging": "100V opladning",
+          "200v_charging": "200V opladning",
+          "fast_charging": "Hurtig opladning",
           "unknown": "Ukendt"
         }
       },

@@ -157,7 +157,7 @@
       "plug_status": {
         "name": "Stekker status",
         "state": {
-          "plugged in": "Aangesloten",
+          "plugged_in": "Aangesloten",
           "connected": "Aangesloten",
           "unplugged": "Niet aangesloten",
           "disconnected": "Niet aangesloten",
@@ -194,9 +194,9 @@
         "name": "Laadmodus",
         "state": {
           "unconfirmed": "Onbevestigd",
-          "100v charging": "100V laden",
-          "200v charging": "200V laden",
-          "fast charging": "Snel laden",
+          "100v_charging": "100V laden",
+          "200v_charging": "200V laden",
+          "fast_charging": "Snel laden",
           "unknown": "Onbekend"
         }
       },
