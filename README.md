@@ -68,6 +68,10 @@ Installation parameters summary:
 - **Verification link**: Required only when Honda asks to register the device authenticator
 - **Vehicle selection**: Required only when multiple vehicles are found on the account
 
+## Translations
+
+The integration is fully translated in all Honda Connect Europe languages: Czech, Danish, Dutch, English, French, German, Hungarian, Italian, Norwegian, Polish, Slovak, Spanish, and Swedish.
+
 ## Entities
 
 Units are dynamic — the integration uses whatever the vehicle reports (km/miles, °C/°F).
