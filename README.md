@@ -75,7 +75,7 @@ Units are dynamic — the integration uses whatever the vehicle reports (km/mile
 Remote commands update the entity state only after the car confirms success. The lock entity shows "Locking..."/"Unlocking..." while waiting for confirmation. If a command times out, a persistent notification is created.
 
 ### Sensors
-- **Battery & charging**: Battery level, Range, Total range, Charge status, Plug status, Charge mode, Time to full charge
+- **Battery & charging**: Battery level, Range (climate on), Range (climate off), Total range, Charge status, Plug status, Charge mode, Time to full charge
 - **Climate**: Climate active, Climate temperature, Climate duration, Climate defrost, Cabin temperature, Interior temperature, Climate temp setting, Climate duration setting, Climate defrost setting
 - **Vehicle**: Odometer, Speed, Ignition, Doors locked, Headlights, Parking lights
 - **Other**: Warning lamps, Last updated
