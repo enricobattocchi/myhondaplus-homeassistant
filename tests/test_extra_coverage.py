@@ -13,6 +13,7 @@ from homeassistant.helpers.entity import EntityDescription
 from pymyhondaplus.api import HondaAPIError
 
 from custom_components.myhondaplus import (
+    _cleanup_removed_vehicles,
     _schedule_car_refresh,
     _schedule_location_refresh,
     _validate_days,
@@ -617,6 +618,42 @@ class TestSchedulerCoverage:
         _schedule_location_refresh(hass, entry, vd)
         assert vd.location_refresh_unsub is None
 
+    def test_schedule_car_refresh_enabled(self):
+        hass = MagicMock()
+        entry = MagicMock()
+        entry.options = {"car_refresh_interval": 3600}
+        vd = VehicleData(
+            coordinator=MagicMock(),
+            trip_coordinator=MagicMock(),
+            vin=MOCK_VIN,
+            vehicle_name=MOCK_VEHICLE_NAME,
+            fuel_type="E",
+        )
+        with patch(
+            "custom_components.myhondaplus.async_call_later", return_value=MagicMock()
+        ) as call_later:
+            _schedule_car_refresh(hass, entry, vd)
+        call_later.assert_called_once()
+        assert vd.car_refresh_unsub is not None
+
+    def test_schedule_location_refresh_enabled(self):
+        hass = MagicMock()
+        entry = MagicMock()
+        entry.options = {"location_refresh_interval": 3600}
+        vd = VehicleData(
+            coordinator=MagicMock(),
+            trip_coordinator=MagicMock(),
+            vin=MOCK_VIN,
+            vehicle_name=MOCK_VEHICLE_NAME,
+            fuel_type="E",
+        )
+        with patch(
+            "custom_components.myhondaplus.async_call_later", return_value=MagicMock()
+        ) as call_later:
+            _schedule_location_refresh(hass, entry, vd)
+        call_later.assert_called_once()
+        assert vd.location_refresh_unsub is not None
+
     @pytest.mark.asyncio
     async def test_async_unload_entry_with_unsubs(self):
         hass = MagicMock()
@@ -640,3 +677,81 @@ class TestSchedulerCoverage:
         assert await async_unload_entry(hass, entry) is True
         car_unsub.assert_called_once()
         loc_unsub.assert_called_once()
+
+
+class TestCleanupRemovedVehicles:
+    def test_removes_device_for_missing_vin(self):
+        hass = MagicMock()
+        entry = MagicMock()
+        entry.entry_id = "entry_1"
+        device = MagicMock()
+        device.identifiers = {("myhondaplus", "OLD_VIN")}
+        device.id = "device_old"
+        with patch("custom_components.myhondaplus.dr") as mock_dr:
+            mock_dr.async_get.return_value = MagicMock()
+            mock_dr.async_entries_for_config_entry.return_value = [device]
+            _cleanup_removed_vehicles(hass, entry, {"CURRENT_VIN"})
+            mock_dr.async_get.return_value.async_remove_device.assert_called_once_with(
+                "device_old"
+            )
+
+    def test_keeps_device_for_active_vin(self):
+        hass = MagicMock()
+        entry = MagicMock()
+        entry.entry_id = "entry_1"
+        device = MagicMock()
+        device.identifiers = {("myhondaplus", MOCK_VIN)}
+        device.id = "device_1"
+        with patch("custom_components.myhondaplus.dr") as mock_dr:
+            mock_dr.async_get.return_value = MagicMock()
+            mock_dr.async_entries_for_config_entry.return_value = [device]
+            _cleanup_removed_vehicles(hass, entry, {MOCK_VIN})
+            mock_dr.async_get.return_value.async_remove_device.assert_not_called()
+
+
+class TestGetCoordinatorEdgeCases:
+    def test_device_without_domain_identifier(self):
+        from homeassistant.exceptions import ServiceValidationError
+
+        from custom_components.myhondaplus import ATTR_DEVICE, _get_coordinator
+
+        hass = MagicMock()
+        device = MagicMock()
+        device.identifiers = {("other_domain", "some_id")}
+        with patch("custom_components.myhondaplus.dr") as mock_dr:
+            mock_dr.async_get.return_value.async_get.return_value = device
+            with pytest.raises(ServiceValidationError) as exc_info:
+                _get_coordinator(hass, MagicMock(data={ATTR_DEVICE: "dev1"}))
+        assert exc_info.value.translation_key == "device_not_found"
+
+    def test_device_with_no_loaded_entry(self, mock_runtime_data):
+        from homeassistant.exceptions import ServiceValidationError
+
+        from custom_components.myhondaplus import ATTR_DEVICE, _get_coordinator
+
+        hass = MagicMock()
+        device = MagicMock()
+        device.identifiers = {("myhondaplus", MOCK_VIN)}
+        device.config_entries = {"entry_1"}
+        # Entry exists but not loaded
+        entry = MagicMock()
+        entry.domain = "myhondaplus"
+        entry.state = "not_loaded"
+        hass.config_entries.async_get_entry.return_value = entry
+        with patch("custom_components.myhondaplus.dr") as mock_dr:
+            mock_dr.async_get.return_value.async_get.return_value = device
+            with pytest.raises(ServiceValidationError) as exc_info:
+                _get_coordinator(hass, MagicMock(data={ATTR_DEVICE: "dev1"}))
+        assert exc_info.value.translation_key == "device_not_found"
+
+
+class TestDefrostSwitchSuccess:
+    @pytest.mark.asyncio
+    async def test_defrost_turn_on_updates_data(self, mock_coordinator):
+        mock_coordinator.async_send_command_and_wait.return_value = True
+        entity = HondaDefrostSwitch(mock_coordinator, MOCK_VIN, MOCK_VEHICLE_NAME, "E")
+        entity.hass = _make_hass_mock()
+        await entity.async_turn_on()
+        mock_coordinator.async_set_updated_data.assert_called_once()
+        updated = mock_coordinator.async_set_updated_data.call_args[0][0]
+        assert updated["climate_defrost"] is True
