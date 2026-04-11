@@ -28,10 +28,13 @@ async def async_get_config_entry_diagnostics(
     entry: MyHondaPlusConfigEntry,
 ) -> dict:
     """Return diagnostics for a config entry."""
-    coordinator = entry.runtime_data.coordinator
-    trip_coordinator = entry.runtime_data.trip_coordinator
+    vehicles_diag = {}
+    for vin, vd in entry.runtime_data.vehicles.items():
+        vehicles_diag[vin] = {
+            "coordinator_data": vd.coordinator.data,
+            "trip_data": vd.trip_coordinator.data,
+        }
     return {
         "config_entry": async_redact_data(entry.as_dict(), TO_REDACT),
-        "coordinator_data": coordinator.data,
-        "trip_data": trip_coordinator.data,
+        "vehicles": vehicles_diag,
     }

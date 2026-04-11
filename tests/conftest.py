@@ -17,17 +17,36 @@ from custom_components.myhondaplus.const import (
     CONF_SCAN_INTERVAL,
     CONF_USER_ID,
     CONF_VEHICLE_NAME,
+    CONF_VEHICLES,
     CONF_VIN,
     DEFAULT_CAR_REFRESH_INTERVAL,
     DEFAULT_LOCATION_REFRESH_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
+from custom_components.myhondaplus.data import MyHondaPlusData, VehicleData
 
 MOCK_VIN = "ZHWGE11S00LA00001"
 MOCK_VEHICLE_NAME = "Honda e Test"
 
 MOCK_ENTRY_DATA = {
+    "email": "test@example.com",
+    CONF_ACCESS_TOKEN: "fake-access-token",
+    CONF_REFRESH_TOKEN: "fake-refresh-token",
+    CONF_USER_ID: "fake-user-id",
+    CONF_PERSONAL_ID: "fake-personal-id",
+    CONF_VEHICLES: [
+        {
+            CONF_VIN: MOCK_VIN,
+            CONF_VEHICLE_NAME: MOCK_VEHICLE_NAME,
+            CONF_FUEL_TYPE: "E",
+        },
+    ],
+}
+
+# Legacy v2 entry data (for migration tests)
+MOCK_V2_ENTRY_DATA = {
+    "email": "test@example.com",
     CONF_VIN: MOCK_VIN,
     CONF_VEHICLE_NAME: MOCK_VEHICLE_NAME,
     CONF_ACCESS_TOKEN: "fake-access-token",
@@ -80,14 +99,27 @@ MOCK_DASHBOARD_DATA = {
     "climate_duration": 30,
     "climate_defrost": True,
     "charge_schedule": [
-        {"enabled": True, "days": ["mon", "tue", "wed", "thu", "fri"],
-         "location": "home", "start_time": "22:00", "end_time": "06:00"},
-        {"enabled": False, "days": [], "location": "home",
-         "start_time": "00:00", "end_time": "00:00"},
+        {
+            "enabled": True,
+            "days": ["mon", "tue", "wed", "thu", "fri"],
+            "location": "home",
+            "start_time": "22:00",
+            "end_time": "06:00",
+        },
+        {
+            "enabled": False,
+            "days": [],
+            "location": "home",
+            "start_time": "00:00",
+            "end_time": "00:00",
+        },
     ],
     "climate_schedule": [
-        {"enabled": True, "days": ["mon", "tue", "wed", "thu", "fri"],
-         "start_time": "07:00"},
+        {
+            "enabled": True,
+            "days": ["mon", "tue", "wed", "thu", "fri"],
+            "start_time": "07:00",
+        },
         {"enabled": False, "days": [], "start_time": "00:00"},
     ],
 }
@@ -116,7 +148,12 @@ def mock_api():
     api.get_dashboard_cached.return_value = {}
     api.get_all_trips.return_value = []
     api.get_vehicles.return_value = [
-        {"vin": MOCK_VIN, "name": MOCK_VEHICLE_NAME, "plate": "AB123CD", "fuel_type": "E"},
+        {
+            "vin": MOCK_VIN,
+            "name": MOCK_VEHICLE_NAME,
+            "plate": "AB123CD",
+            "fuel_type": "E",
+        },
     ]
     api.remote_horn_lights.return_value = "ok"
     api.remote_climate_start.return_value = "ok"
@@ -139,7 +176,8 @@ def mock_config_entry():
     entry.options = dict(MOCK_ENTRY_OPTIONS)
     entry.entry_id = "test_entry_id"
     entry.domain = DOMAIN
-    entry.title = MOCK_VEHICLE_NAME
+    entry.title = "My Honda+ (test@example.com)"
+    entry.version = 3
     return entry
 
 
@@ -150,6 +188,7 @@ def mock_coordinator(mock_api, mock_config_entry):
     coordinator.data = dict(MOCK_DASHBOARD_DATA)
     coordinator.api = mock_api
     coordinator.entry = mock_config_entry
+    coordinator.vin = MOCK_VIN
     coordinator.async_request_refresh = AsyncMock()
     coordinator.async_send_command = AsyncMock()
     coordinator.async_send_command_and_wait = AsyncMock(return_value=True)
@@ -159,14 +198,34 @@ def mock_coordinator(mock_api, mock_config_entry):
 
 
 @pytest.fixture
-def mock_trip_coordinator():
+def mock_trip_coordinator(mock_config_entry):
     """Return a mocked trip coordinator with realistic data."""
     coordinator = MagicMock()
     coordinator.data = dict(MOCK_TRIP_DATA)
-    coordinator.entry = MagicMock()
-    coordinator.entry.data = dict(MOCK_ENTRY_DATA)
+    coordinator.entry = mock_config_entry
     coordinator.async_request_refresh = AsyncMock()
     return coordinator
+
+
+@pytest.fixture
+def mock_vehicle_data(mock_coordinator, mock_trip_coordinator):
+    """Return a VehicleData instance for the test vehicle."""
+    return VehicleData(
+        coordinator=mock_coordinator,
+        trip_coordinator=mock_trip_coordinator,
+        vin=MOCK_VIN,
+        vehicle_name=MOCK_VEHICLE_NAME,
+        fuel_type="E",
+    )
+
+
+@pytest.fixture
+def mock_runtime_data(mock_vehicle_data, mock_api):
+    """Return a MyHondaPlusData instance."""
+    return MyHondaPlusData(
+        vehicles={MOCK_VIN: mock_vehicle_data},
+        api=mock_api,
+    )
 
 
 @pytest.fixture

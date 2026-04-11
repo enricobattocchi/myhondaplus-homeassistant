@@ -19,16 +19,6 @@
           "location_refresh_interval": "Ako často Home Assistant požaduje GPS polohu z vozidla. Nastavte 0 pre vypnutie."
         }
       },
-      "select_vehicle": {
-        "title": "Výber vozidla",
-        "description": "Na vašom účte bolo nájdených viac vozidiel. Vyberte, ktoré chcete pridať.",
-        "data": {
-          "vin": "Vozidlo"
-        },
-        "data_description": {
-          "vin": "Vyberte vozidlo z vášho účtu My Honda+, ktoré chcete pridať do Home Assistant."
-        }
-      },
       "manual_vin": {
         "title": "Zadajte VIN",
         "description": "Automatická detekcia vozidiel sa nepodarila. Zadajte VIN ručne.",
@@ -100,14 +90,11 @@
     "refresh_location_failed": {
       "message": "Nepodarilo sa aktualizovať polohu z vozidla"
     },
-    "config_entry_not_found": {
-      "message": "Nie je možné zavolať službu {service}. Konfiguračný záznam {entry_id} nebol nájdený"
+    "device_required": {
+      "message": "Select a vehicle to control."
     },
-    "config_entry_not_loaded": {
-      "message": "Nie je možné zavolať službu {service}. Konfiguračný záznam {entry_id} nie je načítaný"
-    },
-    "config_entry_no_data": {
-      "message": "Nie je možné zavolať službu {service}. Konfiguračný záznam {entry_id} nemá dáta"
+    "device_not_found": {
+      "message": "Vehicle not found or not loaded."
     }
   },
   "entity": {

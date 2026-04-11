@@ -23,7 +23,8 @@ class TestHondaButton:
         button = make_button(mock_coordinator, "horn_lights")
         await button.async_press()
         mock_coordinator.async_send_command_and_wait.assert_awaited_once_with(
-            mock_coordinator.api.remote_horn_lights, MOCK_VIN,
+            mock_coordinator.api.remote_horn_lights,
+            MOCK_VIN,
         )
 
     @pytest.mark.asyncio

@@ -19,16 +19,6 @@
           "location_refresh_interval": "Hoe vaak Home Assistant de GPS-locatie van het voertuig opvraagt. Stel in op 0 om uit te schakelen."
         }
       },
-      "select_vehicle": {
-        "title": "Selecteer voertuig",
-        "description": "Er zijn meerdere voertuigen gevonden in je account. Selecteer welke je wilt toevoegen.",
-        "data": {
-          "vin": "Voertuig"
-        },
-        "data_description": {
-          "vin": "Kies het voertuig uit je My Honda+ account om toe te voegen aan Home Assistant."
-        }
-      },
       "manual_vin": {
         "title": "Voer VIN in",
         "description": "Automatische detectie van voertuigen is mislukt. Voer het VIN handmatig in.",
@@ -100,14 +90,11 @@
     "refresh_location_failed": {
       "message": "Kan de locatie van het voertuig niet vernieuwen"
     },
-    "config_entry_not_found": {
-      "message": "Kan service {service} niet aanroepen. Configuratie-item {entry_id} niet gevonden"
+    "device_required": {
+      "message": "Select a vehicle to control."
     },
-    "config_entry_not_loaded": {
-      "message": "Kan service {service} niet aanroepen. Configuratie-item {entry_id} niet geladen"
-    },
-    "config_entry_no_data": {
-      "message": "Kan service {service} niet aanroepen. Configuratie-item {entry_id} zonder gegevens"
+    "device_not_found": {
+      "message": "Vehicle not found or not loaded."
     }
   },
   "entity": {

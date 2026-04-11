@@ -19,16 +19,6 @@
           "location_refresh_interval": "Milyen gyakran kérje le a Home Assistant a GPS helyzetet a járműtől. Állítsd 0-ra a letiltáshoz."
         }
       },
-      "select_vehicle": {
-        "title": "Jármű kiválasztása",
-        "description": "Több jármű található a fiókodban. Válaszd ki, melyiket szeretnéd hozzáadni.",
-        "data": {
-          "vin": "Jármű"
-        },
-        "data_description": {
-          "vin": "Válaszd ki a My Honda+ fiókodból a Home Assistant-hoz hozzáadni kívánt járművet."
-        }
-      },
       "manual_vin": {
         "title": "VIN megadása",
         "description": "A járművek automatikus felismerése nem sikerült. Add meg a VIN-t kézzel.",
@@ -100,14 +90,11 @@
     "refresh_location_failed": {
       "message": "Nem sikerült frissíteni a helyzetet a járműtől"
     },
-    "config_entry_not_found": {
-      "message": "Nem sikerült meghívni a(z) {service} szolgáltatást. A(z) {entry_id} konfigurációs bejegyzés nem található"
+    "device_required": {
+      "message": "Select a vehicle to control."
     },
-    "config_entry_not_loaded": {
-      "message": "Nem sikerült meghívni a(z) {service} szolgáltatást. A(z) {entry_id} konfigurációs bejegyzés nincs betöltve"
-    },
-    "config_entry_no_data": {
-      "message": "Nem sikerült meghívni a(z) {service} szolgáltatást. A(z) {entry_id} konfigurációs bejegyzésnek nincsenek adatai"
+    "device_not_found": {
+      "message": "Vehicle not found or not loaded."
     }
   },
   "entity": {

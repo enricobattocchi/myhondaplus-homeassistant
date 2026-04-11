@@ -5,7 +5,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
 from .entity import MyHondaPlusEntity
 
@@ -21,13 +20,19 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up My Honda+ select entities."""
-    coordinator = entry.runtime_data.coordinator
-    vin = entry.data[CONF_VIN]
-    vehicle_name = entry.data.get(CONF_VEHICLE_NAME, "")
-    async_add_entities([
-        HondaClimateTempSelect(coordinator, vin, vehicle_name),
-        HondaClimateDurationSelect(coordinator, vin, vehicle_name),
-    ])
+    entities = []
+    for v in entry.runtime_data.vehicles.values():
+        entities.extend(
+            [
+                HondaClimateTempSelect(
+                    v.coordinator, v.vin, v.vehicle_name, v.fuel_type
+                ),
+                HondaClimateDurationSelect(
+                    v.coordinator, v.vin, v.vehicle_name, v.fuel_type
+                ),
+            ]
+        )
+    async_add_entities(entities)
 
 
 class HondaClimateTempSelect(MyHondaPlusEntity, SelectEntity):
@@ -38,12 +43,14 @@ class HondaClimateTempSelect(MyHondaPlusEntity, SelectEntity):
     _attr_options = CLIMATE_TEMP_OPTIONS
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, coordinator, vin: str, vehicle_name: str) -> None:
+    def __init__(
+        self, coordinator, vin: str, vehicle_name: str, fuel_type: str = ""
+    ) -> None:
         description = SelectEntityDescription(
             key="climate_temp_setting",
             translation_key="climate_temp_setting",
         )
-        super().__init__(coordinator, description, vin, vehicle_name)
+        super().__init__(coordinator, description, vin, vehicle_name, fuel_type)
 
     @property
     def current_option(self) -> str | None:
@@ -61,7 +68,10 @@ class HondaClimateTempSelect(MyHondaPlusEntity, SelectEntity):
         defrost = data.get("climate_defrost", True)
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.set_climate_settings,
-            self._vin, option, duration, defrost,
+            self._vin,
+            option,
+            duration,
+            defrost,
         )
         if confirmed:
             new_data = dict(self.coordinator.data)
@@ -77,12 +87,14 @@ class HondaClimateDurationSelect(MyHondaPlusEntity, SelectEntity):
     _attr_options = CLIMATE_DURATION_OPTIONS
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, coordinator, vin: str, vehicle_name: str) -> None:
+    def __init__(
+        self, coordinator, vin: str, vehicle_name: str, fuel_type: str = ""
+    ) -> None:
         description = SelectEntityDescription(
             key="climate_duration_setting",
             translation_key="climate_duration_setting",
         )
-        super().__init__(coordinator, description, vin, vehicle_name)
+        super().__init__(coordinator, description, vin, vehicle_name, fuel_type)
 
     @property
     def current_option(self) -> str | None:
@@ -101,7 +113,10 @@ class HondaClimateDurationSelect(MyHondaPlusEntity, SelectEntity):
         duration = int(option)
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.set_climate_settings,
-            self._vin, temp, duration, defrost,
+            self._vin,
+            temp,
+            duration,
+            defrost,
         )
         if confirmed:
             new_data = dict(self.coordinator.data)

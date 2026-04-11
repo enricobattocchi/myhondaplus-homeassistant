@@ -5,7 +5,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
 from .entity import MyHondaPlusEntity
 
@@ -18,10 +17,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up My Honda+ device tracker."""
-    coordinator = entry.runtime_data.coordinator
-    vin = entry.data[CONF_VIN]
-    vehicle_name = entry.data.get(CONF_VEHICLE_NAME, "")
-    async_add_entities([HondaDeviceTracker(coordinator, vin, vehicle_name)])
+    async_add_entities(
+        HondaDeviceTracker(v.coordinator, v.vin, v.vehicle_name, v.fuel_type)
+        for v in entry.runtime_data.vehicles.values()
+    )
 
 
 def _dms_to_decimal(value) -> float | None:
@@ -55,12 +54,14 @@ class HondaDeviceTracker(MyHondaPlusEntity, TrackerEntity):
 
     _attr_translation_key = "vehicle_location"
 
-    def __init__(self, coordinator, vin: str, vehicle_name: str) -> None:
+    def __init__(
+        self, coordinator, vin: str, vehicle_name: str, fuel_type: str = ""
+    ) -> None:
         description = EntityDescription(
             key="vehicle_location",
             translation_key="vehicle_location",
         )
-        super().__init__(coordinator, description, vin, vehicle_name)
+        super().__init__(coordinator, description, vin, vehicle_name, fuel_type)
 
     @property
     def source_type(self) -> SourceType:

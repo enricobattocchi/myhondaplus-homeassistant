@@ -21,13 +21,8 @@ from pymyhondaplus.api import (
 
 from .const import (
     CONF_ACCESS_TOKEN,
-    CONF_FUEL_TYPE,
-    CONF_PERSONAL_ID,
     CONF_REFRESH_TOKEN,
     CONF_SCAN_INTERVAL,
-    CONF_USER_ID,
-    CONF_VEHICLE_NAME,
-    CONF_VIN,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TRIP_INTERVAL,
     DOMAIN,
@@ -55,39 +50,39 @@ def _handle_api_error(
 
 
 class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
-
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry: ConfigEntry,
+        api: HondaAPI,
+        vin: str,
+        vehicle_name: str = "",
+    ) -> None:
         self.entry = entry
-        self.vin: str = entry.data[CONF_VIN]
-        self._vehicle_name: str = entry.data.get(CONF_VEHICLE_NAME, "")
-        self.api = HondaAPI()
+        self.vin: str = vin
+        self._vehicle_name: str = vehicle_name
+        self.api = api
         self._service_available = True
-        self._apply_tokens()
 
         interval = get_entry_value(entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
         super().__init__(
             hass,
             LOGGER,
-            name=DOMAIN,
+            name=f"{DOMAIN}_{vin[-6:]}",
             update_interval=timedelta(seconds=interval),
-        )
-
-    def _apply_tokens(self) -> None:
-        self.api.set_tokens(
-            access_token=self.entry.data[CONF_ACCESS_TOKEN],
-            refresh_token=self.entry.data[CONF_REFRESH_TOKEN],
-            personal_id=self.entry.data.get(CONF_PERSONAL_ID, ""),
-            user_id=self.entry.data.get(CONF_USER_ID, ""),
         )
 
     def _persist_tokens_if_changed(self) -> None:
         tokens = self.api.tokens
         data = self.entry.data
-        if (tokens.access_token != data.get(CONF_ACCESS_TOKEN)
-                or tokens.refresh_token != data.get(CONF_REFRESH_TOKEN)):
-            new_data = {**data,
-                        CONF_ACCESS_TOKEN: tokens.access_token,
-                        CONF_REFRESH_TOKEN: tokens.refresh_token}
+        if tokens.access_token != data.get(
+            CONF_ACCESS_TOKEN
+        ) or tokens.refresh_token != data.get(CONF_REFRESH_TOKEN):
+            new_data = {
+                **data,
+                CONF_ACCESS_TOKEN: tokens.access_token,
+                CONF_REFRESH_TOKEN: tokens.refresh_token,
+            }
             self.hass.config_entries.async_update_entry(self.entry, data=new_data)
 
     def _fetch_data(self) -> dict:
@@ -114,7 +109,9 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             data = await self.hass.async_add_executor_job(self._fetch_data)
         except HondaAPIError as err:
             cached = _handle_api_error(
-                err, self._persist_tokens_if_changed, self.data,
+                err,
+                self._persist_tokens_if_changed,
+                self.data,
             )
             if cached is not None:
                 self._log_unavailable_once(
@@ -189,14 +186,20 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         return result
 
     async def async_send_command_and_wait(
-        self, func, *args, timeout: int = 90, notify_on_timeout: bool = True,
+        self,
+        func,
+        *args,
+        timeout: int = 90,
+        notify_on_timeout: bool = True,
     ) -> bool:
         """Send a command and wait for confirmation. Raises on send failure."""
         command_id = await self.async_send_command(func, *args)
         if not command_id:
             return False
         result = await self.hass.async_add_executor_job(
-            self.api.wait_for_command, command_id, timeout,
+            self.api.wait_for_command,
+            command_id,
+            timeout,
         )
         if not result.success:
             if result.timed_out:
@@ -226,10 +229,13 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
         """Request fresh GPS location from the car and update dashboard."""
         try:
             command_id = await self.async_send_command(
-                self.api.request_car_location, self.vin,
+                self.api.request_car_location,
+                self.vin,
             )
             result = await self.hass.async_add_executor_job(
-                self.api.wait_for_command, command_id, 90,
+                self.api.wait_for_command,
+                command_id,
+                90,
             )
             if not result.success:
                 if result.timed_out:
@@ -270,27 +276,28 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
 
 
 class HondaTripCoordinator(DataUpdateCoordinator[dict]):
-
     def __init__(
         self,
         hass: HomeAssistant,
         entry: ConfigEntry,
         api: HondaAPI,
         persist_tokens: callable,
+        vin: str,
+        fuel_type: str = "",
         main_coordinator: HondaDataUpdateCoordinator | None = None,
     ) -> None:
         self.entry = entry
-        self.vin: str = entry.data[CONF_VIN]
+        self.vin: str = vin
         self.api = api
         self._persist_tokens = persist_tokens
         self._main_coordinator = main_coordinator
-        self._fuel_type: str = entry.data.get(CONF_FUEL_TYPE, "")
+        self._fuel_type: str = fuel_type
         self._service_available = True
 
         super().__init__(
             hass,
             LOGGER,
-            name=f"{DOMAIN}_trips",
+            name=f"{DOMAIN}_trips_{vin[-6:]}",
             update_interval=timedelta(seconds=DEFAULT_TRIP_INTERVAL),
         )
 
@@ -300,7 +307,10 @@ class HondaTripCoordinator(DataUpdateCoordinator[dict]):
         if self._main_coordinator and self._main_coordinator.data:
             distance_unit = self._main_coordinator.data.get("distance_unit", "km")
         return compute_trip_stats(
-            rows, "month", fuel_type=self._fuel_type, distance_unit=distance_unit,
+            rows,
+            "month",
+            fuel_type=self._fuel_type,
+            distance_unit=distance_unit,
         )
 
     def _log_unavailable_once(self, message: str, *args) -> None:
@@ -320,7 +330,9 @@ class HondaTripCoordinator(DataUpdateCoordinator[dict]):
             data = await self.hass.async_add_executor_job(self._fetch_data)
         except HondaAPIError as err:
             cached = _handle_api_error(
-                err, self._persist_tokens, self.data,
+                err,
+                self._persist_tokens,
+                self.data,
             )
             if cached is not None:
                 self._log_unavailable_once(

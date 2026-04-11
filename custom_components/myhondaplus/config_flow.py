@@ -16,6 +16,7 @@ from .const import (
     CONF_REFRESH_TOKEN,
     CONF_USER_ID,
     CONF_VEHICLE_NAME,
+    CONF_VEHICLES,
     CONF_VIN,
     DEFAULT_CAR_REFRESH_INTERVAL,
     DEFAULT_LOCATION_REFRESH_INTERVAL,
@@ -25,22 +26,32 @@ from .const import (
 )
 from .entry_options import get_entry_value
 
-STEP_USER_DATA_SCHEMA = vol.Schema({
-    vol.Required(CONF_EMAIL): str,
-    vol.Required(CONF_PASSWORD): str,
-    vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
-    vol.Optional(CONF_CAR_REFRESH_INTERVAL, default=DEFAULT_CAR_REFRESH_INTERVAL): int,
-    vol.Optional(CONF_LOCATION_REFRESH_INTERVAL, default=DEFAULT_LOCATION_REFRESH_INTERVAL): int,
-})
+STEP_USER_DATA_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_EMAIL): str,
+        vol.Required(CONF_PASSWORD): str,
+        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
+        vol.Optional(
+            CONF_CAR_REFRESH_INTERVAL, default=DEFAULT_CAR_REFRESH_INTERVAL
+        ): int,
+        vol.Optional(
+            CONF_LOCATION_REFRESH_INTERVAL, default=DEFAULT_LOCATION_REFRESH_INTERVAL
+        ): int,
+    }
+)
 
-STEP_VERIFY_DATA_SCHEMA = vol.Schema({
-    vol.Required("verification_link"): str,
-})
+STEP_VERIFY_DATA_SCHEMA = vol.Schema(
+    {
+        vol.Required("verification_link"): str,
+    }
+)
 
-STEP_REAUTH_SCHEMA = vol.Schema({
-    vol.Required(CONF_EMAIL): str,
-    vol.Required(CONF_PASSWORD): str,
-})
+STEP_REAUTH_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_EMAIL): str,
+        vol.Required(CONF_PASSWORD): str,
+    }
+)
 
 
 class MyHondaPlusOptionsFlow(config_entries.OptionsFlow):
@@ -53,35 +64,39 @@ class MyHondaPlusOptionsFlow(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema({
-                vol.Optional(
-                    CONF_SCAN_INTERVAL,
-                    default=get_entry_value(
-                        self.config_entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL,
-                    ),
-                ): int,
-                vol.Optional(
-                    CONF_CAR_REFRESH_INTERVAL,
-                    default=get_entry_value(
-                        self.config_entry,
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL,
+                        default=get_entry_value(
+                            self.config_entry,
+                            CONF_SCAN_INTERVAL,
+                            DEFAULT_SCAN_INTERVAL,
+                        ),
+                    ): int,
+                    vol.Optional(
                         CONF_CAR_REFRESH_INTERVAL,
-                        DEFAULT_CAR_REFRESH_INTERVAL,
-                    ),
-                ): int,
-                vol.Optional(
-                    CONF_LOCATION_REFRESH_INTERVAL,
-                    default=get_entry_value(
-                        self.config_entry,
+                        default=get_entry_value(
+                            self.config_entry,
+                            CONF_CAR_REFRESH_INTERVAL,
+                            DEFAULT_CAR_REFRESH_INTERVAL,
+                        ),
+                    ): int,
+                    vol.Optional(
                         CONF_LOCATION_REFRESH_INTERVAL,
-                        DEFAULT_LOCATION_REFRESH_INTERVAL,
-                    ),
-                ): int,
-            }),
+                        default=get_entry_value(
+                            self.config_entry,
+                            CONF_LOCATION_REFRESH_INTERVAL,
+                            DEFAULT_LOCATION_REFRESH_INTERVAL,
+                        ),
+                    ): int,
+                }
+            ),
         )
 
 
 class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    VERSION = 2
+    VERSION = 3
 
     @staticmethod
     def async_get_options_flow(config_entry):
@@ -106,10 +121,15 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._email = user_input[CONF_EMAIL]
             self._password = user_input[CONF_PASSWORD]
-            self._scan_interval = user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-            self._car_refresh_interval = user_input.get(CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL)
+            self._scan_interval = user_input.get(
+                CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+            )
+            self._car_refresh_interval = user_input.get(
+                CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL
+            )
             self._location_refresh_interval = user_input.get(
-                CONF_LOCATION_REFRESH_INTERVAL, DEFAULT_LOCATION_REFRESH_INTERVAL,
+                CONF_LOCATION_REFRESH_INTERVAL,
+                DEFAULT_LOCATION_REFRESH_INTERVAL,
             )
 
             self._device_key = DeviceKey()
@@ -117,7 +137,9 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             try:
                 self._tokens = await self.hass.async_add_executor_job(
-                    self._auth.login, self._email, self._password,
+                    self._auth.login,
+                    self._email,
+                    self._password,
                 )
                 return await self._fetch_vehicles_and_continue()
             except HondaAuthError as e:
@@ -126,7 +148,8 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     try:
                         await self.hass.async_add_executor_job(
                             self._auth.reset_device_authenticator,
-                            self._email, self._password,
+                            self._email,
+                            self._password,
                         )
                     except HondaAuthError as e2:
                         if "currently blocked" not in str(e2):
@@ -134,7 +157,10 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             return self._show_user_form(errors)
 
                     return await self.async_step_verify()
-                elif "invalid-credentials" in error_text.lower() or "INVALID_CREDS" in error_text:
+                elif (
+                    "invalid-credentials" in error_text.lower()
+                    or "INVALID_CREDS" in error_text
+                ):
                     errors["base"] = "invalid_auth"
                 elif "locked-account" in error_text.lower():
                     errors["base"] = "account_locked"
@@ -165,16 +191,19 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             try:
                 self._tokens = await self.hass.async_add_executor_job(
-                    self._auth.login, self._email, self._password,
+                    self._auth.login,
+                    self._email,
+                    self._password,
                 )
-                return self._update_reauth_entry()
+                return await self._update_reauth_entry()
             except HondaAuthError as e:
                 error_text = str(e)
                 if "device-authenticator-not-registered" in error_text:
                     try:
                         await self.hass.async_add_executor_job(
                             self._auth.reset_device_authenticator,
-                            self._email, self._password,
+                            self._email,
+                            self._password,
                         )
                     except HondaAuthError as e2:
                         if "currently blocked" not in str(e2):
@@ -185,7 +214,10 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                                 errors=errors,
                             )
                     return await self.async_step_verify()
-                elif "invalid-credentials" in error_text.lower() or "INVALID_CREDS" in error_text:
+                elif (
+                    "invalid-credentials" in error_text.lower()
+                    or "INVALID_CREDS" in error_text
+                ):
                     errors["base"] = "invalid_auth"
                 elif "locked-account" in error_text.lower():
                     errors["base"] = "account_locked"
@@ -202,8 +234,8 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    def _update_reauth_entry(self):
-        """Update the existing config entry with new tokens."""
+    async def _update_reauth_entry(self):
+        """Update the existing config entry with new tokens and refreshed vehicle list."""
         user_id = HondaAuth.extract_user_id(self._tokens["access_token"])
         new_data = {
             **self._reauth_entry.data,
@@ -212,8 +244,26 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             CONF_USER_ID: user_id,
             CONF_DEVICE_KEY_PEM: self._device_key.pem_bytes.decode(),
         }
+
+        # Refresh vehicle list during reauth
+        api = HondaAPI()
+        api.set_tokens(
+            access_token=self._tokens["access_token"],
+            refresh_token=self._tokens["refresh_token"],
+            user_id=user_id,
+        )
+        try:
+            api_vehicles = await self.hass.async_add_executor_job(api.get_vehicles)
+            new_data[CONF_VEHICLES] = _reconcile_vehicles(
+                new_data.get(CONF_VEHICLES, []),
+                api_vehicles,
+            )
+        except Exception:
+            LOGGER.warning("Could not refresh vehicle list during reauth")
+
         self.hass.config_entries.async_update_entry(
-            self._reauth_entry, data=new_data,
+            self._reauth_entry,
+            data=new_data,
         )
         return self.async_abort(reason="reauth_successful")
 
@@ -235,12 +285,16 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_link"
             else:
                 await self.hass.async_add_executor_job(
-                    self._auth.verify_magic_link, key, link_type,
+                    self._auth.verify_magic_link,
+                    key,
+                    link_type,
                 )
 
                 try:
                     self._tokens = await self.hass.async_add_executor_job(
-                        self._auth.login, self._email, self._password,
+                        self._auth.login,
+                        self._email,
+                        self._password,
                     )
                     return await self._fetch_vehicles_and_continue()
                 except HondaAuthError as e:
@@ -254,12 +308,12 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def _fetch_vehicles_and_continue(self):
-        """After login, fetch vehicles and go to selection or create entry.
+        """After login, fetch vehicles and create entry.
 
         During reauth, skip vehicle selection and just update tokens.
         """
         if self._reauth_entry is not None:
-            return self._update_reauth_entry()
+            return await self._update_reauth_entry()
         user_id = HondaAuth.extract_user_id(self._tokens["access_token"])
 
         self._api = HondaAPI()
@@ -277,55 +331,35 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             LOGGER.exception("Failed to fetch vehicles")
             self._vehicles = []
 
-        if len(self._vehicles) == 1:
-            return await self._create_entry(
-                self._vehicles[0]["vin"],
-                self._vehicles[0].get("name", ""),
-                self._vehicles[0].get("fuel_type", ""),
-            )
-
-        if len(self._vehicles) > 1:
-            return await self.async_step_select_vehicle()
+        if self._vehicles:
+            return await self._create_entry()
 
         # No vehicles found — fall back to manual VIN entry
         return await self.async_step_manual_vin()
 
-    async def async_step_select_vehicle(self, user_input=None):
-        """Let user pick a vehicle from their account."""
-        if user_input is not None:
-            vin = user_input[CONF_VIN]
-            vehicle = next((v for v in self._vehicles if v["vin"] == vin), {})
-            return await self._create_entry(
-                vin, vehicle.get("name", ""), vehicle.get("fuel_type", ""),
-            )
-
-        options = {
-            v["vin"]: f"{v.get('name') or v['vin']} ({v['plate']})"
-            if v.get("plate")
-            else v.get("name") or v["vin"]
-            for v in self._vehicles
-        }
-
-        return self.async_show_form(
-            step_id="select_vehicle",
-            data_schema=vol.Schema({
-                vol.Required(CONF_VIN): vol.In(options),
-            }),
-        )
-
     async def async_step_manual_vin(self, user_input=None):
         """Fallback: manual VIN entry if vehicle discovery fails."""
         if user_input is not None:
-            return await self._create_entry(user_input[CONF_VIN], "", "")
+            self._vehicles = [
+                {
+                    "vin": user_input[CONF_VIN],
+                    "name": "",
+                    "fuel_type": "",
+                    "manual": True,
+                }
+            ]
+            return await self._create_entry()
 
         return self.async_show_form(
             step_id="manual_vin",
-            data_schema=vol.Schema({
-                vol.Required(CONF_VIN): str,
-            }),
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_VIN): str,
+                }
+            ),
         )
 
-    async def _create_entry(self, vin: str, vehicle_name: str, fuel_type: str):
+    async def _create_entry(self):
         user_id = HondaAuth.extract_user_id(self._tokens["access_token"])
 
         if self._api is None:
@@ -338,29 +372,38 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         try:
             info = await self.hass.async_add_executor_job(
-                self._api.get_user_info, user_id,
+                self._api.get_user_info,
+                user_id,
             )
             personal_id = str(info.get("personalId", ""))
         except Exception:
             personal_id = ""
 
-        await self.async_set_unique_id(vin)
+        await self.async_set_unique_id(self._email.lower())
         self._abort_if_unique_id_configured()
 
-        title = vehicle_name or f"Honda {vin[-6:]}"
+        vehicles = [
+            {
+                CONF_VIN: v["vin"],
+                CONF_VEHICLE_NAME: v.get("name", ""),
+                CONF_FUEL_TYPE: v.get("fuel_type", ""),
+                **({"manual": True} if v.get("manual") else {}),
+            }
+            for v in self._vehicles
+        ]
+
+        title = f"My Honda+ ({self._email})"
 
         return self.async_create_entry(
             title=title,
             data={
                 CONF_EMAIL: self._email,
-                CONF_VIN: vin,
-                CONF_VEHICLE_NAME: vehicle_name,
                 CONF_ACCESS_TOKEN: self._tokens["access_token"],
                 CONF_REFRESH_TOKEN: self._tokens["refresh_token"],
                 CONF_USER_ID: user_id,
                 CONF_PERSONAL_ID: personal_id,
                 CONF_DEVICE_KEY_PEM: self._device_key.pem_bytes.decode(),
-                CONF_FUEL_TYPE: fuel_type,
+                CONF_VEHICLES: vehicles,
             },
             options={
                 CONF_SCAN_INTERVAL: self._scan_interval,
@@ -368,3 +411,48 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_LOCATION_REFRESH_INTERVAL: self._location_refresh_interval,
             },
         )
+
+
+def _reconcile_vehicles(
+    existing: list[dict],
+    api_vehicles: list[dict],
+) -> list[dict]:
+    """Reconcile existing vehicle list with freshly discovered vehicles.
+
+    - New VINs from API → appended
+    - Existing VINs → name/fuel_type updated from API
+    - Manual VINs → always preserved
+    - VINs previously from API but no longer returned → removed
+    """
+    api_by_vin = {v["vin"]: v for v in api_vehicles}
+    result = []
+
+    for v in existing:
+        vin = v[CONF_VIN]
+        if v.get("manual"):
+            # Manual VINs always preserved
+            result.append(v)
+        elif vin in api_by_vin:
+            # Update name/fuel_type from API
+            api_v = api_by_vin.pop(vin)
+            result.append(
+                {
+                    **v,
+                    CONF_VEHICLE_NAME: api_v.get("name", v.get(CONF_VEHICLE_NAME, "")),
+                    CONF_FUEL_TYPE: api_v.get("fuel_type", v.get(CONF_FUEL_TYPE, "")),
+                }
+            )
+        # else: VIN no longer in API → removed
+
+    # Append newly discovered VINs
+    for vin, api_v in api_by_vin.items():
+        if not any(v[CONF_VIN] == vin for v in result):
+            result.append(
+                {
+                    CONF_VIN: vin,
+                    CONF_VEHICLE_NAME: api_v.get("name", ""),
+                    CONF_FUEL_TYPE: api_v.get("fuel_type", ""),
+                }
+            )
+
+    return result

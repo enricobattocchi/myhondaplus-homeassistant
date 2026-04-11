@@ -16,18 +16,17 @@ from custom_components.myhondaplus.diagnostics import (
     async_get_config_entry_diagnostics,
 )
 
-from .conftest import MOCK_DASHBOARD_DATA, MOCK_ENTRY_DATA, MOCK_TRIP_DATA
+from .conftest import MOCK_DASHBOARD_DATA, MOCK_ENTRY_DATA, MOCK_TRIP_DATA, MOCK_VIN
 
 
 @pytest.fixture
-def mock_entry_for_diag(mock_coordinator, mock_trip_coordinator):
+def mock_entry_for_diag(mock_runtime_data):
     entry = MagicMock()
     entry.as_dict.return_value = dict(MOCK_ENTRY_DATA)
-    entry.runtime_data = MagicMock()
-    entry.runtime_data.coordinator = mock_coordinator
-    entry.runtime_data.coordinator.data = dict(MOCK_DASHBOARD_DATA)
-    entry.runtime_data.trip_coordinator = mock_trip_coordinator
-    entry.runtime_data.trip_coordinator.data = dict(MOCK_TRIP_DATA)
+    entry.runtime_data = mock_runtime_data
+    # Set realistic data on the vehicle's coordinators
+    entry.runtime_data.vehicles[MOCK_VIN].coordinator.data = dict(MOCK_DASHBOARD_DATA)
+    entry.runtime_data.vehicles[MOCK_VIN].trip_coordinator.data = dict(MOCK_TRIP_DATA)
     return entry
 
 
@@ -46,20 +45,22 @@ class TestDiagnostics:
         hass = MagicMock()
         result = await async_get_config_entry_diagnostics(hass, mock_entry_for_diag)
         assert "config_entry" in result
-        assert "coordinator_data" in result
-        assert "trip_data" in result
+        assert "vehicles" in result
+        assert MOCK_VIN in result["vehicles"]
+        assert "coordinator_data" in result["vehicles"][MOCK_VIN]
+        assert "trip_data" in result["vehicles"][MOCK_VIN]
 
     @pytest.mark.asyncio
     async def test_coordinator_data_included(self, mock_entry_for_diag):
         hass = MagicMock()
         result = await async_get_config_entry_diagnostics(hass, mock_entry_for_diag)
-        assert result["coordinator_data"]["battery_level"] == 75
+        assert result["vehicles"][MOCK_VIN]["coordinator_data"]["battery_level"] == 75
 
     @pytest.mark.asyncio
     async def test_trip_data_included(self, mock_entry_for_diag):
         hass = MagicMock()
         result = await async_get_config_entry_diagnostics(hass, mock_entry_for_diag)
-        assert result["trip_data"]["trips"] == 15
+        assert result["vehicles"][MOCK_VIN]["trip_data"]["trips"] == 15
 
     @pytest.mark.asyncio
     async def test_sensitive_fields_redacted(self, mock_entry_for_diag):

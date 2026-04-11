@@ -4,7 +4,6 @@ from homeassistant.components.lock import LockEntity, LockEntityDescription
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
 from .entity import MyHondaPlusEntity, to_bool
 
@@ -17,10 +16,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up My Honda+ locks."""
-    coordinator = entry.runtime_data.coordinator
-    vin = entry.data[CONF_VIN]
-    vehicle_name = entry.data.get(CONF_VEHICLE_NAME, "")
-    async_add_entities([HondaDoorLock(coordinator, vin, vehicle_name)])
+    async_add_entities(
+        HondaDoorLock(v.coordinator, v.vin, v.vehicle_name, v.fuel_type)
+        for v in entry.runtime_data.vehicles.values()
+    )
 
 
 class HondaDoorLock(MyHondaPlusEntity, LockEntity):
@@ -28,12 +27,14 @@ class HondaDoorLock(MyHondaPlusEntity, LockEntity):
 
     _attr_translation_key = "doors"
 
-    def __init__(self, coordinator, vin: str, vehicle_name: str) -> None:
+    def __init__(
+        self, coordinator, vin: str, vehicle_name: str, fuel_type: str = ""
+    ) -> None:
         description = LockEntityDescription(
             key="doors",
             translation_key="doors",
         )
-        super().__init__(coordinator, description, vin, vehicle_name)
+        super().__init__(coordinator, description, vin, vehicle_name, fuel_type)
 
     @property
     def is_locked(self) -> bool | None:
@@ -47,7 +48,8 @@ class HondaDoorLock(MyHondaPlusEntity, LockEntity):
         self.async_write_ha_state()
         try:
             confirmed = await self.coordinator.async_send_command_and_wait(
-                self.coordinator.api.remote_lock, self._vin,
+                self.coordinator.api.remote_lock,
+                self._vin,
             )
             if confirmed:
                 data = dict(self.coordinator.data)
@@ -63,7 +65,8 @@ class HondaDoorLock(MyHondaPlusEntity, LockEntity):
         self.async_write_ha_state()
         try:
             confirmed = await self.coordinator.async_send_command_and_wait(
-                self.coordinator.api.remote_unlock, self._vin,
+                self.coordinator.api.remote_unlock,
+                self._vin,
             )
             if confirmed:
                 data = dict(self.coordinator.data)

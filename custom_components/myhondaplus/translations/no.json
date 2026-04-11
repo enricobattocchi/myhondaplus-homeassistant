@@ -19,16 +19,6 @@
           "location_refresh_interval": "Hvor ofte Home Assistant henter GPS-posisjonen fra kjøretøyet. Sett til 0 for å deaktivere."
         }
       },
-      "select_vehicle": {
-        "title": "Velg kjøretøy",
-        "description": "Flere kjøretøy ble funnet på kontoen din. Velg hvilket du vil legge til.",
-        "data": {
-          "vin": "Kjøretøy"
-        },
-        "data_description": {
-          "vin": "Velg kjøretøyet fra din My Honda+-konto som du vil legge til i Home Assistant."
-        }
-      },
       "manual_vin": {
         "title": "Skriv inn VIN",
         "description": "Kunne ikke oppdage kjøretøy automatisk. Skriv inn VIN manuelt.",
@@ -100,14 +90,11 @@
     "refresh_location_failed": {
       "message": "Kunne ikke oppdatere posisjonen fra kjøretøyet"
     },
-    "config_entry_not_found": {
-      "message": "Kunne ikke kalle tjenesten {service}. Konfigurasjonsoppføring {entry_id} ble ikke funnet"
+    "device_required": {
+      "message": "Select a vehicle to control."
     },
-    "config_entry_not_loaded": {
-      "message": "Kunne ikke kalle tjenesten {service}. Konfigurasjonsoppføring {entry_id} er ikke lastet"
-    },
-    "config_entry_no_data": {
-      "message": "Kunne ikke kalle tjenesten {service}. Konfigurasjonsoppføring {entry_id} har ingen data"
+    "device_not_found": {
+      "message": "Vehicle not found or not loaded."
     }
   },
   "entity": {

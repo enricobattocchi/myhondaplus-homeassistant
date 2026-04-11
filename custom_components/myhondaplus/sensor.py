@@ -17,7 +17,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
 from .entity import MyHondaPlusEntity
 
@@ -129,7 +128,13 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         key="charge_mode",
         translation_key="charge_mode",
         device_class=SensorDeviceClass.ENUM,
-        options=["unconfirmed", "100v_charging", "200v_charging", "fast_charging", "unknown"],
+        options=[
+            "unconfirmed",
+            "100v_charging",
+            "200v_charging",
+            "fast_charging",
+            "unknown",
+        ],
         icon="mdi:ev-station",
     ),
     HondaSensorDescription(
@@ -242,18 +247,19 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up My Honda+ sensors."""
-    coordinator = entry.runtime_data.coordinator
-    trip_coordinator = entry.runtime_data.trip_coordinator
-    vin = entry.data[CONF_VIN]
-    vehicle_name = entry.data.get(CONF_VEHICLE_NAME, "")
-    entities: list[SensorEntity] = [
-        HondaSensor(coordinator, description, vin, vehicle_name)
-        for description in SENSOR_DESCRIPTIONS
-    ]
-    entities.extend(
-        HondaTripSensor(trip_coordinator, description, vin, vehicle_name)
-        for description in TRIP_SENSOR_DESCRIPTIONS
-    )
+    entities: list[SensorEntity] = []
+    for vehicle in entry.runtime_data.vehicles.values():
+        vin = vehicle.vin
+        name = vehicle.vehicle_name
+        fuel_type = vehicle.fuel_type
+        entities.extend(
+            HondaSensor(vehicle.coordinator, desc, vin, name, fuel_type)
+            for desc in SENSOR_DESCRIPTIONS
+        )
+        entities.extend(
+            HondaTripSensor(vehicle.trip_coordinator, desc, vin, name, fuel_type)
+            for desc in TRIP_SENSOR_DESCRIPTIONS
+        )
     async_add_entities(entities)
 
 
@@ -281,12 +287,18 @@ class HondaSensor(MyHondaPlusEntity, SensorEntity):
             return sum(1 for r in value if r.get("enabled"))
         if isinstance(value, list):
             return ", ".join(str(v) for v in value) if value else "none"
-        if self.entity_description.device_class == SensorDeviceClass.TIMESTAMP and isinstance(value, str):
+        if (
+            self.entity_description.device_class == SensorDeviceClass.TIMESTAMP
+            and isinstance(value, str)
+        ):
             try:
                 return datetime.fromisoformat(value)
             except ValueError:
                 return None
-        if self.entity_description.device_class == SensorDeviceClass.ENUM and isinstance(value, str):
+        if (
+            self.entity_description.device_class == SensorDeviceClass.ENUM
+            and isinstance(value, str)
+        ):
             return value.replace(" ", "_")
         return value
 
