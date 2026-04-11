@@ -22,14 +22,6 @@ def to_bool(value) -> bool | None:
     return bool(value)
 
 
-FUEL_TYPE_LABELS = {
-    "E": "Electric",
-    "H": "Hybrid",
-    "G": "Gasoline",
-    "D": "Diesel",
-}
-
-
 class MyHondaPlusEntity(CoordinatorEntity[DataUpdateCoordinator[dict]]):
     """Base class for My Honda+ entities."""
 
@@ -55,15 +47,11 @@ class MyHondaPlusEntity(CoordinatorEntity[DataUpdateCoordinator[dict]]):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info."""
-        info = DeviceInfo(
+        return DeviceInfo(
             identifiers={(DOMAIN, self._vin)},
             name=self._vehicle_name or f"Honda {self._vin[-6:]}",
             manufacturer="Honda",
         )
-        model = FUEL_TYPE_LABELS.get(self._fuel_type)
-        if model:
-            info["model"] = model
-        return info
 
     def _schedule_refresh(self, delay: int = 30) -> None:
         """Schedule a coordinator refresh, replacing any pending one."""

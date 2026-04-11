@@ -17,6 +17,7 @@ from .const import (
     CONF_CAR_REFRESH_INTERVAL,
     CONF_FUEL_TYPE,
     CONF_LOCATION_REFRESH_INTERVAL,
+    CONF_MODEL,
     CONF_PERSONAL_ID,
     CONF_REFRESH_TOKEN,
     CONF_SCAN_INTERVAL,
@@ -257,6 +258,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
         user_id=entry.data.get(CONF_USER_ID, ""),
     )
 
+    # Backfill model names for upgrades from versions without model data
+    await _backfill_models(hass, entry, api)
+
     vehicles: dict[str, VehicleData] = {}
     for v in entry.data.get(CONF_VEHICLES, []):
         vin = v[CONF_VIN]
@@ -302,7 +306,56 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
         _schedule_location_refresh(hass, entry, vd)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Set model on devices from stored vehicle data
+    _update_device_models(hass, entry)
+
     return True
+
+
+async def _backfill_models(
+    hass: HomeAssistant,
+    entry: MyHondaPlusConfigEntry,
+    api: HondaAPI,
+) -> None:
+    """Fetch model names for vehicles that don't have them (upgrade path)."""
+    vehicle_list = entry.data.get(CONF_VEHICLES, [])
+    if all(v.get(CONF_MODEL) for v in vehicle_list):
+        return
+
+    try:
+        from .config_flow import _parse_vehicles
+
+        user_info = await hass.async_add_executor_job(api.get_user_info)
+        api_vehicles = {v["vin"]: v for v in _parse_vehicles(user_info)}
+        updated = []
+        for v in vehicle_list:
+            vin = v[CONF_VIN]
+            api_v = api_vehicles.get(vin, {})
+            updated.append({**v, CONF_MODEL: api_v.get("model", v.get(CONF_MODEL, ""))})
+        hass.config_entries.async_update_entry(
+            entry,
+            data={**entry.data, CONF_VEHICLES: updated},
+        )
+    except Exception:
+        LOGGER.debug("Could not backfill model names", exc_info=True)
+
+
+def _update_device_models(
+    hass: HomeAssistant,
+    entry: MyHondaPlusConfigEntry,
+) -> None:
+    """Set the model field on devices from stored vehicle data."""
+    device_registry = dr.async_get(hass)
+    for v in entry.data.get(CONF_VEHICLES, []):
+        model = v.get(CONF_MODEL, "")
+        if not model:
+            continue
+        device = device_registry.async_get_device(
+            identifiers={(DOMAIN, v[CONF_VIN])},
+        )
+        if device and device.model != model:
+            device_registry.async_update_device(device.id, model=model)
 
 
 def _schedule_car_refresh(
