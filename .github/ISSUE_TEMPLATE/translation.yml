@@ -2,6 +2,11 @@ name: "Add or fix translation: [language]"
 description: Contribute a new translation or fix an existing one
 labels: ["translation"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping translate the unofficial My Honda+ Home Assistant integration! Please fill in the fields below.
+
   - type: dropdown
     id: language
     attributes:
