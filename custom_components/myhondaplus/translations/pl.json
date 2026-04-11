@@ -1,0 +1,309 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "My Honda+",
+        "description": "Wprowadź dane logowania do konta My Honda+",
+        "data": {
+          "email": "Email",
+          "password": "Password",
+          "scan_interval": "Interwał odświeżania (sekundy)",
+          "car_refresh_interval": "Interwał odświeżania z pojazdu (sekundy, 0 aby wyłączyć)",
+          "location_refresh_interval": "Interwał odświeżania lokalizacji (sekundy, 0 aby wyłączyć)"
+        },
+        "data_description": {
+          "email": "Adres e-mail używany do logowania w aplikacji My Honda+.",
+          "password": "Password do Twojego konta My Honda+.",
+          "scan_interval": "Jak często Home Assistant pobiera zapisane dane od Honda.",
+          "car_refresh_interval": "Jak często Home Assistant budzi pojazd w celu pobrania aktualnych danych. Ustaw 0, aby wyłączyć.",
+          "location_refresh_interval": "Jak często Home Assistant pobiera pozycję GPS z pojazdu. Ustaw 0, aby wyłączyć."
+        }
+      },
+      "select_vehicle": {
+        "title": "Wybierz pojazd",
+        "description": "Na Twoim koncie znaleziono wiele pojazdów. Wybierz, który chcesz dodać.",
+        "data": {
+          "vin": "Pojazd"
+        },
+        "data_description": {
+          "vin": "Wybierz pojazd z konta My Honda+, który chcesz dodać do Home Assistant."
+        }
+      },
+      "manual_vin": {
+        "title": "Wprowadź VIN",
+        "description": "Nie udało się automatycznie wykryć pojazdów. Wprowadź VIN ręcznie.",
+        "data": {
+          "vin": "Numer identyfikacyjny pojazdu (VIN)"
+        },
+        "data_description": {
+          "vin": "Wprowadź VIN dokładnie tak, jak podaje Honda, jeśli automatyczne wykrywanie nie zadziałało."
+        }
+      },
+      "verify": {
+        "title": "Weryfikacja e-maila",
+        "description": "Honda wysłała e-mail weryfikacyjny. Skopiuj URL linku z e-maila (NIE klikaj w niego) i wklej go poniżej.",
+        "data": {
+          "verification_link": "Link weryfikacyjny z e-maila"
+        },
+        "data_description": {
+          "verification_link": "Wklej pełny URL weryfikacyjny z e-maila od Honda."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Ponowna autoryzacja My Honda+",
+        "description": "Sesja wygasła. Wprowadź ponownie swoje dane logowania.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "email": "Adres e-mail używany do logowania w aplikacji My Honda+.",
+          "password": "Password do Twojego konta My Honda+."
+        }
+      }
+    },
+    "abort": {
+      "reauth_successful": "Ponowna autoryzacja zakończona pomyślnie"
+    },
+    "error": {
+      "cannot_connect": "Nie można połączyć się z API Honda",
+      "invalid_auth": "Nieprawidłowy e-mail lub hasło",
+      "account_locked": "Konto zablokowane. Spróbuj ponownie później.",
+      "invalid_link": "Nie można przetworzyć linku weryfikacyjnego. Skopiuj pełny URL.",
+      "verification_failed": "Weryfikacja nie powiodła się. Spróbuj ponownie."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ustawienia My Honda+",
+        "data": {
+          "scan_interval": "Interwał odświeżania (sekundy)",
+          "car_refresh_interval": "Interwał odświeżania z pojazdu (sekundy, 0 aby wyłączyć)",
+          "location_refresh_interval": "Interwał odświeżania lokalizacji (sekundy, 0 aby wyłączyć)"
+        },
+        "data_description": {
+          "scan_interval": "Jak często Home Assistant pobiera zapisane dane od Honda.",
+          "car_refresh_interval": "Jak często Home Assistant budzi pojazd w celu pobrania aktualnych danych. Ustaw 0, aby wyłączyć.",
+          "location_refresh_interval": "Jak często Home Assistant pobiera pozycję GPS z pojazdu. Ustaw 0, aby wyłączyć."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "refresh_data_failed": {
+      "message": "Nie udało się odświeżyć danych z pojazdu"
+    },
+    "send_command_failed": {
+      "message": "Nie udało się wysłać polecenia do pojazdu"
+    },
+    "refresh_location_failed": {
+      "message": "Nie udało się odświeżyć lokalizacji z pojazdu"
+    },
+    "config_entry_not_found": {
+      "message": "Nie można wywołać usługi {service}. Wpis konfiguracji {entry_id} nie został znaleziony"
+    },
+    "config_entry_not_loaded": {
+      "message": "Nie można wywołać usługi {service}. Wpis konfiguracji {entry_id} nie jest załadowany"
+    },
+    "config_entry_no_data": {
+      "message": "Nie można wywołać usługi {service}. Wpis konfiguracji {entry_id} nie ma danych"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "doors_open": {
+        "name": "Drzwi"
+      },
+      "windows_open": {
+        "name": "Szyby"
+      },
+      "hood": {
+        "name": "Pokrywa silnika"
+      },
+      "trunk": {
+        "name": "Osłona bagażnika"
+      },
+      "lights": {
+        "name": "Światła"
+      }
+    },
+    "sensor": {
+      "battery_level": {
+        "name": "Bateria"
+      },
+      "range_climate_on": {
+        "name": "Zasięg (klimatyzacja wł.)"
+      },
+      "range_climate_off": {
+        "name": "Zasięg (klimatyzacja wył.)"
+      },
+      "total_range": {
+        "name": "Całkowity zasięg"
+      },
+      "charge_status": {
+        "name": "Stan ładowania",
+        "state": {
+          "stopped": "Zatrzymane",
+          "charging": "Ładowanie",
+          "complete": "Zakończone",
+          "notcharging": "Nie ładuje",
+          "unknown": "Nieznany"
+        }
+      },
+      "plug_status": {
+        "name": "Stan wtyczki",
+        "state": {
+          "plugged_in": "Podłączone",
+          "connected": "Podłączone",
+          "unplugged": "Niepodłączone",
+          "disconnected": "Niepodłączone",
+          "unknown": "Nieznany"
+        }
+      },
+      "home_away": {
+        "name": "Dom / Poza domem",
+        "state": {
+          "home": "W domu",
+          "away": "Poza domem",
+          "unknown": "Nieznany"
+        }
+      },
+      "climate_active": {
+        "name": "Klimatyzacja aktywna"
+      },
+      "cabin_temperature": {
+        "name": "Temperatura kabiny"
+      },
+      "odometer": {
+        "name": "Licznik kilometrów"
+      },
+      "doors_locked": {
+        "name": "Zamknięte"
+      },
+      "ignition": {
+        "name": "Zapłon"
+      },
+      "speed": {
+        "name": "Prędkość"
+      },
+      "charge_mode": {
+        "name": "Tryb ładowania",
+        "state": {
+          "unconfirmed": "Niepotwierdzone",
+          "100v_charging": "Ładowanie 100V",
+          "200v_charging": "Ładowanie 200V",
+          "fast_charging": "Szybkie ładowanie",
+          "unknown": "Nieznany"
+        }
+      },
+      "time_to_charge": {
+        "name": "Czas do pełnego naładowania"
+      },
+      "interior_temperature": {
+        "name": "Temperatura wewnętrzna"
+      },
+      "headlights": {
+        "name": "Reflektory"
+      },
+      "parking_lights": {
+        "name": "Światła pozycyjne"
+      },
+      "warnings": {
+        "name": "Lampki ostrzegawcze"
+      },
+      "last_updated": {
+        "name": "Ostatnia aktualizacja"
+      },
+      "trips_this_month": {
+        "name": "Podróże w tym miesiącu"
+      },
+      "distance_this_month": {
+        "name": "Dystans w tym miesiącu"
+      },
+      "driving_time_this_month": {
+        "name": "Czas jazdy w tym miesiącu"
+      },
+      "avg_consumption_this_month": {
+        "name": "Średnie zużycie w tym miesiącu"
+      },
+      "climate_temp": {
+        "name": "Temperatura klimatyzacji",
+        "state": {
+          "cooler": "Temperatura niższa",
+          "normal": "Normalna",
+          "hotter": "Temperatura wyższa",
+          "unknown": "Nieznany"
+        }
+      },
+      "climate_duration": {
+        "name": "Czas klimatyzacji"
+      },
+      "climate_defrost": {
+        "name": "Automatyczne ogrzewanie szyby"
+      },
+      "charge_schedule": {
+        "name": "Harmonogram ładowania"
+      },
+      "climate_schedule": {
+        "name": "Harmonogram klimatyzacji"
+      }
+    },
+    "device_tracker": {
+      "vehicle_location": {
+        "name": "Lokalizacja"
+      }
+    },
+    "button": {
+      "horn_lights": {
+        "name": "Klakson i światła"
+      },
+      "refresh_cached": {
+        "name": "Odśwież"
+      },
+      "refresh_data": {
+        "name": "Odśwież z pojazdu"
+      }
+    },
+    "lock": {
+      "doors": {
+        "name": "Drzwi"
+      }
+    },
+    "switch": {
+      "climate": {
+        "name": "Klimatyzacja"
+      },
+      "charging": {
+        "name": "Ładowanie"
+      },
+      "climate_defrost_setting": {
+        "name": "Automatyczne ogrzewanie szyby"
+      },
+      "auto_refresh": {
+        "name": "Automatyczne odświeżanie z pojazdu"
+      }
+    },
+    "select": {
+      "climate_temp_setting": {
+        "name": "Temperatura klimatyzacji",
+        "state": {
+          "cooler": "Temperatura niższa",
+          "normal": "Normalna",
+          "hotter": "Temperatura wyższa"
+        }
+      },
+      "climate_duration_setting": {
+        "name": "Czas klimatyzacji (min)"
+      }
+    },
+    "number": {
+      "charge_limit_home": {
+        "name": "Limit ładowania (dom)"
+      },
+      "charge_limit_away": {
+        "name": "Limit ładowania (poza domem)"
+      }
+    }
+  }
+}

@@ -1,0 +1,309 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "My Honda+",
+        "description": "Voer de inloggegevens van je My Honda+ account in",
+        "data": {
+          "email": "Email",
+          "password": "Password",
+          "scan_interval": "Verversingsinterval (seconden)",
+          "car_refresh_interval": "Voertuig verversingsinterval (seconden, 0 om uit te schakelen)",
+          "location_refresh_interval": "Locatie verversingsinterval (seconden, 0 om uit te schakelen)"
+        },
+        "data_description": {
+          "email": "E-mailadres dat je gebruikt om in te loggen in de My Honda+ app.",
+          "password": "Password van je My Honda+ account.",
+          "scan_interval": "Hoe vaak Home Assistant de opgeslagen gegevens van Honda opvraagt.",
+          "car_refresh_interval": "Hoe vaak Home Assistant het voertuig wekt voor nieuwe gegevens. Stel in op 0 om uit te schakelen.",
+          "location_refresh_interval": "Hoe vaak Home Assistant de GPS-locatie van het voertuig opvraagt. Stel in op 0 om uit te schakelen."
+        }
+      },
+      "select_vehicle": {
+        "title": "Selecteer voertuig",
+        "description": "Er zijn meerdere voertuigen gevonden in je account. Selecteer welke je wilt toevoegen.",
+        "data": {
+          "vin": "Voertuig"
+        },
+        "data_description": {
+          "vin": "Kies het voertuig uit je My Honda+ account om toe te voegen aan Home Assistant."
+        }
+      },
+      "manual_vin": {
+        "title": "Voer VIN in",
+        "description": "Automatische detectie van voertuigen is mislukt. Voer het VIN handmatig in.",
+        "data": {
+          "vin": "Voertuigidentificatienummer (VIN)"
+        },
+        "data_description": {
+          "vin": "Voer het VIN in zoals opgegeven door Honda als automatische detectie niet heeft gewerkt."
+        }
+      },
+      "verify": {
+        "title": "E-mail verifiëren",
+        "description": "Honda heeft een verificatie-e-mail gestuurd. Kopieer de URL van de link uit de e-mail (klik er NIET op) en plak deze hieronder.",
+        "data": {
+          "verification_link": "Verificatielink uit de e-mail"
+        },
+        "data_description": {
+          "verification_link": "Plak de volledige verificatie-URL uit de e-mail van Honda."
+        }
+      },
+      "reauth_confirm": {
+        "title": "My Honda+ opnieuw verifiëren",
+        "description": "De sessie is verlopen. Voer je inloggegevens opnieuw in.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "email": "E-mailadres dat je gebruikt om in te loggen in de My Honda+ app.",
+          "password": "Password van je My Honda+ account."
+        }
+      }
+    },
+    "abort": {
+      "reauth_successful": "Herauthenticatie geslaagd"
+    },
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken met de Honda API",
+      "invalid_auth": "Ongeldig e-mailadres of wachtwoord",
+      "account_locked": "Account vergrendeld. Probeer het later opnieuw.",
+      "invalid_link": "Kan de verificatielink niet verwerken. Kopieer de volledige URL.",
+      "verification_failed": "Verificatie mislukt. Probeer het opnieuw."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "My Honda+ instellingen",
+        "data": {
+          "scan_interval": "Verversingsinterval (seconden)",
+          "car_refresh_interval": "Voertuig verversingsinterval (seconden, 0 om uit te schakelen)",
+          "location_refresh_interval": "Locatie verversingsinterval (seconden, 0 om uit te schakelen)"
+        },
+        "data_description": {
+          "scan_interval": "Hoe vaak Home Assistant de opgeslagen gegevens van Honda opvraagt.",
+          "car_refresh_interval": "Hoe vaak Home Assistant het voertuig wekt voor nieuwe gegevens. Stel in op 0 om uit te schakelen.",
+          "location_refresh_interval": "Hoe vaak Home Assistant de GPS-locatie van het voertuig opvraagt. Stel in op 0 om uit te schakelen."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "refresh_data_failed": {
+      "message": "Kan gegevens van het voertuig niet vernieuwen"
+    },
+    "send_command_failed": {
+      "message": "Kan het commando niet naar het voertuig verzenden"
+    },
+    "refresh_location_failed": {
+      "message": "Kan de locatie van het voertuig niet vernieuwen"
+    },
+    "config_entry_not_found": {
+      "message": "Kan service {service} niet aanroepen. Configuratie-item {entry_id} niet gevonden"
+    },
+    "config_entry_not_loaded": {
+      "message": "Kan service {service} niet aanroepen. Configuratie-item {entry_id} niet geladen"
+    },
+    "config_entry_no_data": {
+      "message": "Kan service {service} niet aanroepen. Configuratie-item {entry_id} zonder gegevens"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "doors_open": {
+        "name": "Portieren"
+      },
+      "windows_open": {
+        "name": "Ramen"
+      },
+      "hood": {
+        "name": "Motorkap"
+      },
+      "trunk": {
+        "name": "Bagageruimte"
+      },
+      "lights": {
+        "name": "Verlichting"
+      }
+    },
+    "sensor": {
+      "battery_level": {
+        "name": "Batterij"
+      },
+      "range_climate_on": {
+        "name": "Bereik (airco aan)"
+      },
+      "range_climate_off": {
+        "name": "Bereik (airco uit)"
+      },
+      "total_range": {
+        "name": "Totaal bereik"
+      },
+      "charge_status": {
+        "name": "Laadstatus",
+        "state": {
+          "stopped": "Gestopt",
+          "charging": "Wordt opgeladen",
+          "complete": "Voltooid",
+          "notcharging": "Laadt niet op",
+          "unknown": "Onbekend"
+        }
+      },
+      "plug_status": {
+        "name": "Stekker status",
+        "state": {
+          "plugged_in": "Aangesloten",
+          "connected": "Aangesloten",
+          "unplugged": "Niet aangesloten",
+          "disconnected": "Niet aangesloten",
+          "unknown": "Onbekend"
+        }
+      },
+      "home_away": {
+        "name": "Thuis / Weg",
+        "state": {
+          "home": "Thuis",
+          "away": "Onderweg",
+          "unknown": "Onbekend"
+        }
+      },
+      "climate_active": {
+        "name": "Airco actief"
+      },
+      "cabin_temperature": {
+        "name": "Cabinetemperatuur"
+      },
+      "odometer": {
+        "name": "Kilometerteller"
+      },
+      "doors_locked": {
+        "name": "Portieren vergrendeld"
+      },
+      "ignition": {
+        "name": "Contact"
+      },
+      "speed": {
+        "name": "Snelheid"
+      },
+      "charge_mode": {
+        "name": "Laadmodus",
+        "state": {
+          "unconfirmed": "Onbevestigd",
+          "100v_charging": "100V laden",
+          "200v_charging": "200V laden",
+          "fast_charging": "Snel laden",
+          "unknown": "Onbekend"
+        }
+      },
+      "time_to_charge": {
+        "name": "Tijd tot volledig opgeladen"
+      },
+      "interior_temperature": {
+        "name": "Binnentemperatuur"
+      },
+      "headlights": {
+        "name": "Koplampen"
+      },
+      "parking_lights": {
+        "name": "Parkeerlichten"
+      },
+      "warnings": {
+        "name": "Waarschuwingen"
+      },
+      "last_updated": {
+        "name": "Laatst bijgewerkt"
+      },
+      "trips_this_month": {
+        "name": "Ritten deze maand"
+      },
+      "distance_this_month": {
+        "name": "Afstand deze maand"
+      },
+      "driving_time_this_month": {
+        "name": "Rijtijd deze maand"
+      },
+      "avg_consumption_this_month": {
+        "name": "Gemiddeld verbruik deze maand"
+      },
+      "climate_temp": {
+        "name": "Aircotemperatuur",
+        "state": {
+          "cooler": "Kouder",
+          "normal": "Normaal",
+          "hotter": "Warmer",
+          "unknown": "Onbekend"
+        }
+      },
+      "climate_duration": {
+        "name": "Aircoduur"
+      },
+      "climate_defrost": {
+        "name": "Automatisch ontdooien"
+      },
+      "charge_schedule": {
+        "name": "Laadschema"
+      },
+      "climate_schedule": {
+        "name": "Aircoschema"
+      }
+    },
+    "device_tracker": {
+      "vehicle_location": {
+        "name": "Locatie"
+      }
+    },
+    "button": {
+      "horn_lights": {
+        "name": "Claxon en verlichting"
+      },
+      "refresh_cached": {
+        "name": "Vernieuwen"
+      },
+      "refresh_data": {
+        "name": "Vernieuwen vanaf voertuig"
+      }
+    },
+    "lock": {
+      "doors": {
+        "name": "Portieren"
+      }
+    },
+    "switch": {
+      "climate": {
+        "name": "Airco"
+      },
+      "charging": {
+        "name": "Opladen"
+      },
+      "climate_defrost_setting": {
+        "name": "Automatisch ontdooien"
+      },
+      "auto_refresh": {
+        "name": "Automatisch vernieuwen vanaf voertuig"
+      }
+    },
+    "select": {
+      "climate_temp_setting": {
+        "name": "Aircotemperatuur",
+        "state": {
+          "cooler": "Kouder",
+          "normal": "Normaal",
+          "hotter": "Warmer"
+        }
+      },
+      "climate_duration_setting": {
+        "name": "Aircoduur (min)"
+      }
+    },
+    "number": {
+      "charge_limit_home": {
+        "name": "Laadlimiet (thuis)"
+      },
+      "charge_limit_away": {
+        "name": "Laadlimiet (weg)"
+      }
+    }
+  }
+}

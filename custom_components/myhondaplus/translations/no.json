@@ -1,0 +1,309 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "My Honda+",
+        "description": "Skriv inn påloggingsinformasjonen for din My Honda+-konto",
+        "data": {
+          "email": "Email",
+          "password": "Password",
+          "scan_interval": "Oppdateringsintervall (sekunder)",
+          "car_refresh_interval": "Kjøretøyoppdateringsintervall (sekunder, 0 for å deaktivere)",
+          "location_refresh_interval": "Posisjonsoppdateringsintervall (sekunder, 0 for å deaktivere)"
+        },
+        "data_description": {
+          "email": "E-postadressen du bruker for å logge inn på My Honda+-appen.",
+          "password": "Passordet til din My Honda+-konto.",
+          "scan_interval": "Hvor ofte Home Assistant henter lagrede data fra Honda.",
+          "car_refresh_interval": "Hvor ofte Home Assistant vekker kjøretøyet for oppdaterte data. Sett til 0 for å deaktivere.",
+          "location_refresh_interval": "Hvor ofte Home Assistant henter GPS-posisjonen fra kjøretøyet. Sett til 0 for å deaktivere."
+        }
+      },
+      "select_vehicle": {
+        "title": "Velg kjøretøy",
+        "description": "Flere kjøretøy ble funnet på kontoen din. Velg hvilket du vil legge til.",
+        "data": {
+          "vin": "Kjøretøy"
+        },
+        "data_description": {
+          "vin": "Velg kjøretøyet fra din My Honda+-konto som du vil legge til i Home Assistant."
+        }
+      },
+      "manual_vin": {
+        "title": "Skriv inn VIN",
+        "description": "Kunne ikke oppdage kjøretøy automatisk. Skriv inn VIN manuelt.",
+        "data": {
+          "vin": "Kjøretøyets identifikasjonsnummer (VIN)"
+        },
+        "data_description": {
+          "vin": "Skriv inn VIN nøyaktig slik det er registrert hos Honda, hvis automatisk oppdagelse ikke fungerte."
+        }
+      },
+      "verify": {
+        "title": "E-postbekreftelse",
+        "description": "Honda har sendt en bekreftelses-e-post. Kopier URL-en fra lenken i e-posten (IKKE klikk på den) og lim den inn nedenfor.",
+        "data": {
+          "verification_link": "Bekreftelseslenke fra e-posten"
+        },
+        "data_description": {
+          "verification_link": "Lim inn den fullstendige bekreftelses-URL-en fra Honda-e-posten."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Autentiser My Honda+ på nytt",
+        "description": "Økten har utløpt. Skriv inn påloggingsinformasjonen din på nytt.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "email": "E-postadressen du bruker for å logge inn på My Honda+-appen.",
+          "password": "Passordet til din My Honda+-konto."
+        }
+      }
+    },
+    "abort": {
+      "reauth_successful": "Ny autentisering vellykket"
+    },
+    "error": {
+      "cannot_connect": "Kunne ikke koble til Honda API",
+      "invalid_auth": "Ugyldig e-post eller passord",
+      "account_locked": "Kontoen er låst. Prøv igjen senere.",
+      "invalid_link": "Kunne ikke behandle bekreftelseslenken. Kopier den fullstendige URL-en.",
+      "verification_failed": "Bekreftelse mislyktes. Prøv igjen."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "My Honda+-innstillinger",
+        "data": {
+          "scan_interval": "Oppdateringsintervall (sekunder)",
+          "car_refresh_interval": "Kjøretøyoppdateringsintervall (sekunder, 0 for å deaktivere)",
+          "location_refresh_interval": "Posisjonsoppdateringsintervall (sekunder, 0 for å deaktivere)"
+        },
+        "data_description": {
+          "scan_interval": "Hvor ofte Home Assistant henter lagrede data fra Honda.",
+          "car_refresh_interval": "Hvor ofte Home Assistant vekker kjøretøyet for oppdaterte data. Sett til 0 for å deaktivere.",
+          "location_refresh_interval": "Hvor ofte Home Assistant henter GPS-posisjonen fra kjøretøyet. Sett til 0 for å deaktivere."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "refresh_data_failed": {
+      "message": "Kunne ikke oppdatere data fra kjøretøyet"
+    },
+    "send_command_failed": {
+      "message": "Kunne ikke sende kommando til kjøretøyet"
+    },
+    "refresh_location_failed": {
+      "message": "Kunne ikke oppdatere posisjonen fra kjøretøyet"
+    },
+    "config_entry_not_found": {
+      "message": "Kunne ikke kalle tjenesten {service}. Konfigurasjonsoppføring {entry_id} ble ikke funnet"
+    },
+    "config_entry_not_loaded": {
+      "message": "Kunne ikke kalle tjenesten {service}. Konfigurasjonsoppføring {entry_id} er ikke lastet"
+    },
+    "config_entry_no_data": {
+      "message": "Kunne ikke kalle tjenesten {service}. Konfigurasjonsoppføring {entry_id} har ingen data"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "doors_open": {
+        "name": "Dører"
+      },
+      "windows_open": {
+        "name": "Vinduer"
+      },
+      "hood": {
+        "name": "Panser"
+      },
+      "trunk": {
+        "name": "Bagasjerom"
+      },
+      "lights": {
+        "name": "Lys"
+      }
+    },
+    "sensor": {
+      "battery_level": {
+        "name": "Batteri"
+      },
+      "range_climate_on": {
+        "name": "Rekkevidde (klima på)"
+      },
+      "range_climate_off": {
+        "name": "Rekkevidde (klima av)"
+      },
+      "total_range": {
+        "name": "Total rekkevidde"
+      },
+      "charge_status": {
+        "name": "Ladestatus",
+        "state": {
+          "stopped": "Stoppet",
+          "charging": "Lader",
+          "complete": "Fullført",
+          "notcharging": "Lader ikke",
+          "unknown": "Ukjent"
+        }
+      },
+      "plug_status": {
+        "name": "Pluggstatus",
+        "state": {
+          "plugged_in": "Tilkoblet",
+          "connected": "Tilkoblet",
+          "unplugged": "Frakoblet",
+          "disconnected": "Frakoblet",
+          "unknown": "Ukjent"
+        }
+      },
+      "home_away": {
+        "name": "Hjemme / Borte",
+        "state": {
+          "home": "Hjem",
+          "away": "Borte",
+          "unknown": "Ukjent"
+        }
+      },
+      "climate_active": {
+        "name": "Klimaanlegg aktivt"
+      },
+      "cabin_temperature": {
+        "name": "Kupétemperatur"
+      },
+      "odometer": {
+        "name": "Kilometerstand"
+      },
+      "doors_locked": {
+        "name": "Dører låst"
+      },
+      "ignition": {
+        "name": "Tenning"
+      },
+      "speed": {
+        "name": "Hastighet"
+      },
+      "charge_mode": {
+        "name": "Lademodus",
+        "state": {
+          "unconfirmed": "Ubekreftet",
+          "100v_charging": "100V lading",
+          "200v_charging": "200V lading",
+          "fast_charging": "Hurtiglading",
+          "unknown": "Ukjent"
+        }
+      },
+      "time_to_charge": {
+        "name": "Tid til fulladet"
+      },
+      "interior_temperature": {
+        "name": "Innvendig temperatur"
+      },
+      "headlights": {
+        "name": "Frontlys"
+      },
+      "parking_lights": {
+        "name": "Parkeringslys"
+      },
+      "warnings": {
+        "name": "Advarsler"
+      },
+      "last_updated": {
+        "name": "Sist oppdatert"
+      },
+      "trips_this_month": {
+        "name": "Turer denne måneden"
+      },
+      "distance_this_month": {
+        "name": "Distanse denne måneden"
+      },
+      "driving_time_this_month": {
+        "name": "Kjøretid denne måneden"
+      },
+      "avg_consumption_this_month": {
+        "name": "Gjennomsnittlig forbruk denne måneden"
+      },
+      "climate_temp": {
+        "name": "Klimatemperatur",
+        "state": {
+          "cooler": "Kaldere",
+          "normal": "normal",
+          "hotter": "Varmere",
+          "unknown": "Ukjent"
+        }
+      },
+      "climate_duration": {
+        "name": "Klimavarighet"
+      },
+      "climate_defrost": {
+        "name": "Automatisk defroster"
+      },
+      "charge_schedule": {
+        "name": "Ladeplan"
+      },
+      "climate_schedule": {
+        "name": "Klimaplan"
+      }
+    },
+    "device_tracker": {
+      "vehicle_location": {
+        "name": "Posisjon"
+      }
+    },
+    "button": {
+      "horn_lights": {
+        "name": "Horn og lys"
+      },
+      "refresh_cached": {
+        "name": "Oppdater"
+      },
+      "refresh_data": {
+        "name": "Oppdater fra kjøretøyet"
+      }
+    },
+    "lock": {
+      "doors": {
+        "name": "Dører"
+      }
+    },
+    "switch": {
+      "climate": {
+        "name": "Klimaanlegg"
+      },
+      "charging": {
+        "name": "Lading"
+      },
+      "climate_defrost_setting": {
+        "name": "Automatisk defroster"
+      },
+      "auto_refresh": {
+        "name": "Automatisk oppdatering fra kjøretøyet"
+      }
+    },
+    "select": {
+      "climate_temp_setting": {
+        "name": "Klimatemperatur",
+        "state": {
+          "cooler": "Kaldere",
+          "normal": "normal",
+          "hotter": "Varmere"
+        }
+      },
+      "climate_duration_setting": {
+        "name": "Klimavarighet (min)"
+      }
+    },
+    "number": {
+      "charge_limit_home": {
+        "name": "Ladegrense (hjemme)"
+      },
+      "charge_limit_away": {
+        "name": "Ladegrense (borte)"
+      }
+    }
+  }
+}

@@ -33,8 +33,8 @@ class TestHondaSensor:
         sensor = make_sensor(mock_coordinator, "battery_level")
         assert sensor.native_value == 75
 
-    def test_range(self, mock_coordinator):
-        sensor = make_sensor(mock_coordinator, "range")
+    def test_range_climate_on(self, mock_coordinator):
+        sensor = make_sensor(mock_coordinator, "range_climate_on")
         assert sensor.native_value == 150
 
     def test_charge_status(self, mock_coordinator):
@@ -72,7 +72,7 @@ class TestHondaSensor:
             _ = sensor.native_value
 
     def test_dynamic_unit_distance_km(self, mock_coordinator):
-        sensor = make_sensor(mock_coordinator, "range")
+        sensor = make_sensor(mock_coordinator, "range_climate_on")
         assert sensor.native_unit_of_measurement == "km"
 
     def test_dynamic_unit_speed_km(self, mock_coordinator):
@@ -85,7 +85,7 @@ class TestHondaSensor:
 
     def test_dynamic_unit_distance_miles(self, mock_coordinator):
         mock_coordinator.data["distance_unit"] = "miles"
-        sensor = make_sensor(mock_coordinator, "range")
+        sensor = make_sensor(mock_coordinator, "range_climate_on")
         assert sensor.native_unit_of_measurement == "mi"
 
     def test_dynamic_unit_speed_miles(self, mock_coordinator):

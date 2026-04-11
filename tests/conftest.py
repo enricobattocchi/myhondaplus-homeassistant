@@ -45,7 +45,8 @@ MOCK_ENTRY_OPTIONS = {
 
 MOCK_DASHBOARD_DATA = {
     "battery_level": 75,
-    "range": 150,
+    "range_climate_on": 150,
+    "range_climate_off": 180,
     "total_range": 150,
     "distance_unit": "km",
     "speed_unit": "km/h",
