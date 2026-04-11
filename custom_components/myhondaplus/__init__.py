@@ -4,31 +4,50 @@ import re
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import Platform
+from homeassistant.const import CONF_EMAIL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import selector
 from homeassistant.helpers.event import async_call_later
+from pymyhondaplus.api import HondaAPI
 
 from .const import (
+    CONF_ACCESS_TOKEN,
     CONF_CAR_REFRESH_INTERVAL,
+    CONF_FUEL_TYPE,
     CONF_LOCATION_REFRESH_INTERVAL,
+    CONF_PERSONAL_ID,
+    CONF_REFRESH_TOKEN,
     CONF_SCAN_INTERVAL,
+    CONF_USER_ID,
+    CONF_VEHICLE_NAME,
+    CONF_VEHICLES,
+    CONF_VIN,
     DEFAULT_CAR_REFRESH_INTERVAL,
     DEFAULT_LOCATION_REFRESH_INTERVAL,
     DOMAIN,
     LOGGER,
 )
 from .coordinator import HondaDataUpdateCoordinator, HondaTripCoordinator
-from .data import MyHondaPlusConfigEntry, MyHondaPlusData
+from .data import MyHondaPlusConfigEntry, MyHondaPlusData, VehicleData
 from .entry_options import get_entry_value
 
-PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.DEVICE_TRACKER, Platform.LOCK, Platform.NUMBER, Platform.SELECT, Platform.SENSOR, Platform.SWITCH]
+PLATFORMS = [
+    Platform.BINARY_SENSOR,
+    Platform.BUTTON,
+    Platform.DEVICE_TRACKER,
+    Platform.LOCK,
+    Platform.NUMBER,
+    Platform.SELECT,
+    Platform.SENSOR,
+    Platform.SWITCH,
+]
 
 SERVICE_SET_CHARGE_SCHEDULE = "set_charge_schedule"
 SERVICE_SET_CLIMATE_SCHEDULE = "set_climate_schedule"
 SERVICE_CLIMATE_ON = "climate_on"
-ATTR_CONFIG_ENTRY = "config_entry"
+ATTR_DEVICE = "device"
 
 
 VALID_DAYS = {"mon", "tue", "wed", "thu", "fri", "sat", "sun"}
@@ -58,22 +77,26 @@ def _validate_time(value: str) -> str:
     return value
 
 
-CHARGE_RULE_SCHEMA = vol.Schema({
-    vol.Required("days"): _validate_days,
-    vol.Required("location"): vol.In(["home", "all"]),
-    vol.Required("start_time"): _validate_time,
-    vol.Required("end_time"): _validate_time,
-    vol.Optional("enabled", default=True): bool,
-})
+CHARGE_RULE_SCHEMA = vol.Schema(
+    {
+        vol.Required("days"): _validate_days,
+        vol.Required("location"): vol.In(["home", "all"]),
+        vol.Required("start_time"): _validate_time,
+        vol.Required("end_time"): _validate_time,
+        vol.Optional("enabled", default=True): bool,
+    }
+)
 
-CLIMATE_RULE_SCHEMA = vol.Schema({
-    vol.Required("days"): _validate_days,
-    vol.Required("start_time"): _validate_time,
-    vol.Optional("enabled", default=True): bool,
-})
+CLIMATE_RULE_SCHEMA = vol.Schema(
+    {
+        vol.Required("days"): _validate_days,
+        vol.Required("start_time"): _validate_time,
+        vol.Optional("enabled", default=True): bool,
+    }
+)
 
 BASE_SERVICE_FIELDS = {
-    vol.Required(ATTR_CONFIG_ENTRY): selector.ConfigEntrySelector(
+    vol.Required(ATTR_DEVICE): selector.DeviceSelector(
         {
             "integration": DOMAIN,
         }
@@ -82,7 +105,9 @@ BASE_SERVICE_FIELDS = {
 SERVICE_CLIMATE_ON_FIELDS = {
     **BASE_SERVICE_FIELDS,
     vol.Optional("temp", default="normal"): vol.In(["cooler", "normal", "hotter"]),
-    vol.Optional("duration", default=30): vol.All(vol.Coerce(int), vol.In([10, 20, 30])),
+    vol.Optional("duration", default=30): vol.All(
+        vol.Coerce(int), vol.In([10, 20, 30])
+    ),
     vol.Optional("defrost", default=True): bool,
 }
 SERVICE_CHARGE_SCHEDULE_FIELDS = {
@@ -105,7 +130,9 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     return True
 
 
-async def async_migrate_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> bool:
+async def async_migrate_entry(
+    hass: HomeAssistant, entry: MyHondaPlusConfigEntry
+) -> bool:
     """Migrate old config entries to the latest version."""
     if entry.version == 1:
         option_keys = (
@@ -129,128 +156,298 @@ async def async_migrate_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry
             version=2,
         )
 
+    if entry.version == 2:
+        new_data = dict(entry.data)
+        vehicles = [
+            {
+                CONF_VIN: new_data.pop(CONF_VIN),
+                CONF_VEHICLE_NAME: new_data.pop(CONF_VEHICLE_NAME, ""),
+                CONF_FUEL_TYPE: new_data.pop(CONF_FUEL_TYPE, ""),
+            }
+        ]
+        new_data[CONF_VEHICLES] = vehicles
+
+        email = new_data.get(CONF_EMAIL, "")
+        hass.config_entries.async_update_entry(
+            entry,
+            data=new_data,
+            unique_id=email.lower() if email else entry.unique_id,
+            version=3,
+        )
+
     return True
+
+
+def _consolidate_duplicate_entries(
+    hass: HomeAssistant,
+    entry: MyHondaPlusConfigEntry,
+) -> None:
+    """Merge duplicate v3 entries for the same email into this entry.
+
+    Phase 2 of migration: runs at the start of async_setup_entry.
+    """
+    email = entry.data.get(CONF_EMAIL, "").lower()
+    if not email:
+        return
+
+    duplicates = []
+    for other in hass.config_entries.async_entries(DOMAIN):
+        if other.entry_id == entry.entry_id:
+            continue
+        if other.data.get(CONF_EMAIL, "").lower() == email:
+            duplicates.append(other)
+
+    if not duplicates:
+        return
+
+    # Merge vehicles from duplicates into this entry
+    existing_vins = {v[CONF_VIN] for v in entry.data.get(CONF_VEHICLES, [])}
+    merged_vehicles = list(entry.data.get(CONF_VEHICLES, []))
+
+    for dup in duplicates:
+        for v in dup.data.get(CONF_VEHICLES, []):
+            if v[CONF_VIN] not in existing_vins:
+                merged_vehicles.append(v)
+                existing_vins.add(v[CONF_VIN])
+
+    new_data = {**entry.data, CONF_VEHICLES: merged_vehicles}
+    hass.config_entries.async_update_entry(entry, data=new_data)
+
+    for dup in duplicates:
+        LOGGER.info(
+            "Removing duplicate config entry %s (merged into %s)",
+            dup.entry_id,
+            entry.entry_id,
+        )
+        hass.async_create_task(hass.config_entries.async_remove(dup.entry_id))
+
+
+def _cleanup_removed_vehicles(
+    hass: HomeAssistant,
+    entry: MyHondaPlusConfigEntry,
+    active_vins: set[str],
+) -> None:
+    """Remove devices/entities for vehicles no longer in the vehicle list."""
+    device_registry = dr.async_get(hass)
+    devices_to_remove = []
+    for device in dr.async_entries_for_config_entry(device_registry, entry.entry_id):
+        for domain, identifier in device.identifiers:
+            if domain == DOMAIN and identifier not in active_vins:
+                devices_to_remove.append(device.id)
+                break
+
+    for device_id in devices_to_remove:
+        LOGGER.info("Removing device for vehicle no longer in account: %s", device_id)
+        device_registry.async_remove_device(device_id)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> bool:
     """Set up My Honda+ from a config entry."""
+    # Phase 2: consolidate duplicate entries from migration
+    _consolidate_duplicate_entries(hass, entry)
+
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
-    coordinator = HondaDataUpdateCoordinator(hass, entry)
-    await coordinator.async_config_entry_first_refresh()
-
-    trip_coordinator = HondaTripCoordinator(
-        hass, entry, coordinator.api, coordinator._persist_tokens_if_changed,
-        main_coordinator=coordinator,
-    )
-    await trip_coordinator.async_config_entry_first_refresh()
-
-    entry.runtime_data = MyHondaPlusData(
-        coordinator=coordinator,
-        trip_coordinator=trip_coordinator,
+    # Create one shared API instance
+    api = HondaAPI()
+    api.set_tokens(
+        access_token=entry.data[CONF_ACCESS_TOKEN],
+        refresh_token=entry.data[CONF_REFRESH_TOKEN],
+        personal_id=entry.data.get(CONF_PERSONAL_ID, ""),
+        user_id=entry.data.get(CONF_USER_ID, ""),
     )
 
-    _schedule_car_refresh(hass, entry)
-    _schedule_location_refresh(hass, entry)
+    vehicles: dict[str, VehicleData] = {}
+    for v in entry.data.get(CONF_VEHICLES, []):
+        vin = v[CONF_VIN]
+        vehicle_name = v.get(CONF_VEHICLE_NAME, "")
+        fuel_type = v.get(CONF_FUEL_TYPE, "")
+
+        coordinator = HondaDataUpdateCoordinator(
+            hass,
+            entry,
+            api,
+            vin,
+            vehicle_name,
+        )
+        await coordinator.async_config_entry_first_refresh()
+
+        trip_coordinator = HondaTripCoordinator(
+            hass,
+            entry,
+            api,
+            coordinator._persist_tokens_if_changed,
+            vin=vin,
+            fuel_type=fuel_type,
+            main_coordinator=coordinator,
+        )
+        await trip_coordinator.async_config_entry_first_refresh()
+
+        vehicles[vin] = VehicleData(
+            coordinator=coordinator,
+            trip_coordinator=trip_coordinator,
+            vin=vin,
+            vehicle_name=vehicle_name,
+            fuel_type=fuel_type,
+        )
+
+    entry.runtime_data = MyHondaPlusData(vehicles=vehicles, api=api)
+
+    # Clean up devices for removed vehicles
+    _cleanup_removed_vehicles(hass, entry, set(vehicles.keys()))
+
+    # Schedule per-vehicle refreshes
+    for vd in vehicles.values():
+        _schedule_car_refresh(hass, entry, vd)
+        _schedule_location_refresh(hass, entry, vd)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
 
 def _schedule_car_refresh(
-    hass: HomeAssistant, entry: MyHondaPlusConfigEntry,
+    hass: HomeAssistant,
+    entry: MyHondaPlusConfigEntry,
+    vd: VehicleData,
 ) -> None:
     """Schedule a recurring refresh-from-car if configured."""
     interval = get_entry_value(
-        entry, CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL,
+        entry,
+        CONF_CAR_REFRESH_INTERVAL,
+        DEFAULT_CAR_REFRESH_INTERVAL,
     )
     if not interval or interval <= 0:
         return
 
-    coordinator = entry.runtime_data.coordinator
+    coordinator = vd.coordinator
 
     @callback
     def _do_car_refresh(_now) -> None:
         """Refresh from car and reschedule."""
+
         async def _refresh():
-            if entry.runtime_data.car_refresh_enabled:
+            if vd.car_refresh_enabled:
                 try:
                     await coordinator.async_refresh_from_car(
                         notify_on_timeout=False,
                     )
-                    LOGGER.debug("Scheduled refresh from car completed")
+                    LOGGER.debug("Scheduled refresh from car completed for %s", vd.vin)
                 except Exception:
-                    LOGGER.warning("Scheduled refresh from car failed", exc_info=True)
-            entry.runtime_data.car_refresh_unsub = async_call_later(
-                hass, interval, _do_car_refresh,
+                    LOGGER.warning(
+                        "Scheduled refresh from car failed for %s",
+                        vd.vin,
+                        exc_info=True,
+                    )
+            vd.car_refresh_unsub = async_call_later(
+                hass,
+                interval,
+                _do_car_refresh,
             )
 
         hass.async_create_task(_refresh())
 
-    entry.runtime_data.car_refresh_unsub = async_call_later(
-        hass, interval, _do_car_refresh,
+    vd.car_refresh_unsub = async_call_later(
+        hass,
+        interval,
+        _do_car_refresh,
     )
 
 
 def _schedule_location_refresh(
-    hass: HomeAssistant, entry: MyHondaPlusConfigEntry,
+    hass: HomeAssistant,
+    entry: MyHondaPlusConfigEntry,
+    vd: VehicleData,
 ) -> None:
     """Schedule a recurring location refresh if configured."""
     interval = get_entry_value(
-        entry, CONF_LOCATION_REFRESH_INTERVAL, DEFAULT_LOCATION_REFRESH_INTERVAL,
+        entry,
+        CONF_LOCATION_REFRESH_INTERVAL,
+        DEFAULT_LOCATION_REFRESH_INTERVAL,
     )
     if not interval or interval <= 0:
         return
 
-    coordinator = entry.runtime_data.coordinator
+    coordinator = vd.coordinator
 
     @callback
     def _do_location_refresh(_now) -> None:
         """Refresh location and reschedule."""
+
         async def _refresh():
             try:
                 await coordinator.async_refresh_location(
                     notify_on_timeout=False,
                 )
-                LOGGER.debug("Scheduled location refresh completed")
+                LOGGER.debug("Scheduled location refresh completed for %s", vd.vin)
             except Exception:
-                LOGGER.warning("Scheduled location refresh failed", exc_info=True)
-            entry.runtime_data.location_refresh_unsub = async_call_later(
-                hass, interval, _do_location_refresh,
+                LOGGER.warning(
+                    "Scheduled location refresh failed for %s", vd.vin, exc_info=True
+                )
+            vd.location_refresh_unsub = async_call_later(
+                hass,
+                interval,
+                _do_location_refresh,
             )
 
         hass.async_create_task(_refresh())
 
-    entry.runtime_data.location_refresh_unsub = async_call_later(
-        hass, interval, _do_location_refresh,
+    vd.location_refresh_unsub = async_call_later(
+        hass,
+        interval,
+        _do_location_refresh,
     )
 
 
 def _get_coordinator(
-    hass: HomeAssistant, call: ServiceCall,
+    hass: HomeAssistant,
+    call: ServiceCall,
 ) -> HondaDataUpdateCoordinator:
-    """Resolve the coordinator for a service call config entry."""
-    entry_id = call.data[ATTR_CONFIG_ENTRY]
-    entry = hass.config_entries.async_get_entry(entry_id)
-    if entry is None or entry.domain != DOMAIN:
+    """Resolve the coordinator for a service call via device selector."""
+    device_id = call.data.get(ATTR_DEVICE)
+    if not device_id:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
-            translation_key="config_entry_not_found",
-            translation_placeholders={"service": call.service, "entry_id": entry_id},
+            translation_key="device_required",
         )
-    if entry.state != ConfigEntryState.LOADED:
+
+    device_registry = dr.async_get(hass)
+    device = device_registry.async_get(device_id)
+    if device is None:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
-            translation_key="config_entry_not_loaded",
-            translation_placeholders={"service": call.service, "entry_id": entry_id},
+            translation_key="device_not_found",
         )
-    if not hasattr(entry, "runtime_data") or not entry.runtime_data:
+
+    # Extract VIN from device identifiers: {(DOMAIN, vin)}
+    vin = None
+    for domain, identifier in device.identifiers:
+        if domain == DOMAIN:
+            vin = identifier
+            break
+    if vin is None:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
-            translation_key="config_entry_no_data",
-            translation_placeholders={"service": call.service, "entry_id": entry_id},
+            translation_key="device_not_found",
         )
-    return entry.runtime_data.coordinator
+
+    # Find the config entry that owns this vehicle
+    for entry_id in device.config_entries:
+        entry = hass.config_entries.async_get_entry(entry_id)
+        if (
+            entry
+            and entry.domain == DOMAIN
+            and entry.state == ConfigEntryState.LOADED
+            and hasattr(entry, "runtime_data")
+            and entry.runtime_data
+        ):
+            vehicle = entry.runtime_data.vehicles.get(vin)
+            if vehicle:
+                return vehicle.coordinator
+
+    raise ServiceValidationError(
+        translation_domain=DOMAIN,
+        translation_key="device_not_found",
+    )
 
 
 def _register_services(hass: HomeAssistant) -> None:
@@ -286,7 +483,9 @@ def _register_services(hass: HomeAssistant) -> None:
         coordinator = _get_coordinator(hass, call)
         rules = call.data["rules"]
         await coordinator.async_send_command(
-            coordinator.api.set_charge_schedule, coordinator.vin, rules,
+            coordinator.api.set_charge_schedule,
+            coordinator.vin,
+            rules,
         )
         _optimistic_schedule_update(coordinator, "charge_schedule", rules)
 
@@ -294,7 +493,9 @@ def _register_services(hass: HomeAssistant) -> None:
         coordinator = _get_coordinator(hass, call)
         rules = call.data["rules"]
         await coordinator.async_send_command(
-            coordinator.api.set_climate_schedule, coordinator.vin, rules,
+            coordinator.api.set_climate_schedule,
+            coordinator.vin,
+            rules,
         )
         _optimistic_schedule_update(coordinator, "climate_schedule", rules)
 
@@ -305,10 +506,14 @@ def _register_services(hass: HomeAssistant) -> None:
         defrost = call.data.get("defrost", True)
         await coordinator.async_send_command_and_wait(
             coordinator.api.set_climate_settings,
-            coordinator.vin, temp, duration, defrost,
+            coordinator.vin,
+            temp,
+            duration,
+            defrost,
         )
         confirmed = await coordinator.async_send_command_and_wait(
-            coordinator.api.remote_climate_start, coordinator.vin,
+            coordinator.api.remote_climate_start,
+            coordinator.vin,
         )
         if confirmed:
             new_data = dict(coordinator.data)
@@ -319,30 +524,41 @@ def _register_services(hass: HomeAssistant) -> None:
             coordinator.async_set_updated_data(new_data)
 
     hass.services.async_register(
-        DOMAIN, SERVICE_SET_CHARGE_SCHEDULE,
-        handle_set_charge_schedule, schema=SERVICE_CHARGE_SCHEDULE_SCHEMA,
+        DOMAIN,
+        SERVICE_SET_CHARGE_SCHEDULE,
+        handle_set_charge_schedule,
+        schema=SERVICE_CHARGE_SCHEDULE_SCHEMA,
     )
     hass.services.async_register(
-        DOMAIN, SERVICE_SET_CLIMATE_SCHEDULE,
-        handle_set_climate_schedule, schema=SERVICE_CLIMATE_SCHEDULE_SCHEMA,
+        DOMAIN,
+        SERVICE_SET_CLIMATE_SCHEDULE,
+        handle_set_climate_schedule,
+        schema=SERVICE_CLIMATE_SCHEDULE_SCHEMA,
     )
     hass.services.async_register(
-        DOMAIN, SERVICE_CLIMATE_ON,
-        handle_climate_on, schema=SERVICE_CLIMATE_ON_SCHEMA,
+        DOMAIN,
+        SERVICE_CLIMATE_ON,
+        handle_climate_on,
+        schema=SERVICE_CLIMATE_ON_SCHEMA,
     )
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> bool:
+async def async_unload_entry(
+    hass: HomeAssistant, entry: MyHondaPlusConfigEntry
+) -> bool:
     """Unload a config entry."""
-    if entry.runtime_data.car_refresh_unsub:
-        entry.runtime_data.car_refresh_unsub()
-        entry.runtime_data.car_refresh_unsub = None
-    if entry.runtime_data.location_refresh_unsub:
-        entry.runtime_data.location_refresh_unsub()
-        entry.runtime_data.location_refresh_unsub = None
+    for vd in entry.runtime_data.vehicles.values():
+        if vd.car_refresh_unsub:
+            vd.car_refresh_unsub()
+            vd.car_refresh_unsub = None
+        if vd.location_refresh_unsub:
+            vd.location_refresh_unsub()
+            vd.location_refresh_unsub = None
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
-async def async_reload_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) -> None:
+async def async_reload_entry(
+    hass: HomeAssistant, entry: MyHondaPlusConfigEntry
+) -> None:
     """Reload config entry."""
     await hass.config_entries.async_reload(entry.entry_id)

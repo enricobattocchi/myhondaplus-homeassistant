@@ -44,7 +44,10 @@ class TestChargeLimitNumber:
         number = make_number(mock_coordinator, "charge_limit_home")
         await number.async_set_native_value(85.0)
         mock_coordinator.async_send_command_and_wait.assert_awaited_once_with(
-            mock_coordinator.api.set_charge_limit, MOCK_VIN, 85, 100,
+            mock_coordinator.api.set_charge_limit,
+            MOCK_VIN,
+            85,
+            100,
         )
         # Confirmed update via async_set_updated_data
         mock_coordinator.async_set_updated_data.assert_called_once()
@@ -63,7 +66,10 @@ class TestChargeLimitNumber:
         number = make_number(mock_coordinator, "charge_limit_away")
         await number.async_set_native_value(95.0)
         mock_coordinator.async_send_command_and_wait.assert_awaited_once_with(
-            mock_coordinator.api.set_charge_limit, MOCK_VIN, 90, 95,
+            mock_coordinator.api.set_charge_limit,
+            MOCK_VIN,
+            90,
+            95,
         )
         mock_coordinator.async_set_updated_data.assert_called_once()
         data = mock_coordinator.async_set_updated_data.call_args[0][0]
@@ -77,5 +83,8 @@ class TestChargeLimitNumber:
         number = make_number(mock_coordinator, "charge_limit_home")
         await number.async_set_native_value(100.0)
         mock_coordinator.async_send_command_and_wait.assert_awaited_once_with(
-            mock_coordinator.api.set_charge_limit, MOCK_VIN, 100, 95,
+            mock_coordinator.api.set_charge_limit,
+            MOCK_VIN,
+            100,
+            95,
         )

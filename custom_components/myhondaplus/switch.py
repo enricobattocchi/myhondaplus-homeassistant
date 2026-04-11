@@ -9,8 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_VEHICLE_NAME, CONF_VIN
-from .data import MyHondaPlusConfigEntry
+from .data import MyHondaPlusConfigEntry, VehicleData
 from .entity import MyHondaPlusEntity, to_bool
 
 PARALLEL_UPDATES = 1
@@ -22,15 +21,21 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up My Honda+ switches."""
-    coordinator = entry.runtime_data.coordinator
-    vin = entry.data[CONF_VIN]
-    vehicle_name = entry.data.get(CONF_VEHICLE_NAME, "")
-    async_add_entities([
-        HondaClimateSwitch(coordinator, vin, vehicle_name),
-        HondaChargeSwitch(coordinator, vin, vehicle_name),
-        HondaDefrostSwitch(coordinator, vin, vehicle_name),
-        HondaAutoRefreshSwitch(coordinator, vin, vehicle_name, entry),
-    ])
+    entities = []
+    for vehicle in entry.runtime_data.vehicles.values():
+        c = vehicle.coordinator
+        vin = vehicle.vin
+        name = vehicle.vehicle_name
+        fuel_type = vehicle.fuel_type
+        entities.extend(
+            [
+                HondaClimateSwitch(c, vin, name, fuel_type),
+                HondaChargeSwitch(c, vin, name, fuel_type),
+                HondaDefrostSwitch(c, vin, name, fuel_type),
+                HondaAutoRefreshSwitch(c, vin, name, fuel_type, vehicle),
+            ]
+        )
+    async_add_entities(entities)
 
 
 class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
@@ -40,12 +45,14 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
     _attr_icon = "mdi:air-conditioner"
     _attr_translation_key = "climate"
 
-    def __init__(self, coordinator, vin: str, vehicle_name: str) -> None:
+    def __init__(
+        self, coordinator, vin: str, vehicle_name: str, fuel_type: str = ""
+    ) -> None:
         description = SwitchEntityDescription(
             key="climate",
             translation_key="climate",
         )
-        super().__init__(coordinator, description, vin, vehicle_name)
+        super().__init__(coordinator, description, vin, vehicle_name, fuel_type)
 
     @property
     def is_on(self) -> bool | None:
@@ -58,7 +65,8 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
     async def async_turn_on(self, **kwargs) -> None:
         """Start climate pre-conditioning."""
         confirmed = await self.coordinator.async_send_command_and_wait(
-            self.coordinator.api.remote_climate_start, self._vin,
+            self.coordinator.api.remote_climate_start,
+            self._vin,
         )
         if confirmed:
             data = dict(self.coordinator.data)
@@ -68,7 +76,8 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs) -> None:
         """Stop climate pre-conditioning."""
         confirmed = await self.coordinator.async_send_command_and_wait(
-            self.coordinator.api.remote_climate_stop, self._vin,
+            self.coordinator.api.remote_climate_stop,
+            self._vin,
         )
         if confirmed:
             data = dict(self.coordinator.data)
@@ -83,12 +92,14 @@ class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
     _attr_icon = "mdi:ev-station"
     _attr_translation_key = "charging"
 
-    def __init__(self, coordinator, vin: str, vehicle_name: str) -> None:
+    def __init__(
+        self, coordinator, vin: str, vehicle_name: str, fuel_type: str = ""
+    ) -> None:
         description = SwitchEntityDescription(
             key="charging",
             translation_key="charging",
         )
-        super().__init__(coordinator, description, vin, vehicle_name)
+        super().__init__(coordinator, description, vin, vehicle_name, fuel_type)
 
     @property
     def is_on(self) -> bool | None:
@@ -105,7 +116,8 @@ class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
     async def async_turn_on(self, **kwargs) -> None:
         """Start charging."""
         confirmed = await self.coordinator.async_send_command_and_wait(
-            self.coordinator.api.remote_charge_start, self._vin,
+            self.coordinator.api.remote_charge_start,
+            self._vin,
         )
         if confirmed:
             data = dict(self.coordinator.data)
@@ -115,7 +127,8 @@ class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs) -> None:
         """Stop charging."""
         confirmed = await self.coordinator.async_send_command_and_wait(
-            self.coordinator.api.remote_charge_stop, self._vin,
+            self.coordinator.api.remote_charge_stop,
+            self._vin,
         )
         if confirmed:
             data = dict(self.coordinator.data)
@@ -131,12 +144,14 @@ class HondaDefrostSwitch(MyHondaPlusEntity, SwitchEntity):
     _attr_translation_key = "climate_defrost_setting"
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, coordinator, vin: str, vehicle_name: str) -> None:
+    def __init__(
+        self, coordinator, vin: str, vehicle_name: str, fuel_type: str = ""
+    ) -> None:
         description = SwitchEntityDescription(
             key="climate_defrost_setting",
             translation_key="climate_defrost_setting",
         )
-        super().__init__(coordinator, description, vin, vehicle_name)
+        super().__init__(coordinator, description, vin, vehicle_name, fuel_type)
 
     @property
     def is_on(self) -> bool:
@@ -161,7 +176,10 @@ class HondaDefrostSwitch(MyHondaPlusEntity, SwitchEntity):
             duration = 30
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.set_climate_settings,
-            self._vin, temp, duration, defrost,
+            self._vin,
+            temp,
+            duration,
+            defrost,
         )
         if confirmed:
             new_data = dict(self.coordinator.data)
@@ -177,25 +195,32 @@ class HondaAutoRefreshSwitch(MyHondaPlusEntity, SwitchEntity):
     _attr_translation_key = "auto_refresh"
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, coordinator, vin: str, vehicle_name: str, entry) -> None:
+    def __init__(
+        self,
+        coordinator,
+        vin: str,
+        vehicle_name: str,
+        fuel_type: str,
+        vehicle_data: VehicleData,
+    ) -> None:
         description = SwitchEntityDescription(
             key="auto_refresh",
             translation_key="auto_refresh",
         )
-        super().__init__(coordinator, description, vin, vehicle_name)
-        self._entry = entry
+        super().__init__(coordinator, description, vin, vehicle_name, fuel_type)
+        self._vehicle_data = vehicle_data
 
     @property
     def is_on(self) -> bool:
         """Return true if auto refresh is enabled."""
-        return self._entry.runtime_data.car_refresh_enabled
+        return self._vehicle_data.car_refresh_enabled
 
     async def async_turn_on(self, **kwargs) -> None:
         """Enable auto refresh."""
-        self._entry.runtime_data.car_refresh_enabled = True
+        self._vehicle_data.car_refresh_enabled = True
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:
         """Disable auto refresh."""
-        self._entry.runtime_data.car_refresh_enabled = False
+        self._vehicle_data.car_refresh_enabled = False
         self.async_write_ha_state()

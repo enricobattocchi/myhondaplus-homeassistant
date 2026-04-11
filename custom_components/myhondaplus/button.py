@@ -6,7 +6,6 @@ from homeassistant.components.button import ButtonEntity, ButtonEntityDescriptio
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
 from .entity import MyHondaPlusEntity
 
@@ -46,13 +45,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up My Honda+ buttons."""
-    coordinator = entry.runtime_data.coordinator
-    vin = entry.data[CONF_VIN]
-    vehicle_name = entry.data.get(CONF_VEHICLE_NAME, "")
-    async_add_entities(
-        HondaButton(coordinator, description, vin, vehicle_name)
-        for description in BUTTON_DESCRIPTIONS
-    )
+    entities = []
+    for v in entry.runtime_data.vehicles.values():
+        entities.extend(
+            HondaButton(v.coordinator, desc, v.vin, v.vehicle_name, v.fuel_type)
+            for desc in BUTTON_DESCRIPTIONS
+        )
+    async_add_entities(entities)
 
 
 class HondaButton(MyHondaPlusEntity, ButtonEntity):
@@ -64,7 +63,9 @@ class HondaButton(MyHondaPlusEntity, ButtonEntity):
         vin = self._vin
 
         if action == "horn_lights":
-            await self.coordinator.async_send_command_and_wait(api.remote_horn_lights, vin)
+            await self.coordinator.async_send_command_and_wait(
+                api.remote_horn_lights, vin
+            )
         elif action == "refresh_cached":
             await self.coordinator.async_request_refresh()
         elif action == "refresh":

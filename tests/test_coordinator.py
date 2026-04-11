@@ -36,7 +36,9 @@ def mock_entry():
 
 @pytest.fixture
 def coordinator(mock_hass, mock_entry):
-    with patch.object(HondaDataUpdateCoordinator, "__init__", lambda self, *a, **kw: None):
+    with patch.object(
+        HondaDataUpdateCoordinator, "__init__", lambda self, *a, **kw: None
+    ):
         coord = HondaDataUpdateCoordinator.__new__(HondaDataUpdateCoordinator)
         coord.hass = mock_hass
         coord.entry = mock_entry
@@ -77,38 +79,50 @@ class TestHondaDataUpdateCoordinator:
 
     @pytest.mark.asyncio
     async def test_update_401_raises_auth_failed(self, coordinator):
-        coordinator.hass.async_add_executor_job.side_effect = HondaAuthError(401, "Unauthorized")
+        coordinator.hass.async_add_executor_job.side_effect = HondaAuthError(
+            401, "Unauthorized"
+        )
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator._async_update_data()
 
     @pytest.mark.asyncio
     async def test_update_502_returns_cached_data(self, coordinator):
-        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(502, "Bad Gateway")
+        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(
+            502, "Bad Gateway"
+        )
         result = await coordinator._async_update_data()
         assert result == coordinator.data
 
     @pytest.mark.asyncio
     async def test_update_500_returns_cached_data(self, coordinator):
-        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(500, "Internal Server Error")
+        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(
+            500, "Internal Server Error"
+        )
         result = await coordinator._async_update_data()
         assert result == coordinator.data
 
     @pytest.mark.asyncio
     async def test_update_503_returns_cached_data(self, coordinator):
-        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(503, "Service Unavailable")
+        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(
+            503, "Service Unavailable"
+        )
         result = await coordinator._async_update_data()
         assert result == coordinator.data
 
     @pytest.mark.asyncio
     async def test_update_500_no_cached_data_raises(self, coordinator):
         coordinator.data = None
-        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(500, "Internal Server Error")
+        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(
+            500, "Internal Server Error"
+        )
         with pytest.raises(UpdateFailed):
             await coordinator._async_update_data()
 
     @pytest.mark.asyncio
     async def test_update_400_raises_update_failed(self, coordinator):
-        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(400, "Bad Request")
+        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(
+            400, "Bad Request"
+        )
         with pytest.raises(UpdateFailed):
             await coordinator._async_update_data()
 
@@ -132,14 +146,17 @@ class TestHondaDataUpdateCoordinator:
             await coordinator._async_update_data()
 
         logger.warning.assert_called_once_with(
-            "Honda API unavailable (%s), keeping cached vehicle data", 503,
+            "Honda API unavailable (%s), keeping cached vehicle data",
+            503,
         )
         logger.info.assert_called_once_with("Connection to Honda API restored")
 
     @pytest.mark.asyncio
     async def test_refresh_from_car_success(self, coordinator):
         coordinator.hass.async_add_executor_job.side_effect = [
-            SimpleNamespace(success=True, status="success", timed_out=False, reason=None),
+            SimpleNamespace(
+                success=True, status="success", timed_out=False, reason=None
+            ),
             dict(MOCK_DASHBOARD_DATA),
         ]
         await coordinator.async_refresh_from_car()
@@ -153,13 +170,17 @@ class TestHondaDataUpdateCoordinator:
 
     @pytest.mark.asyncio
     async def test_refresh_from_car_401(self, coordinator):
-        coordinator.hass.async_add_executor_job.side_effect = HondaAuthError(401, "Unauthorized")
+        coordinator.hass.async_add_executor_job.side_effect = HondaAuthError(
+            401, "Unauthorized"
+        )
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator.async_refresh_from_car()
 
     @pytest.mark.asyncio
     async def test_refresh_from_car_502(self, coordinator):
-        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(502, "Bad Gateway")
+        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(
+            502, "Bad Gateway"
+        )
         with pytest.raises(HomeAssistantError) as exc_info:
             await coordinator.async_refresh_from_car()
         assert exc_info.value.translation_key == "refresh_data_failed"
@@ -167,11 +188,16 @@ class TestHondaDataUpdateCoordinator:
     @pytest.mark.asyncio
     async def test_refresh_from_car_timeout_raises(self, coordinator):
         coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
-            success=False, status="pending", timed_out=True, reason=None,
+            success=False,
+            status="pending",
+            timed_out=True,
+            reason=None,
         )
 
         with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
-            with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
+            with patch(
+                "custom_components.myhondaplus.coordinator.pn_async_create"
+            ) as pn_create:
                 with pytest.raises(HomeAssistantError) as exc_info:
                     await coordinator.async_refresh_from_car()
                 assert exc_info.value.translation_key == "refresh_data_failed"
@@ -192,10 +218,15 @@ class TestHondaDataUpdateCoordinator:
     @pytest.mark.asyncio
     async def test_refresh_from_car_failure_no_notification(self, coordinator):
         coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
-            success=False, status="failed", timed_out=False, reason="error",
+            success=False,
+            status="failed",
+            timed_out=False,
+            reason="error",
         )
 
-        with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
+        with patch(
+            "custom_components.myhondaplus.coordinator.pn_async_create"
+        ) as pn_create:
             with pytest.raises(HomeAssistantError) as exc_info:
                 await coordinator.async_refresh_from_car()
             assert exc_info.value.translation_key == "refresh_data_failed"
@@ -208,19 +239,25 @@ class TestHondaDataUpdateCoordinator:
         coordinator.hass.async_add_executor_job.return_value = "ok"
         result = await coordinator.async_send_command(func, "arg1", "arg2")
         assert result == "ok"
-        coordinator.hass.async_add_executor_job.assert_awaited_once_with(func, "arg1", "arg2")
+        coordinator.hass.async_add_executor_job.assert_awaited_once_with(
+            func, "arg1", "arg2"
+        )
 
     @pytest.mark.asyncio
     async def test_send_command_401(self, coordinator):
         func = MagicMock()
-        coordinator.hass.async_add_executor_job.side_effect = HondaAuthError(401, "Unauthorized")
+        coordinator.hass.async_add_executor_job.side_effect = HondaAuthError(
+            401, "Unauthorized"
+        )
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator.async_send_command(func)
 
     @pytest.mark.asyncio
     async def test_send_command_500(self, coordinator):
         func = MagicMock()
-        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(500, "Error")
+        coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(
+            500, "Error"
+        )
         with pytest.raises(HomeAssistantError) as exc_info:
             await coordinator.async_send_command(func)
         assert exc_info.value.translation_key == "send_command_failed"
@@ -230,13 +267,18 @@ class TestHondaDataUpdateCoordinator:
         func = MagicMock()
         coordinator.async_send_command = AsyncMock(return_value="cmd-123")
         coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
-            success=True, status="success", timed_out=False, reason=None,
+            success=True,
+            status="success",
+            timed_out=False,
+            reason=None,
         )
 
         assert await coordinator.async_send_command_and_wait(func, "arg1") is True
 
         coordinator.hass.async_add_executor_job.assert_awaited_once_with(
-            coordinator.api.wait_for_command, "cmd-123", 90,
+            coordinator.api.wait_for_command,
+            "cmd-123",
+            90,
         )
 
     @pytest.mark.asyncio
@@ -244,12 +286,19 @@ class TestHondaDataUpdateCoordinator:
         func = MagicMock()
         coordinator.async_send_command = AsyncMock(return_value="cmd-123")
         coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
-            success=False, status="timeout", timed_out=True, reason=None,
+            success=False,
+            status="timeout",
+            timed_out=True,
+            reason=None,
         )
 
         with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
-            with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
-                assert await coordinator.async_send_command_and_wait(func, "arg1") is False
+            with patch(
+                "custom_components.myhondaplus.coordinator.pn_async_create"
+            ) as pn_create:
+                assert (
+                    await coordinator.async_send_command_and_wait(func, "arg1") is False
+                )
 
         logger.warning.assert_called_once_with(
             "Command timed out waiting for the car to respond (id=%s, status=%s, reason=%s)",
@@ -269,10 +318,15 @@ class TestHondaDataUpdateCoordinator:
         func = MagicMock()
         coordinator.async_send_command = AsyncMock(return_value="cmd-123")
         coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
-            success=False, status="failed", timed_out=False, reason="error",
+            success=False,
+            status="failed",
+            timed_out=False,
+            reason="error",
         )
 
-        with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
+        with patch(
+            "custom_components.myhondaplus.coordinator.pn_async_create"
+        ) as pn_create:
             assert await coordinator.async_send_command_and_wait(func, "arg1") is False
 
         pn_create.assert_not_called()
@@ -281,39 +335,53 @@ class TestHondaDataUpdateCoordinator:
     async def test_refresh_location_success(self, coordinator):
         coordinator.async_send_command = AsyncMock(return_value="cmd-123")
         coordinator.hass.async_add_executor_job.side_effect = [
-            SimpleNamespace(success=True, status="success", timed_out=False, reason=None),
+            SimpleNamespace(
+                success=True, status="success", timed_out=False, reason=None
+            ),
             dict(MOCK_DASHBOARD_DATA),
         ]
 
         await coordinator.async_refresh_location()
 
         coordinator.async_send_command.assert_awaited_once_with(
-            coordinator.api.request_car_location, MOCK_VIN,
+            coordinator.api.request_car_location,
+            MOCK_VIN,
         )
         assert coordinator.hass.async_add_executor_job.await_args_list[0].args == (
-            coordinator.api.wait_for_command, "cmd-123", 90,
+            coordinator.api.wait_for_command,
+            "cmd-123",
+            90,
         )
         assert coordinator.hass.async_add_executor_job.await_args_list[1].args == (
             coordinator._fetch_data,
         )
-        coordinator.async_set_updated_data.assert_called_once_with(dict(MOCK_DASHBOARD_DATA))
+        coordinator.async_set_updated_data.assert_called_once_with(
+            dict(MOCK_DASHBOARD_DATA)
+        )
 
     @pytest.mark.asyncio
     async def test_refresh_location_command_failure_raises(self, coordinator):
         coordinator.async_send_command = AsyncMock(return_value="cmd-123")
         coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
-            success=False, status="timeout", timed_out=True, reason=None,
+            success=False,
+            status="timeout",
+            timed_out=True,
+            reason=None,
         )
 
         with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
-            with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
+            with patch(
+                "custom_components.myhondaplus.coordinator.pn_async_create"
+            ) as pn_create:
                 with pytest.raises(HomeAssistantError) as exc_info:
                     await coordinator.async_refresh_location()
                 assert exc_info.value.translation_key == "refresh_location_failed"
 
         coordinator.async_set_updated_data.assert_not_called()
         coordinator.hass.async_add_executor_job.assert_awaited_once_with(
-            coordinator.api.wait_for_command, "cmd-123", 90,
+            coordinator.api.wait_for_command,
+            "cmd-123",
+            90,
         )
         logger.warning.assert_called_once_with(
             "Location refresh timed out waiting for the car to respond (id=%s, status=%s, reason=%s)",
@@ -332,10 +400,15 @@ class TestHondaDataUpdateCoordinator:
     async def test_refresh_location_timeout_without_notification(self, coordinator):
         coordinator.async_send_command = AsyncMock(return_value="cmd-123")
         coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
-            success=False, status="timeout", timed_out=True, reason=None,
+            success=False,
+            status="timeout",
+            timed_out=True,
+            reason=None,
         )
 
-        with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
+        with patch(
+            "custom_components.myhondaplus.coordinator.pn_async_create"
+        ) as pn_create:
             with pytest.raises(HomeAssistantError) as exc_info:
                 await coordinator.async_refresh_location(notify_on_timeout=False)
             assert exc_info.value.translation_key == "refresh_location_failed"
@@ -352,31 +425,41 @@ class TestHondaTripCoordinator:
 
     @pytest.mark.asyncio
     async def test_update_401_raises_auth_failed(self, trip_coordinator):
-        trip_coordinator.hass.async_add_executor_job.side_effect = HondaAuthError(401, "Unauthorized")
+        trip_coordinator.hass.async_add_executor_job.side_effect = HondaAuthError(
+            401, "Unauthorized"
+        )
         with pytest.raises(ConfigEntryAuthFailed):
             await trip_coordinator._async_update_data()
 
     @pytest.mark.asyncio
     async def test_update_502_returns_cached_data(self, trip_coordinator):
-        trip_coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(502, "Bad Gateway")
+        trip_coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(
+            502, "Bad Gateway"
+        )
         result = await trip_coordinator._async_update_data()
         assert result == trip_coordinator.data
 
     @pytest.mark.asyncio
     async def test_update_500_no_cached_data_raises(self, trip_coordinator):
         trip_coordinator.data = None
-        trip_coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(500, "Error")
+        trip_coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(
+            500, "Error"
+        )
         with pytest.raises(UpdateFailed):
             await trip_coordinator._async_update_data()
 
     @pytest.mark.asyncio
     async def test_update_400_raises_update_failed(self, trip_coordinator):
-        trip_coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(400, "Bad Request")
+        trip_coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(
+            400, "Bad Request"
+        )
         with pytest.raises(UpdateFailed):
             await trip_coordinator._async_update_data()
 
     @pytest.mark.asyncio
-    async def test_update_logs_unavailable_once_and_recovered_once(self, trip_coordinator):
+    async def test_update_logs_unavailable_once_and_recovered_once(
+        self, trip_coordinator
+    ):
         with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
             trip_coordinator.hass.async_add_executor_job.side_effect = [
                 HondaAPIError(502, "Bad Gateway"),
@@ -389,6 +472,7 @@ class TestHondaTripCoordinator:
             await trip_coordinator._async_update_data()
 
         logger.warning.assert_called_once_with(
-            "Honda API unavailable (%s), keeping cached trip data", 502,
+            "Honda API unavailable (%s), keeping cached trip data",
+            502,
         )
         logger.info.assert_called_once_with("Connection to Honda API restored")

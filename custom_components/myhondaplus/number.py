@@ -8,7 +8,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
 from .entity import MyHondaPlusEntity
 
@@ -50,13 +49,15 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up My Honda+ charge limit numbers."""
-    coordinator = entry.runtime_data.coordinator
-    vin = entry.data[CONF_VIN]
-    vehicle_name = entry.data.get(CONF_VEHICLE_NAME, "")
-    async_add_entities(
-        HondaChargeLimitNumber(coordinator, description, vin, vehicle_name)
-        for description in NUMBER_DESCRIPTIONS
-    )
+    entities = []
+    for v in entry.runtime_data.vehicles.values():
+        entities.extend(
+            HondaChargeLimitNumber(
+                v.coordinator, desc, v.vin, v.vehicle_name, v.fuel_type
+            )
+            for desc in NUMBER_DESCRIPTIONS
+        )
+    async_add_entities(entities)
 
 
 class HondaChargeLimitNumber(MyHondaPlusEntity, NumberEntity):
@@ -84,7 +85,10 @@ class HondaChargeLimitNumber(MyHondaPlusEntity, NumberEntity):
             away = int(value)
 
         confirmed = await self.coordinator.async_send_command_and_wait(
-            self.coordinator.api.set_charge_limit, self._vin, home, away,
+            self.coordinator.api.set_charge_limit,
+            self._vin,
+            home,
+            away,
         )
         if confirmed:
             new_data = dict(self.coordinator.data)

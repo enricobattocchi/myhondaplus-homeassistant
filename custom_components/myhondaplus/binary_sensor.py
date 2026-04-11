@@ -10,7 +10,6 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_VEHICLE_NAME, CONF_VIN
 from .data import MyHondaPlusConfigEntry
 from .entity import MyHondaPlusEntity, to_bool
 
@@ -70,13 +69,19 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up My Honda+ binary sensors."""
-    coordinator = entry.runtime_data.coordinator
-    vin = entry.data[CONF_VIN]
-    vehicle_name = entry.data.get(CONF_VEHICLE_NAME, "")
-    async_add_entities(
-        HondaBinarySensor(coordinator, description, vin, vehicle_name)
-        for description in BINARY_SENSOR_DESCRIPTIONS
-    )
+    entities = []
+    for vehicle in entry.runtime_data.vehicles.values():
+        entities.extend(
+            HondaBinarySensor(
+                vehicle.coordinator,
+                desc,
+                vehicle.vin,
+                vehicle.vehicle_name,
+                vehicle.fuel_type,
+            )
+            for desc in BINARY_SENSOR_DESCRIPTIONS
+        )
+    async_add_entities(entities)
 
 
 class HondaBinarySensor(MyHondaPlusEntity, BinarySensorEntity):

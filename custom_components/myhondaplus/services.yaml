@@ -3,12 +3,12 @@ set_charge_schedule:
   description: Update the vehicle's charge prohibition schedule. Pass an empty list to clear all rules.
 
   fields:
-    config_entry:
+    device:
       name: Vehicle
       description: Select the My Honda+ vehicle to control.
       required: true
       selector:
-        config_entry:
+        device:
           integration: myhondaplus
     rules:
       name: Schedule rules
@@ -26,12 +26,12 @@ climate_on:
   description: Apply the requested climate settings and then send the remote climate-start command to the vehicle.
 
   fields:
-    config_entry:
+    device:
       name: Vehicle
       description: Select the My Honda+ vehicle to control.
       required: true
       selector:
-        config_entry:
+        device:
           integration: myhondaplus
     temp:
       name: Temperature
@@ -71,12 +71,12 @@ set_climate_schedule:
   description: Update the vehicle's climate pre-conditioning schedule. Pass an empty list to clear all rules.
 
   fields:
-    config_entry:
+    device:
       name: Vehicle
       description: Select the My Honda+ vehicle to control.
       required: true
       selector:
-        config_entry:
+        device:
           integration: myhondaplus
     rules:
       name: Schedule rules

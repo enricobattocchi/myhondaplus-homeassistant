@@ -51,7 +51,8 @@ class TestDoorLock:
     async def test_lock(self, door_lock):
         await door_lock.async_lock()
         door_lock.coordinator.async_send_command_and_wait.assert_awaited_once_with(
-            door_lock.coordinator.api.remote_lock, MOCK_VIN,
+            door_lock.coordinator.api.remote_lock,
+            MOCK_VIN,
         )
         door_lock.coordinator.async_set_updated_data.assert_called_once()
         data = door_lock.coordinator.async_set_updated_data.call_args[0][0]
@@ -61,7 +62,8 @@ class TestDoorLock:
     async def test_unlock(self, door_lock):
         await door_lock.async_unlock()
         door_lock.coordinator.async_send_command_and_wait.assert_awaited_once_with(
-            door_lock.coordinator.api.remote_unlock, MOCK_VIN,
+            door_lock.coordinator.api.remote_unlock,
+            MOCK_VIN,
         )
         door_lock.coordinator.async_set_updated_data.assert_called_once()
         data = door_lock.coordinator.async_set_updated_data.call_args[0][0]

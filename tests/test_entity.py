@@ -7,11 +7,13 @@ from custom_components.myhondaplus.entity import FUEL_TYPE_LABELS, MyHondaPlusEn
 from .conftest import MOCK_VEHICLE_NAME, MOCK_VIN
 
 
-def make_entity(coordinator, vin=MOCK_VIN, vehicle_name=MOCK_VEHICLE_NAME):
+def make_entity(
+    coordinator, vin=MOCK_VIN, vehicle_name=MOCK_VEHICLE_NAME, fuel_type="E"
+):
     """Create a MyHondaPlusEntity instance."""
     desc = MagicMock()
     desc.key = "test_key"
-    entity = MyHondaPlusEntity(coordinator, desc, vin, vehicle_name)
+    entity = MyHondaPlusEntity(coordinator, desc, vin, vehicle_name, fuel_type)
     entity.hass = MagicMock()
     return entity
 
@@ -39,8 +41,7 @@ class TestMyHondaPlusEntity:
         assert info["model"] == "Electric"
 
     def test_device_info_model_no_fuel_type(self, mock_coordinator):
-        mock_coordinator.entry.data["fuel_type"] = ""
-        entity = make_entity(mock_coordinator)
+        entity = make_entity(mock_coordinator, fuel_type="")
         info = entity.device_info
         assert "model" not in info
 

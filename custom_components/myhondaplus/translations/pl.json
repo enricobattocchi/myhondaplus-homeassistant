@@ -19,16 +19,6 @@
           "location_refresh_interval": "Jak często Home Assistant pobiera pozycję GPS z pojazdu. Ustaw 0, aby wyłączyć."
         }
       },
-      "select_vehicle": {
-        "title": "Wybierz pojazd",
-        "description": "Na Twoim koncie znaleziono wiele pojazdów. Wybierz, który chcesz dodać.",
-        "data": {
-          "vin": "Pojazd"
-        },
-        "data_description": {
-          "vin": "Wybierz pojazd z konta My Honda+, który chcesz dodać do Home Assistant."
-        }
-      },
       "manual_vin": {
         "title": "Wprowadź VIN",
         "description": "Nie udało się automatycznie wykryć pojazdów. Wprowadź VIN ręcznie.",
@@ -100,14 +90,11 @@
     "refresh_location_failed": {
       "message": "Nie udało się odświeżyć lokalizacji z pojazdu"
     },
-    "config_entry_not_found": {
-      "message": "Nie można wywołać usługi {service}. Wpis konfiguracji {entry_id} nie został znaleziony"
+    "device_required": {
+      "message": "Select a vehicle to control."
     },
-    "config_entry_not_loaded": {
-      "message": "Nie można wywołać usługi {service}. Wpis konfiguracji {entry_id} nie jest załadowany"
-    },
-    "config_entry_no_data": {
-      "message": "Nie można wywołać usługi {service}. Wpis konfiguracji {entry_id} nie ma danych"
+    "device_not_found": {
+      "message": "Vehicle not found or not loaded."
     }
   },
   "entity": {

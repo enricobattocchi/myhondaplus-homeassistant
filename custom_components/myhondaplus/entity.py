@@ -8,7 +8,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
-from .const import CONF_FUEL_TYPE, DOMAIN
+from .const import DOMAIN
 
 
 def to_bool(value) -> bool | None:
@@ -20,6 +20,7 @@ def to_bool(value) -> bool | None:
     if isinstance(value, str):
         return value.lower() in ("true", "on", "yes", "1", "locked")
     return bool(value)
+
 
 FUEL_TYPE_LABELS = {
     "E": "Electric",
@@ -41,6 +42,7 @@ class MyHondaPlusEntity(CoordinatorEntity[DataUpdateCoordinator[dict]]):
         description,
         vin: str,
         vehicle_name: str = "",
+        fuel_type: str = "",
     ) -> None:
         """Initialize the entity."""
         super().__init__(coordinator)
@@ -48,7 +50,7 @@ class MyHondaPlusEntity(CoordinatorEntity[DataUpdateCoordinator[dict]]):
         self._attr_unique_id = f"{vin}_{description.key}"
         self._vin = vin
         self._vehicle_name = vehicle_name
-        self._fuel_type = coordinator.entry.data.get(CONF_FUEL_TYPE, "")
+        self._fuel_type = fuel_type
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -68,7 +70,9 @@ class MyHondaPlusEntity(CoordinatorEntity[DataUpdateCoordinator[dict]]):
         if self._refresh_unsub:
             self._refresh_unsub()
         self._refresh_unsub = async_call_later(
-            self.hass, delay, self._do_refresh,
+            self.hass,
+            delay,
+            self._do_refresh,
         )
 
     async def async_will_remove_from_hass(self) -> None:

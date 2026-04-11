@@ -19,16 +19,6 @@
           "location_refresh_interval": "Hur ofta Home Assistant begär GPS-position från fordonet. Sätt till 0 för att inaktivera."
         }
       },
-      "select_vehicle": {
-        "title": "Välj fordon",
-        "description": "Flera fordon hittades i ditt konto. Välj vilket som ska läggas till.",
-        "data": {
-          "vin": "Fordon"
-        },
-        "data_description": {
-          "vin": "Välj fordonet från ditt My Honda+ konto att lägga till i Home Assistant."
-        }
-      },
       "manual_vin": {
         "title": "Ange VIN",
         "description": "Automatisk identifiering av fordon misslyckades. Ange VIN manuellt.",
@@ -100,14 +90,11 @@
     "refresh_location_failed": {
       "message": "Kunde inte uppdatera positionen från fordonet"
     },
-    "config_entry_not_found": {
-      "message": "Kan inte anropa tjänsten {service}. Konfigurationspost {entry_id} hittades inte"
+    "device_required": {
+      "message": "Select a vehicle to control."
     },
-    "config_entry_not_loaded": {
-      "message": "Kan inte anropa tjänsten {service}. Konfigurationspost {entry_id} inte laddad"
-    },
-    "config_entry_no_data": {
-      "message": "Kan inte anropa tjänsten {service}. Konfigurationspost {entry_id} utan data"
+    "device_not_found": {
+      "message": "Vehicle not found or not loaded."
     }
   },
   "entity": {
