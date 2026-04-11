@@ -234,15 +234,21 @@ def _get_coordinator(
     entry = hass.config_entries.async_get_entry(entry_id)
     if entry is None or entry.domain != DOMAIN:
         raise ServiceValidationError(
-            f"Failed to call service '{call.service}'. Config entry '{entry_id}' not found"
+            translation_domain=DOMAIN,
+            translation_key="config_entry_not_found",
+            translation_placeholders={"service": call.service, "entry_id": entry_id},
         )
     if entry.state != ConfigEntryState.LOADED:
         raise ServiceValidationError(
-            f"Failed to call service '{call.service}'. Config entry '{entry_id}' not loaded"
+            translation_domain=DOMAIN,
+            translation_key="config_entry_not_loaded",
+            translation_placeholders={"service": call.service, "entry_id": entry_id},
         )
     if not hasattr(entry, "runtime_data") or not entry.runtime_data:
         raise ServiceValidationError(
-            f"Failed to call service '{call.service}'. Config entry '{entry_id}' has no runtime data"
+            translation_domain=DOMAIN,
+            translation_key="config_entry_no_data",
+            translation_placeholders={"service": call.service, "entry_id": entry_id},
         )
     return entry.runtime_data.coordinator
 

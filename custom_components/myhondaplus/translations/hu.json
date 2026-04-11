@@ -1,0 +1,309 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "My Honda+",
+        "description": "Add meg a My Honda+ fiókod bejelentkezési adatait",
+        "data": {
+          "email": "Email",
+          "password": "Password",
+          "scan_interval": "Frissítési időköz (másodperc)",
+          "car_refresh_interval": "Jármű frissítési időköz (másodperc, 0 a letiltáshoz)",
+          "location_refresh_interval": "Helyzet frissítési időköz (másodperc, 0 a letiltáshoz)"
+        },
+        "data_description": {
+          "email": "A My Honda+ alkalmazásba való bejelentkezéshez használt email cím.",
+          "password": "A My Honda+ fiókod jelszava.",
+          "scan_interval": "Milyen gyakran kérje le a Home Assistant a Honda által tárolt adatokat.",
+          "car_refresh_interval": "Milyen gyakran ébressze fel a Home Assistant a járművet a friss adatokért. Állítsd 0-ra a letiltáshoz.",
+          "location_refresh_interval": "Milyen gyakran kérje le a Home Assistant a GPS helyzetet a járműtől. Állítsd 0-ra a letiltáshoz."
+        }
+      },
+      "select_vehicle": {
+        "title": "Jármű kiválasztása",
+        "description": "Több jármű található a fiókodban. Válaszd ki, melyiket szeretnéd hozzáadni.",
+        "data": {
+          "vin": "Jármű"
+        },
+        "data_description": {
+          "vin": "Válaszd ki a My Honda+ fiókodból a Home Assistant-hoz hozzáadni kívánt járművet."
+        }
+      },
+      "manual_vin": {
+        "title": "VIN megadása",
+        "description": "A járművek automatikus felismerése nem sikerült. Add meg a VIN-t kézzel.",
+        "data": {
+          "vin": "Járműazonosító szám (VIN)"
+        },
+        "data_description": {
+          "vin": "Add meg a VIN-t pontosan úgy, ahogy a Honda rendszerben szerepel, ha az automatikus felismerés nem működött."
+        }
+      },
+      "verify": {
+        "title": "Email ellenőrzés",
+        "description": "A Honda ellenőrző emailt küldött. Másold ki a link URL-jét az emailből (NE kattints rá), és illeszd be ide.",
+        "data": {
+          "verification_link": "Ellenőrző link az emailből"
+        },
+        "data_description": {
+          "verification_link": "Illeszd be a Honda emailjéből kapott teljes ellenőrző URL-t."
+        }
+      },
+      "reauth_confirm": {
+        "title": "My Honda+ újrahitelesítés",
+        "description": "A munkamenet lejárt. Add meg újra a bejelentkezési adataidat.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "email": "A My Honda+ alkalmazásba való bejelentkezéshez használt email cím.",
+          "password": "A My Honda+ fiókod jelszava."
+        }
+      }
+    },
+    "abort": {
+      "reauth_successful": "Újrahitelesítés sikeres"
+    },
+    "error": {
+      "cannot_connect": "Nem sikerült csatlakozni a Honda API-hoz",
+      "invalid_auth": "Érvénytelen email vagy jelszó",
+      "account_locked": "A fiók zárolva van. Próbáld újra később.",
+      "invalid_link": "Az ellenőrző link feldolgozása nem sikerült. Másold ki a teljes URL-t.",
+      "verification_failed": "Az ellenőrzés nem sikerült. Próbáld újra."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "My Honda+ beállítások",
+        "data": {
+          "scan_interval": "Frissítési időköz (másodperc)",
+          "car_refresh_interval": "Jármű frissítési időköz (másodperc, 0 a letiltáshoz)",
+          "location_refresh_interval": "Helyzet frissítési időköz (másodperc, 0 a letiltáshoz)"
+        },
+        "data_description": {
+          "scan_interval": "Milyen gyakran kérje le a Home Assistant a Honda által tárolt adatokat.",
+          "car_refresh_interval": "Milyen gyakran ébressze fel a Home Assistant a járművet a friss adatokért. Állítsd 0-ra a letiltáshoz.",
+          "location_refresh_interval": "Milyen gyakran kérje le a Home Assistant a GPS helyzetet a járműtől. Állítsd 0-ra a letiltáshoz."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "refresh_data_failed": {
+      "message": "Nem sikerült frissíteni az adatokat a járműtől"
+    },
+    "send_command_failed": {
+      "message": "Nem sikerült elküldeni a parancsot a járműnek"
+    },
+    "refresh_location_failed": {
+      "message": "Nem sikerült frissíteni a helyzetet a járműtől"
+    },
+    "config_entry_not_found": {
+      "message": "Nem sikerült meghívni a(z) {service} szolgáltatást. A(z) {entry_id} konfigurációs bejegyzés nem található"
+    },
+    "config_entry_not_loaded": {
+      "message": "Nem sikerült meghívni a(z) {service} szolgáltatást. A(z) {entry_id} konfigurációs bejegyzés nincs betöltve"
+    },
+    "config_entry_no_data": {
+      "message": "Nem sikerült meghívni a(z) {service} szolgáltatást. A(z) {entry_id} konfigurációs bejegyzésnek nincsenek adatai"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "doors_open": {
+        "name": "Ajtók"
+      },
+      "windows_open": {
+        "name": "Ablakok"
+      },
+      "hood": {
+        "name": "Motorháztető"
+      },
+      "trunk": {
+        "name": "Csomagtartó"
+      },
+      "lights": {
+        "name": "Lámpák"
+      }
+    },
+    "sensor": {
+      "battery_level": {
+        "name": "Akkumulátor"
+      },
+      "range_climate_on": {
+        "name": "Hatótáv (klíma be)"
+      },
+      "range_climate_off": {
+        "name": "Hatótáv (klíma ki)"
+      },
+      "total_range": {
+        "name": "Teljes hatótáv"
+      },
+      "charge_status": {
+        "name": "Töltés állapota",
+        "state": {
+          "stopped": "Leállítva",
+          "charging": "Töltés",
+          "complete": "Befejezve",
+          "notcharging": "Nem töltődik",
+          "unknown": "Ismeretlen"
+        }
+      },
+      "plug_status": {
+        "name": "Csatlakozó állapota",
+        "state": {
+          "plugged_in": "Csatlakoztatva",
+          "connected": "Csatlakoztatva",
+          "unplugged": "Leválasztva",
+          "disconnected": "Leválasztva",
+          "unknown": "Ismeretlen"
+        }
+      },
+      "home_away": {
+        "name": "Otthon / Távol",
+        "state": {
+          "home": "Otthon",
+          "away": "Távol",
+          "unknown": "Ismeretlen"
+        }
+      },
+      "climate_active": {
+        "name": "Klíma aktív"
+      },
+      "cabin_temperature": {
+        "name": "Utastér hőmérséklet"
+      },
+      "odometer": {
+        "name": "Kilométeróra"
+      },
+      "doors_locked": {
+        "name": "Ajtók zárva"
+      },
+      "ignition": {
+        "name": "Gyújtás"
+      },
+      "speed": {
+        "name": "Sebesség"
+      },
+      "charge_mode": {
+        "name": "Töltési mód",
+        "state": {
+          "unconfirmed": "Nem megerősített",
+          "100v_charging": "100V töltés",
+          "200v_charging": "200V töltés",
+          "fast_charging": "Gyorstöltés",
+          "unknown": "Ismeretlen"
+        }
+      },
+      "time_to_charge": {
+        "name": "Hátralévő töltési idő"
+      },
+      "interior_temperature": {
+        "name": "Belső hőmérséklet"
+      },
+      "headlights": {
+        "name": "Fényszórók"
+      },
+      "parking_lights": {
+        "name": "Parkolólámpák"
+      },
+      "warnings": {
+        "name": "Figyelmeztető jelzések"
+      },
+      "last_updated": {
+        "name": "Utolsó frissítés"
+      },
+      "trips_this_month": {
+        "name": "Utak ebben a hónapban"
+      },
+      "distance_this_month": {
+        "name": "Távolság ebben a hónapban"
+      },
+      "driving_time_this_month": {
+        "name": "Vezetési idő ebben a hónapban"
+      },
+      "avg_consumption_this_month": {
+        "name": "Átlagfogyasztás ebben a hónapban"
+      },
+      "climate_temp": {
+        "name": "Klíma hőmérséklet",
+        "state": {
+          "cooler": "Hidegebb",
+          "normal": "Normál",
+          "hotter": "Melegebb",
+          "unknown": "Ismeretlen"
+        }
+      },
+      "climate_duration": {
+        "name": "Klíma időtartam"
+      },
+      "climate_defrost": {
+        "name": "Automatikus jégtelenítés"
+      },
+      "charge_schedule": {
+        "name": "Töltés ütemezés"
+      },
+      "climate_schedule": {
+        "name": "Klíma ütemezés"
+      }
+    },
+    "device_tracker": {
+      "vehicle_location": {
+        "name": "Helyzet"
+      }
+    },
+    "button": {
+      "horn_lights": {
+        "name": "Kürt és lámpák"
+      },
+      "refresh_cached": {
+        "name": "Frissítés"
+      },
+      "refresh_data": {
+        "name": "Frissítés a járműtől"
+      }
+    },
+    "lock": {
+      "doors": {
+        "name": "Ajtók"
+      }
+    },
+    "switch": {
+      "climate": {
+        "name": "Klíma"
+      },
+      "charging": {
+        "name": "Töltés"
+      },
+      "climate_defrost_setting": {
+        "name": "Automatikus jégtelenítés"
+      },
+      "auto_refresh": {
+        "name": "Automatikus frissítés a járműtől"
+      }
+    },
+    "select": {
+      "climate_temp_setting": {
+        "name": "Klíma hőmérséklet",
+        "state": {
+          "cooler": "Hidegebb",
+          "normal": "Normál",
+          "hotter": "Melegebb"
+        }
+      },
+      "climate_duration_setting": {
+        "name": "Klíma időtartam (perc)"
+      }
+    },
+    "number": {
+      "charge_limit_home": {
+        "name": "Töltési limit (otthon)"
+      },
+      "charge_limit_away": {
+        "name": "Töltési limit (távol)"
+      }
+    }
+  }
+}

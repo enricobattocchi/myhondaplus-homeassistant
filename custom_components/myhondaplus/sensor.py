@@ -43,8 +43,16 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
     ),
     HondaSensorDescription(
-        key="range",
-        translation_key="range",
+        key="range_climate_on",
+        translation_key="range_climate_on",
+        device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:map-marker-distance",
+        dynamic_unit="distance",
+    ),
+    HondaSensorDescription(
+        key="range_climate_off",
+        translation_key="range_climate_off",
         device_class=SensorDeviceClass.DISTANCE,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:map-marker-distance",
@@ -61,16 +69,22 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
     HondaSensorDescription(
         key="charge_status",
         translation_key="charge_status",
+        device_class=SensorDeviceClass.ENUM,
+        options=["stopped", "charging", "complete", "notcharging", "unknown"],
         icon="mdi:ev-station",
     ),
     HondaSensorDescription(
         key="plug_status",
         translation_key="plug_status",
+        device_class=SensorDeviceClass.ENUM,
+        options=["plugged_in", "connected", "unplugged", "disconnected", "unknown"],
         icon="mdi:power-plug",
     ),
     HondaSensorDescription(
         key="home_away",
         translation_key="home_away",
+        device_class=SensorDeviceClass.ENUM,
+        options=["home", "away", "unknown"],
         icon="mdi:home-map-marker",
     ),
     HondaSensorDescription(
@@ -114,6 +128,8 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
     HondaSensorDescription(
         key="charge_mode",
         translation_key="charge_mode",
+        device_class=SensorDeviceClass.ENUM,
+        options=["unconfirmed", "100v_charging", "200v_charging", "fast_charging", "unknown"],
         icon="mdi:ev-station",
     ),
     HondaSensorDescription(
@@ -156,6 +172,8 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
     HondaSensorDescription(
         key="climate_temp",
         translation_key="climate_temp",
+        device_class=SensorDeviceClass.ENUM,
+        options=["cooler", "normal", "hotter", "unknown"],
         icon="mdi:thermometer",
     ),
     HondaSensorDescription(
@@ -268,6 +286,8 @@ class HondaSensor(MyHondaPlusEntity, SensorEntity):
                 return datetime.fromisoformat(value)
             except ValueError:
                 return None
+        if self.entity_description.device_class == SensorDeviceClass.ENUM and isinstance(value, str):
+            return value.replace(" ", "_")
         return value
 
     @property

@@ -1,0 +1,309 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "My Honda+",
+        "description": "Zadejte přihlašovací údaje k účtu My Honda+",
+        "data": {
+          "email": "Email",
+          "password": "Password",
+          "scan_interval": "Interval aktualizace (sekundy)",
+          "car_refresh_interval": "Interval aktualizace z vozidla (sekundy, 0 pro vypnutí)",
+          "location_refresh_interval": "Interval aktualizace polohy (sekundy, 0 pro vypnutí)"
+        },
+        "data_description": {
+          "email": "E-mailová adresa používaná pro přihlášení do aplikace My Honda+.",
+          "password": "Password k vašemu účtu My Honda+.",
+          "scan_interval": "Jak často Home Assistant požaduje uložená data od Honda.",
+          "car_refresh_interval": "Jak často Home Assistant probudí vozidlo pro aktuální data. Nastavte 0 pro vypnutí.",
+          "location_refresh_interval": "Jak často Home Assistant požaduje GPS polohu z vozidla. Nastavte 0 pro vypnutí."
+        }
+      },
+      "select_vehicle": {
+        "title": "Výběr vozidla",
+        "description": "Ve vašem účtu bylo nalezeno více vozidel. Vyberte, které chcete přidat.",
+        "data": {
+          "vin": "Vozidlo"
+        },
+        "data_description": {
+          "vin": "Vyberte vozidlo z vašeho účtu My Honda+, které chcete přidat do Home Assistant."
+        }
+      },
+      "manual_vin": {
+        "title": "Zadejte VIN",
+        "description": "Automatická detekce vozidel se nezdařila. Zadejte VIN ručně.",
+        "data": {
+          "vin": "Identifikační číslo vozidla (VIN)"
+        },
+        "data_description": {
+          "vin": "Zadejte VIN přesně tak, jak jej uvádí Honda, pokud automatická detekce nefungovala."
+        }
+      },
+      "verify": {
+        "title": "Ověření e-mailu",
+        "description": "Honda odeslala ověřovací e-mail. Zkopírujte URL odkazu z e-mailu (NEKLIKEJTE na něj) a vložte jej níže.",
+        "data": {
+          "verification_link": "Ověřovací odkaz z e-mailu"
+        },
+        "data_description": {
+          "verification_link": "Vložte úplnou ověřovací URL z e-mailu od Honda."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Opětovné ověření My Honda+",
+        "description": "Relace vypršela. Zadejte znovu své přihlašovací údaje.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "email": "E-mailová adresa používaná pro přihlášení do aplikace My Honda+.",
+          "password": "Password k vašemu účtu My Honda+."
+        }
+      }
+    },
+    "abort": {
+      "reauth_successful": "Opětovné ověření úspěšné"
+    },
+    "error": {
+      "cannot_connect": "Nelze se připojit k API Honda",
+      "invalid_auth": "Neplatný e-mail nebo heslo",
+      "account_locked": "Účet je zablokován. Zkuste to později.",
+      "invalid_link": "Nelze zpracovat ověřovací odkaz. Zkopírujte úplnou URL.",
+      "verification_failed": "Ověření se nezdařilo. Zkuste to znovu."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Nastavení My Honda+",
+        "data": {
+          "scan_interval": "Interval aktualizace (sekundy)",
+          "car_refresh_interval": "Interval aktualizace z vozidla (sekundy, 0 pro vypnutí)",
+          "location_refresh_interval": "Interval aktualizace polohy (sekundy, 0 pro vypnutí)"
+        },
+        "data_description": {
+          "scan_interval": "Jak často Home Assistant požaduje uložená data od Honda.",
+          "car_refresh_interval": "Jak často Home Assistant probudí vozidlo pro aktuální data. Nastavte 0 pro vypnutí.",
+          "location_refresh_interval": "Jak často Home Assistant požaduje GPS polohu z vozidla. Nastavte 0 pro vypnutí."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "refresh_data_failed": {
+      "message": "Nepodařilo se aktualizovat data z vozidla"
+    },
+    "send_command_failed": {
+      "message": "Nepodařilo se odeslat příkaz do vozidla"
+    },
+    "refresh_location_failed": {
+      "message": "Nepodařilo se aktualizovat polohu z vozidla"
+    },
+    "config_entry_not_found": {
+      "message": "Nelze zavolat službu {service}. Konfigurační záznam {entry_id} nebyl nalezen"
+    },
+    "config_entry_not_loaded": {
+      "message": "Nelze zavolat službu {service}. Konfigurační záznam {entry_id} není načten"
+    },
+    "config_entry_no_data": {
+      "message": "Nelze zavolat službu {service}. Konfigurační záznam {entry_id} nemá data"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "doors_open": {
+        "name": "Dveře"
+      },
+      "windows_open": {
+        "name": "Okna"
+      },
+      "hood": {
+        "name": "Kapota"
+      },
+      "trunk": {
+        "name": "Zavazadlový prostor"
+      },
+      "lights": {
+        "name": "Světla"
+      }
+    },
+    "sensor": {
+      "battery_level": {
+        "name": "Baterie"
+      },
+      "range_climate_on": {
+        "name": "Dojezd (klimatizace zapnuta)"
+      },
+      "range_climate_off": {
+        "name": "Dojezd (klimatizace vypnuta)"
+      },
+      "total_range": {
+        "name": "Celkový dojezd"
+      },
+      "charge_status": {
+        "name": "Stav nabíjení",
+        "state": {
+          "stopped": "Zastaveno",
+          "charging": "Nabíjí se",
+          "complete": "Dokončeno",
+          "notcharging": "Nenabíjí se",
+          "unknown": "Neznámé"
+        }
+      },
+      "plug_status": {
+        "name": "Stav zásuvky",
+        "state": {
+          "plugged_in": "Připojeno",
+          "connected": "Připojeno",
+          "unplugged": "Odpojeno",
+          "disconnected": "Odpojeno",
+          "unknown": "Neznámé"
+        }
+      },
+      "home_away": {
+        "name": "Doma / Pryč",
+        "state": {
+          "home": "Doma",
+          "away": "Mimo domov",
+          "unknown": "Neznámé"
+        }
+      },
+      "climate_active": {
+        "name": "Klimatizace aktivní"
+      },
+      "cabin_temperature": {
+        "name": "Teplota kabiny"
+      },
+      "odometer": {
+        "name": "Počítadlo kilometrů"
+      },
+      "doors_locked": {
+        "name": "Zamknuto"
+      },
+      "ignition": {
+        "name": "Zapalování"
+      },
+      "speed": {
+        "name": "Rychlost"
+      },
+      "charge_mode": {
+        "name": "Režim nabíjení",
+        "state": {
+          "unconfirmed": "Nepotvrzeno",
+          "100v_charging": "Nabíjení 100V",
+          "200v_charging": "Nabíjení 200V",
+          "fast_charging": "Rychlé nabíjení",
+          "unknown": "Neznámé"
+        }
+      },
+      "time_to_charge": {
+        "name": "Čas do plného nabití"
+      },
+      "interior_temperature": {
+        "name": "Vnitřní teplota"
+      },
+      "headlights": {
+        "name": "Přední světla"
+      },
+      "parking_lights": {
+        "name": "Parkovací světla"
+      },
+      "warnings": {
+        "name": "Výstražné kontrolky"
+      },
+      "last_updated": {
+        "name": "Poslední aktualizace"
+      },
+      "trips_this_month": {
+        "name": "Cesty tento měsíc"
+      },
+      "distance_this_month": {
+        "name": "Vzdálenost tento měsíc"
+      },
+      "driving_time_this_month": {
+        "name": "Doba jízdy tento měsíc"
+      },
+      "avg_consumption_this_month": {
+        "name": "Průměrná spotřeba tento měsíc"
+      },
+      "climate_temp": {
+        "name": "Teplota klimatizace",
+        "state": {
+          "cooler": "Chladnější",
+          "normal": "Normální",
+          "hotter": "Teplejší",
+          "unknown": "Neznámé"
+        }
+      },
+      "climate_duration": {
+        "name": "Doba klimatizace"
+      },
+      "climate_defrost": {
+        "name": "Automatické odmrazování"
+      },
+      "charge_schedule": {
+        "name": "Plán nabíjení"
+      },
+      "climate_schedule": {
+        "name": "Plán klimatizace"
+      }
+    },
+    "device_tracker": {
+      "vehicle_location": {
+        "name": "Poloha"
+      }
+    },
+    "button": {
+      "horn_lights": {
+        "name": "Klakson a světla"
+      },
+      "refresh_cached": {
+        "name": "Aktualizovat"
+      },
+      "refresh_data": {
+        "name": "Aktualizovat z vozidla"
+      }
+    },
+    "lock": {
+      "doors": {
+        "name": "Dveře"
+      }
+    },
+    "switch": {
+      "climate": {
+        "name": "Klimatizace"
+      },
+      "charging": {
+        "name": "Nabíjení"
+      },
+      "climate_defrost_setting": {
+        "name": "Automatické odmrazování"
+      },
+      "auto_refresh": {
+        "name": "Automatická aktualizace z vozidla"
+      }
+    },
+    "select": {
+      "climate_temp_setting": {
+        "name": "Teplota klimatizace",
+        "state": {
+          "cooler": "Chladnější",
+          "normal": "Normální",
+          "hotter": "Teplejší"
+        }
+      },
+      "climate_duration_setting": {
+        "name": "Doba klimatizace (min)"
+      }
+    },
+    "number": {
+      "charge_limit_home": {
+        "name": "Limit nabíjení (doma)"
+      },
+      "charge_limit_away": {
+        "name": "Limit nabíjení (pryč)"
+      }
+    }
+  }
+}

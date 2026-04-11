@@ -160,8 +160,9 @@ class TestHondaDataUpdateCoordinator:
     @pytest.mark.asyncio
     async def test_refresh_from_car_502(self, coordinator):
         coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(502, "Bad Gateway")
-        with pytest.raises(HomeAssistantError, match="Unable to refresh data"):
+        with pytest.raises(HomeAssistantError) as exc_info:
             await coordinator.async_refresh_from_car()
+        assert exc_info.value.translation_key == "refresh_data_failed"
 
     @pytest.mark.asyncio
     async def test_refresh_from_car_timeout_raises(self, coordinator):
@@ -171,8 +172,9 @@ class TestHondaDataUpdateCoordinator:
 
         with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
             with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
-                with pytest.raises(HomeAssistantError, match="Unable to refresh data"):
+                with pytest.raises(HomeAssistantError) as exc_info:
                     await coordinator.async_refresh_from_car()
+                assert exc_info.value.translation_key == "refresh_data_failed"
 
         coordinator.async_set_updated_data.assert_not_called()
         logger.warning.assert_called_once_with(
@@ -194,8 +196,9 @@ class TestHondaDataUpdateCoordinator:
         )
 
         with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
-            with pytest.raises(HomeAssistantError, match="Unable to refresh data"):
+            with pytest.raises(HomeAssistantError) as exc_info:
                 await coordinator.async_refresh_from_car()
+            assert exc_info.value.translation_key == "refresh_data_failed"
 
         pn_create.assert_not_called()
 
@@ -218,8 +221,9 @@ class TestHondaDataUpdateCoordinator:
     async def test_send_command_500(self, coordinator):
         func = MagicMock()
         coordinator.hass.async_add_executor_job.side_effect = HondaAPIError(500, "Error")
-        with pytest.raises(HomeAssistantError, match="Unable to send command"):
+        with pytest.raises(HomeAssistantError) as exc_info:
             await coordinator.async_send_command(func)
+        assert exc_info.value.translation_key == "send_command_failed"
 
     @pytest.mark.asyncio
     async def test_send_command_and_wait_uses_90_second_timeout(self, coordinator):
@@ -303,8 +307,9 @@ class TestHondaDataUpdateCoordinator:
 
         with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
             with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
-                with pytest.raises(HomeAssistantError, match="Unable to refresh location"):
+                with pytest.raises(HomeAssistantError) as exc_info:
                     await coordinator.async_refresh_location()
+                assert exc_info.value.translation_key == "refresh_location_failed"
 
         coordinator.async_set_updated_data.assert_not_called()
         coordinator.hass.async_add_executor_job.assert_awaited_once_with(
@@ -331,8 +336,9 @@ class TestHondaDataUpdateCoordinator:
         )
 
         with patch("custom_components.myhondaplus.coordinator.pn_async_create") as pn_create:
-            with pytest.raises(HomeAssistantError, match="Unable to refresh location"):
+            with pytest.raises(HomeAssistantError) as exc_info:
                 await coordinator.async_refresh_location(notify_on_timeout=False)
+            assert exc_info.value.translation_key == "refresh_location_failed"
 
         pn_create.assert_not_called()
 
