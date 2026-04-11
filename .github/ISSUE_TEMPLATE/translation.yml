@@ -1,5 +1,6 @@
-name: "Add or fix translation: [language]"
-description: Contribute a new translation or fix an existing one
+name: Translation
+description: Add a new language or fix an existing translation
+title: "Add or fix translation: [language]"
 labels: ["translation"]
 body:
   - type: markdown
