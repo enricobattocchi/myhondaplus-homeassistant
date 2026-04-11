@@ -23,13 +23,33 @@ body:
         - "Other (specify in notes)"
     validations:
       required: true
+  - type: dropdown
+    id: contribution_type
+    attributes:
+      label: Contribution type
+      options:
+        - "New translation"
+        - "Fix / improve existing translation"
+    validations:
+      required: true
+  - type: textarea
+    id: corrections
+    attributes:
+      label: Corrections
+      description: >
+        **For fixes only.** List the keys and their corrected values.
+        Use the dotted JSON path so the change is unambiguous.
+      placeholder: |
+        entity.sensor.battery_level.name: "Batterie" → "Akku"
+        config.step.user.description: "old text" → "corrected text"
   - type: textarea
     id: translation_json
     attributes:
-      label: Translated JSON
+      label: Full translated JSON
       description: >
-        Paste the full translated JSON below. Translate only the **values**, not
-        the keys. Use the pre-filled English content as a starting point.
+        **For new translations only.** Paste the full translated JSON below.
+        Translate only the **values**, not the keys. Use the pre-filled English
+        content as a starting point.
       render: json
       value: |
         {
@@ -341,8 +361,6 @@ body:
             }
           }
         }
-    validations:
-      required: true
   - type: textarea
     id: notes
     attributes:
