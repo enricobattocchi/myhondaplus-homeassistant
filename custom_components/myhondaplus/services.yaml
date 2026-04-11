@@ -49,8 +49,8 @@ climate_on:
       name: Duration
       description: Climate run time in minutes.
       required: false
-      default: 30
-      example: 30
+      default: "30"
+      example: "30"
       selector:
         select:
           options:
