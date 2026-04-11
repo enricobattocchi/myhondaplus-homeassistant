@@ -12,6 +12,7 @@ from .const import (
     CONF_DEVICE_KEY_PEM,
     CONF_FUEL_TYPE,
     CONF_LOCATION_REFRESH_INTERVAL,
+    CONF_MODEL,
     CONF_PERSONAL_ID,
     CONF_REFRESH_TOKEN,
     CONF_USER_ID,
@@ -253,7 +254,8 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             user_id=user_id,
         )
         try:
-            api_vehicles = await self.hass.async_add_executor_job(api.get_vehicles)
+            user_info = await self.hass.async_add_executor_job(api.get_user_info)
+            api_vehicles = _parse_vehicles(user_info)
             new_data[CONF_VEHICLES] = _reconcile_vehicles(
                 new_data.get(CONF_VEHICLES, []),
                 api_vehicles,
@@ -324,11 +326,14 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
         try:
-            self._vehicles = await self.hass.async_add_executor_job(
-                self._api.get_vehicles,
+            user_info = await self.hass.async_add_executor_job(
+                self._api.get_user_info,
             )
+            self._personal_id = str(user_info.get("personalId", ""))
+            self._vehicles = _parse_vehicles(user_info)
         except Exception:
             LOGGER.exception("Failed to fetch vehicles")
+            self._personal_id = ""
             self._vehicles = []
 
         if self._vehicles:
@@ -370,14 +375,16 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 user_id=user_id,
             )
 
-        try:
-            info = await self.hass.async_add_executor_job(
-                self._api.get_user_info,
-                user_id,
-            )
-            personal_id = str(info.get("personalId", ""))
-        except Exception:
-            personal_id = ""
+        personal_id = getattr(self, "_personal_id", "") or ""
+        if not personal_id:
+            try:
+                info = await self.hass.async_add_executor_job(
+                    self._api.get_user_info,
+                    user_id,
+                )
+                personal_id = str(info.get("personalId", ""))
+            except Exception:
+                personal_id = ""
 
         await self.async_set_unique_id(self._email.lower())
         self._abort_if_unique_id_configured()
@@ -387,6 +394,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_VIN: v["vin"],
                 CONF_VEHICLE_NAME: v.get("name", ""),
                 CONF_FUEL_TYPE: v.get("fuel_type", ""),
+                CONF_MODEL: v.get("model", ""),
                 **({"manual": True} if v.get("manual") else {}),
             }
             for v in self._vehicles
@@ -413,6 +421,41 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
 
+def _build_model_name(v: dict) -> str:
+    """Build a display model name from raw vehiclesInfo fields."""
+    ui = v.get("vehicleUIConfiguration", {})
+    friendly = ui.get("friendlyModelName", "")
+    grade = v.get("grade", "")
+    year = v.get("modelYear")
+
+    if friendly and grade:
+        parts = grade.split(None, 1)
+        grade = (
+            parts[1].title() if len(parts) > 1 and len(parts[0]) <= 2 else grade.title()
+        )
+
+    name = friendly
+    if grade:
+        name = f"{name} {grade}" if name else grade
+    if year:
+        name = f"{name} ({year})" if name else str(year)
+    return name
+
+
+def _parse_vehicles(user_info: dict) -> list[dict]:
+    """Parse vehiclesInfo from get_user_info into our vehicle format."""
+    return [
+        {
+            "vin": v["vin"],
+            "name": v.get("vehicleNickName", ""),
+            "fuel_type": v.get("fuelType", ""),
+            "model": _build_model_name(v),
+        }
+        for v in user_info.get("vehiclesInfo", [])
+        if "vin" in v
+    ]
+
+
 def _reconcile_vehicles(
     existing: list[dict],
     api_vehicles: list[dict],
@@ -420,7 +463,7 @@ def _reconcile_vehicles(
     """Reconcile existing vehicle list with freshly discovered vehicles.
 
     - New VINs from API → appended
-    - Existing VINs → name/fuel_type updated from API
+    - Existing VINs → name/fuel_type/model updated from API
     - Manual VINs → always preserved
     - VINs previously from API but no longer returned → removed
     """
@@ -440,6 +483,7 @@ def _reconcile_vehicles(
                     **v,
                     CONF_VEHICLE_NAME: api_v.get("name", v.get(CONF_VEHICLE_NAME, "")),
                     CONF_FUEL_TYPE: api_v.get("fuel_type", v.get(CONF_FUEL_TYPE, "")),
+                    CONF_MODEL: api_v.get("model", v.get(CONF_MODEL, "")),
                 }
             )
         # else: VIN no longer in API → removed
@@ -452,6 +496,7 @@ def _reconcile_vehicles(
                     CONF_VIN: vin,
                     CONF_VEHICLE_NAME: api_v.get("name", ""),
                     CONF_FUEL_TYPE: api_v.get("fuel_type", ""),
+                    CONF_MODEL: api_v.get("model", ""),
                 }
             )
 

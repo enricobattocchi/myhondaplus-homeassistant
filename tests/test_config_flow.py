@@ -25,19 +25,43 @@ from custom_components.myhondaplus.const import (
 from .conftest import MOCK_VEHICLE_NAME, MOCK_VIN
 
 MOCK_TOKENS = {"access_token": "fake-access", "refresh_token": "fake-refresh"}
-MOCK_VEHICLES = [
-    {"vin": MOCK_VIN, "name": MOCK_VEHICLE_NAME, "plate": "AB123CD", "fuel_type": "E"},
-]
-MOCK_VEHICLES_MULTI = [
-    {"vin": MOCK_VIN, "name": MOCK_VEHICLE_NAME, "plate": "AB123CD", "fuel_type": "E"},
-    {
-        "vin": "ZHWGE11S00LA00002",
-        "name": "Honda e:Ny1",
-        "plate": "EF456GH",
-        "fuel_type": "E",
-    },
-]
-MOCK_USER_INFO = {"personalId": "12345"}
+MOCK_USER_INFO = {
+    "personalId": "12345",
+    "vehiclesInfo": [
+        {
+            "vin": MOCK_VIN,
+            "vehicleNickName": MOCK_VEHICLE_NAME,
+            "vehicleRegNumber": "AB123CD",
+            "fuelType": "E",
+            "vehicleUIConfiguration": {"friendlyModelName": "Honda e"},
+            "grade": "E ADVANCE",
+            "modelYear": 2020,
+        },
+    ],
+}
+MOCK_USER_INFO_MULTI = {
+    "personalId": "12345",
+    "vehiclesInfo": [
+        {
+            "vin": MOCK_VIN,
+            "vehicleNickName": MOCK_VEHICLE_NAME,
+            "vehicleRegNumber": "AB123CD",
+            "fuelType": "E",
+            "vehicleUIConfiguration": {"friendlyModelName": "Honda e"},
+            "grade": "E ADVANCE",
+            "modelYear": 2020,
+        },
+        {
+            "vin": "ZHWGE11S00LA00002",
+            "vehicleNickName": "Honda e:Ny1",
+            "vehicleRegNumber": "EF456GH",
+            "fuelType": "E",
+            "vehicleUIConfiguration": {"friendlyModelName": "Honda e:Ny1"},
+            "grade": "E ADVANCE",
+            "modelYear": 2024,
+        },
+    ],
+}
 
 
 @pytest.fixture
@@ -67,8 +91,7 @@ class TestAsyncStepUser:
         """Login succeeds, one vehicle found → creates entry with vehicles list."""
         flow.hass.async_add_executor_job.side_effect = [
             MOCK_TOKENS,  # login
-            MOCK_VEHICLES,  # get_vehicles
-            MOCK_USER_INFO,  # get_user_info
+            MOCK_USER_INFO,  # get_user_info (vehicles + personalId)
         ]
 
         with (
@@ -116,8 +139,7 @@ class TestAsyncStepUser:
         """Login succeeds, multiple vehicles → creates entry with all vehicles."""
         flow.hass.async_add_executor_job.side_effect = [
             MOCK_TOKENS,  # login
-            MOCK_VEHICLES_MULTI,  # get_vehicles
-            MOCK_USER_INFO,  # get_user_info
+            MOCK_USER_INFO_MULTI,  # get_user_info
         ]
 
         with (
@@ -333,7 +355,6 @@ class TestAsyncStepVerify:
             flow.hass.async_add_executor_job.side_effect = [
                 None,  # verify_magic_link
                 MOCK_TOKENS,  # login
-                MOCK_VEHICLES,  # get_vehicles
                 MOCK_USER_INFO,  # get_user_info
             ]
 
@@ -521,7 +542,7 @@ class TestReauthFlow:
             mock_api_cls.return_value = mock_api
             reauth_flow.hass.async_add_executor_job.side_effect = [
                 MOCK_TOKENS,  # login
-                MOCK_VEHICLES,  # get_vehicles (for reconciliation)
+                MOCK_USER_INFO,  # get_user_info (for reconciliation)
             ]
 
             await reauth_flow.async_step_reauth_confirm(
@@ -700,7 +721,7 @@ class TestFetchVehiclesAndCreateEntry:
             mock_auth_cls.extract_user_id.return_value = "fake-user-id"
             mock_api = MagicMock()
             mock_api_cls.return_value = mock_api
-            flow.hass.async_add_executor_job.side_effect = [MOCK_VEHICLES]
+            flow.hass.async_add_executor_job.side_effect = [MOCK_USER_INFO]
 
             result = await flow._fetch_vehicles_and_continue()
 
