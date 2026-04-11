@@ -2,6 +2,8 @@
 
 Home Assistant custom component for Honda Connect Europe vehicles (My Honda+ app).
 
+> **Europe only** — this integration uses the Honda Connect Europe API (My Honda+ app). It does **not** work with HondaLink (North America), Honda Connect (Japan/Asia), or any non-European Honda connected service.
+
 Tested on Honda e. Should work with other Honda Connect Europe vehicles (e:Ny1, ZR-V, CR-V, Civic, HR-V, Jazz 2020+) but these are untested — contributions welcome!
 
 ## Installation
@@ -166,6 +168,44 @@ data:
     - days: "mon,tue,wed,thu,fri"
       start_time: "07:00"
 ```
+
+## Troubleshooting
+
+<details>
+<summary><strong>Verification email never arrives</strong></summary>
+
+Honda sends the verification email to the address on your My Honda+ account. Check your spam folder. If it still doesn't arrive, try removing and re-adding the integration — Honda sometimes takes a few minutes to send it.
+</details>
+
+<details>
+<summary><strong>"Account locked" error</strong></summary>
+
+Honda locks accounts after several failed login attempts. Wait 15–30 minutes and try again. Make sure your credentials work in the My Honda+ mobile app first.
+</details>
+
+<details>
+<summary><strong>Entities show "unavailable" after setup</strong></summary>
+
+The first data fetch can take up to a minute. If entities remain unavailable, check the Home Assistant logs under **Settings > System > Logs** and filter for `myhondaplus`. Common causes: expired session (triggers automatic reauth), or Honda's servers returning errors temporarily.
+</details>
+
+<details>
+<summary><strong>Remote commands (lock, climate, charging) time out</strong></summary>
+
+Remote commands require the car's TCU (telematics unit) to be reachable. Commands may fail if the car is in an underground garage, has poor cellular reception, or if the 12V battery is low. A persistent notification is created when a command times out.
+</details>
+
+<details>
+<summary><strong>Location not updating</strong></summary>
+
+GPS updates depend on the "Refresh from car" interval and the "Location refresh interval" in the integration options. The car must have cellular reception for the TCU to respond. If location is stale, try the **Refresh from car** button.
+</details>
+
+<details>
+<summary><strong>Multiple vehicles</strong></summary>
+
+Each vehicle requires its own integration entry. Go to **Settings > Integrations > Add Integration > My Honda+** and add the same account again — you'll be prompted to select a different vehicle.
+</details>
 
 ## Related projects
 
