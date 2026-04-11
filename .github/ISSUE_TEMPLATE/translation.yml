@@ -1,0 +1,65 @@
+name: "Add or fix translation: [language]"
+description: Contribute a new translation or fix an existing one
+labels: ["translation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping translate the unofficial My Honda+ Home Assistant integration! Please fill in the fields below.
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      description: Select the language you are contributing.
+      options:
+        - "Czech (cs)"
+        - "Danish (da)"
+        - "Dutch (nl)"
+        - "French (fr)"
+        - "German (de)"
+        - "Hungarian (hu)"
+        - "Italian (it)"
+        - "Norwegian (no)"
+        - "Polish (pl)"
+        - "Slovak (sk)"
+        - "Spanish (es)"
+        - "Swedish (sv)"
+        - "Other (specify in notes)"
+    validations:
+      required: true
+  - type: dropdown
+    id: contribution_type
+    attributes:
+      label: Contribution type
+      options:
+        - "New translation"
+        - "Fix / improve existing translation"
+    validations:
+      required: true
+  - type: textarea
+    id: corrections
+    attributes:
+      label: Corrections
+      description: >
+        **For fixes only.** List the keys and their corrected values.
+        Use the dotted JSON path so the change is unambiguous.
+      placeholder: |
+        entity.sensor.battery_level.name: "Batterie" → "Akku"
+        config.step.user.description: "old text" → "corrected text"
+  - type: textarea
+    id: translation_json
+    attributes:
+      label: Full translated JSON
+      description: >
+        **For new translations only.** Copy the reference
+        [`en.json`](https://github.com/enricobattocchi/myhondaplus-homeassistant/blob/main/custom_components/myhondaplus/translations/en.json),
+        translate the values (not the keys), and paste the result here.
+      render: json
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: >
+        Any additional context — e.g. regional variants, partial translation,
+        corrections to an existing translation.
