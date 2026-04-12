@@ -61,20 +61,21 @@ The integration will ask for:
 
 These refresh settings are stored as integration options and can be changed later from **Settings > Integrations > My Honda+ > Configure**.
 
-Vehicles on your account are auto-detected. If you have multiple vehicles, you'll be asked to pick one. The vehicle's Honda+ nickname is used as the device name in Home Assistant.
+All vehicles on your account are auto-detected and set up as separate devices under a single integration entry. Each vehicle's Honda+ nickname is used as its device name in Home Assistant.
 
 On first setup, Honda will send a verification email. Copy the link URL (don't click it) and paste it in the verification step.
 
 Installation parameters summary:
 - **Integration source**: HACS or manual installation
 - **Verification link**: Required only when Honda asks to register the device authenticator
-- **Vehicle selection**: Required only when multiple vehicles are found on the account
 
 ## Translations
 
 The integration is fully translated in all Honda Connect Europe languages: Czech, Danish, Dutch, English, French, German, Hungarian, Italian, Norwegian, Polish, Slovak, Spanish, and Swedish.
 
 ## Entities
+
+Entities are filtered based on the vehicle's capabilities — only features the vehicle actually supports are created (e.g., no EV charging entities on petrol cars, no climate controls if remote climate is not available). Honda's UI configuration hints are also respected (e.g., hiding window status or interior temperature where applicable).
 
 Units are dynamic — the integration uses whatever the vehicle reports (km/miles, °C/°F).
 
@@ -204,7 +205,7 @@ GPS updates depend on the "Refresh from car" interval and the "Location refresh 
 <details>
 <summary><strong>Multiple vehicles</strong></summary>
 
-Each vehicle requires its own integration entry. Go to **Settings > Integrations > Add Integration > My Honda+** and add the same account again — you'll be prompted to select a different vehicle.
+All vehicles on your account are automatically detected and added as separate devices under a single integration entry. If you add a new vehicle to your Honda+ account, remove and re-add the integration to pick it up.
 </details>
 
 ## Related projects
