@@ -11,10 +11,19 @@ import voluptuous as vol
 from homeassistant.const import PERCENTAGE
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityDescription
-from pymyhondaplus.api import EVStatus, HondaAPIError
+from pymyhondaplus.api import (
+    EVStatus,
+    HondaAPIError,
+    HondaAuthError,
+    UIConfiguration,
+    Vehicle,
+    VehicleCapabilities,
+)
 
 from custom_components.myhondaplus import (
+    _build_model_name_from_vehicle,
     _cleanup_removed_vehicles,
+    _fetch_vehicle_metadata,
     _schedule_car_refresh,
     _schedule_location_refresh,
     _validate_days,
@@ -31,6 +40,7 @@ from custom_components.myhondaplus.button import (
 from custom_components.myhondaplus.button import (
     async_setup_entry as button_setup_entry,
 )
+from custom_components.myhondaplus.config_flow import MyHondaPlusConfigFlow
 from custom_components.myhondaplus.coordinator import (
     DashboardData,
     HondaDataUpdateCoordinator,
@@ -65,6 +75,7 @@ from custom_components.myhondaplus.sensor import (
     HondaSensor,
     HondaTripSensor,
     _resolve_unit,
+    _sensor_enabled,
 )
 from custom_components.myhondaplus.sensor import (
     async_setup_entry as sensor_setup_entry,
@@ -758,3 +769,163 @@ class TestDefrostSwitchSuccess:
         mock_coordinator.async_set_updated_data.assert_called_once()
         updated = mock_coordinator.async_set_updated_data.call_args[0][0]
         assert updated["climate_defrost"] is True
+
+
+class TestBuildModelNameFromVehicle:
+    """Tests for _build_model_name_from_vehicle."""
+
+    def test_friendly_and_grade_and_year(self):
+        v = SimpleNamespace(model_name="Honda e", grade="Advance", model_year="2024")
+        assert _build_model_name_from_vehicle(v) == "Honda e Advance (2024)"
+
+    def test_friendly_and_grade_with_prefix(self):
+        v = SimpleNamespace(model_name="ZR-V", grade="2X Sport", model_year="2025")
+        assert _build_model_name_from_vehicle(v) == "ZR-V Sport (2025)"
+
+    def test_only_grade(self):
+        v = SimpleNamespace(model_name="", grade="Advance", model_year="")
+        assert _build_model_name_from_vehicle(v) == "Advance"
+
+    def test_only_year(self):
+        v = SimpleNamespace(model_name="", grade="", model_year="2024")
+        assert _build_model_name_from_vehicle(v) == "2024"
+
+    def test_empty(self):
+        v = SimpleNamespace(model_name="", grade="", model_year="")
+        assert _build_model_name_from_vehicle(v) == ""
+
+
+class TestFetchVehicleMetadata:
+    """Tests for _fetch_vehicle_metadata."""
+
+    @pytest.mark.asyncio
+    async def test_returns_vehicles_by_vin(self):
+        vehicle = Vehicle(vin=MOCK_VIN, model_name="Honda e")
+        api = MagicMock()
+        hass = MagicMock()
+        hass.async_add_executor_job = AsyncMock(return_value=[vehicle])
+        entry = MagicMock()
+        entry.data = {**MOCK_ENTRY_DATA}
+
+        result = await _fetch_vehicle_metadata(hass, entry, api)
+        assert MOCK_VIN in result
+        assert result[MOCK_VIN].model_name == "Honda e"
+
+    @pytest.mark.asyncio
+    async def test_returns_empty_on_exception(self):
+        api = MagicMock()
+        hass = MagicMock()
+        hass.async_add_executor_job = AsyncMock(side_effect=Exception("fail"))
+        entry = MagicMock()
+        entry.data = {**MOCK_ENTRY_DATA}
+
+        result = await _fetch_vehicle_metadata(hass, entry, api)
+        assert result == {}
+
+    @pytest.mark.asyncio
+    async def test_backfills_model_name(self):
+        from custom_components.myhondaplus.const import CONF_VEHICLES, CONF_VIN
+
+        vehicle = Vehicle(vin=MOCK_VIN, model_name="Honda e", grade="Advance", model_year="2024")
+        api = MagicMock()
+        hass = MagicMock()
+        hass.async_add_executor_job = AsyncMock(return_value=[vehicle])
+        entry = MagicMock()
+        entry.data = {
+            **MOCK_ENTRY_DATA,
+            CONF_VEHICLES: [{CONF_VIN: MOCK_VIN}],  # no model
+        }
+
+        await _fetch_vehicle_metadata(hass, entry, api)
+        hass.config_entries.async_update_entry.assert_called_once()
+
+
+class TestSensorEnabled:
+    """Tests for _sensor_enabled capability/ui_hide filtering."""
+
+    def test_no_capability_always_enabled(self):
+        desc = SimpleNamespace(capability="", ui_hide="")
+        vehicle = SimpleNamespace(
+            capabilities=VehicleCapabilities(),
+            ui_config=UIConfiguration(),
+        )
+        assert _sensor_enabled(desc, vehicle) is True
+
+    def test_capability_false_disables(self):
+        desc = SimpleNamespace(capability="remote_charge", ui_hide="")
+        vehicle = SimpleNamespace(
+            capabilities=VehicleCapabilities(remote_charge=False),
+            ui_config=UIConfiguration(),
+        )
+        assert _sensor_enabled(desc, vehicle) is False
+
+    def test_ui_hide_true_disables(self):
+        desc = SimpleNamespace(capability="", ui_hide="hide_internal_temperature")
+        vehicle = SimpleNamespace(
+            capabilities=VehicleCapabilities(),
+            ui_config=UIConfiguration(hide_internal_temperature=True),
+        )
+        assert _sensor_enabled(desc, vehicle) is False
+
+
+class TestCommandValueError:
+    """Test that ValueError from capability checks is caught."""
+
+    @pytest.mark.asyncio
+    async def test_valueerror_raises_ha_error(self):
+        coord = HondaDataUpdateCoordinator.__new__(HondaDataUpdateCoordinator)
+        coord.hass = MagicMock()
+        coord.hass.async_add_executor_job = AsyncMock(
+            side_effect=ValueError("not supported")
+        )
+        with pytest.raises(HomeAssistantError):
+            await coord.async_send_command(lambda: None)
+
+
+class TestConfigFlowDeviceRegistrationError:
+    """Test that network errors during device registration are caught."""
+
+    @pytest.mark.asyncio
+    async def test_login_device_reset_network_error(self):
+        flow = MyHondaPlusConfigFlow()
+        flow.hass = MagicMock()
+        flow._email = "test@example.com"
+        flow._password = "password"
+        flow._device_key = MagicMock()
+        flow._auth = MagicMock()
+
+        # First call (login) raises device-not-registered
+        # Second call (reset) raises a network error
+        flow.hass.async_add_executor_job = AsyncMock(
+            side_effect=[
+                HondaAuthError(403, "device-authenticator-not-registered"),
+                Exception("ReadTimeout"),
+            ]
+        )
+
+        result = await flow.async_step_user({
+            "email": "test@example.com",
+            "password": "password",
+        })
+        assert result["errors"]["base"] == "cannot_connect"
+
+    @pytest.mark.asyncio
+    async def test_reauth_device_reset_network_error(self):
+        flow = MyHondaPlusConfigFlow()
+        flow.hass = MagicMock()
+        flow._reauth_entry = MagicMock()
+        flow._device_key = MagicMock()
+        flow._auth = MagicMock()
+
+        flow.hass.async_add_executor_job = AsyncMock(
+            side_effect=[
+                HondaAuthError(403, "device-authenticator-not-registered"),
+                Exception("ReadTimeout"),
+            ]
+        )
+
+        result = await flow.async_step_reauth_confirm({
+            "email": "test@example.com",
+            "password": "password",
+        })
+        assert result["errors"]["base"] == "cannot_connect"
