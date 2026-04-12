@@ -228,3 +228,14 @@ All vehicles on your account are automatically detected and added as separate de
 
 - [pymyhondaplus](https://github.com/enricobattocchi/pymyhondaplus) — Python client library and CLI for the Honda Connect Europe API
 - [myhondaplus-desktop](https://github.com/enricobattocchi/myhondaplus-desktop) — Desktop GUI application
+
+---
+
+[releases-shield]: https://img.shields.io/github/release/enricobattocchi/myhondaplus-homeassistant.svg
+[releases]: https://github.com/enricobattocchi/myhondaplus-homeassistant/releases
+[download-all]: https://img.shields.io/github/downloads/enricobattocchi/myhondaplus-homeassistant/total.svg
+[download-latest]: https://img.shields.io/github/downloads/enricobattocchi/myhondaplus-homeassistant/latest/total.svg
+[commits-shield]: https://img.shields.io/github/commit-activity/y/enricobattocchi/myhondaplus-homeassistant.svg
+[commits]: https://github.com/enricobattocchi/myhondaplus-homeassistant/commits/main
+![GitHub release (latest by SemVer)][download-latest]
+[![GitHub Activity][commits-shield]][commits]
