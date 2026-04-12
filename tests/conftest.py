@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import namedtuple
+from dataclasses import replace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -24,6 +25,7 @@ from custom_components.myhondaplus.const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
+from custom_components.myhondaplus.coordinator import DashboardData
 from custom_components.myhondaplus.data import MyHondaPlusData, VehicleData
 
 MOCK_VIN = "ZHWGE11S00LA00001"
@@ -62,43 +64,43 @@ MOCK_ENTRY_OPTIONS = {
     CONF_LOCATION_REFRESH_INTERVAL: DEFAULT_LOCATION_REFRESH_INTERVAL,
 }
 
-MOCK_DASHBOARD_DATA = {
-    "battery_level": 75,
-    "range_climate_on": 150,
-    "range_climate_off": 180,
-    "total_range": 150,
-    "distance_unit": "km",
-    "speed_unit": "km/h",
-    "temp_unit": "c",
-    "charge_status": "not_charging",
-    "plug_status": "connected",
-    "home_away": "home",
-    "charge_limit_home": 90,
-    "charge_limit_away": 100,
-    "climate_active": False,
-    "cabin_temp": 22,
-    "interior_temp": 21,
-    "odometer": 12345,
-    "latitude": "45.0",
-    "longitude": "9.0",
-    "timestamp": "2026-03-24T10:00:00Z",
-    "doors_locked": True,
-    "all_doors_closed": True,
-    "all_windows_closed": True,
-    "ignition": "off",
-    "speed": 0,
-    "charge_mode": "normal",
-    "time_to_charge": 0,
-    "hood_open": False,
-    "trunk_open": False,
-    "lights_on": False,
-    "headlights": "off",
-    "parking_lights": "off",
-    "warning_lamps": [],
-    "climate_temp": "normal",
-    "climate_duration": 30,
-    "climate_defrost": True,
-    "charge_schedule": [
+MOCK_DASHBOARD_DATA = DashboardData(
+    battery_level=75,
+    range_climate_on=150,
+    range_climate_off=180,
+    total_range=150,
+    distance_unit="km",
+    speed_unit="km/h",
+    temp_unit="c",
+    charge_status="not_charging",
+    plug_status="connected",
+    home_away="home",
+    charge_limit_home=90,
+    charge_limit_away=100,
+    climate_active=False,
+    cabin_temp=22,
+    interior_temp=21,
+    odometer=12345,
+    latitude="45.0",
+    longitude="9.0",
+    timestamp="2026-03-24T10:00:00Z",
+    doors_locked=True,
+    all_doors_closed=True,
+    all_windows_closed=True,
+    ignition="off",
+    speed=0,
+    charge_mode="normal",
+    time_to_charge=0,
+    hood_open=False,
+    trunk_open=False,
+    lights_on=False,
+    headlights="off",
+    parking_lights="off",
+    warning_lamps=[],
+    climate_temp="normal",
+    climate_duration=30,
+    climate_defrost=True,
+    charge_schedule=[
         {
             "enabled": True,
             "days": ["mon", "tue", "wed", "thu", "fri"],
@@ -114,7 +116,7 @@ MOCK_DASHBOARD_DATA = {
             "end_time": "00:00",
         },
     ],
-    "climate_schedule": [
+    climate_schedule=[
         {
             "enabled": True,
             "days": ["mon", "tue", "wed", "thu", "fri"],
@@ -122,7 +124,7 @@ MOCK_DASHBOARD_DATA = {
         },
         {"enabled": False, "days": [], "start_time": "00:00"},
     ],
-}
+)
 
 MOCK_TRIP_DATA = {
     "trips": 15,
@@ -185,7 +187,7 @@ def mock_config_entry():
 def mock_coordinator(mock_api, mock_config_entry):
     """Return a mocked coordinator with realistic data."""
     coordinator = MagicMock()
-    coordinator.data = dict(MOCK_DASHBOARD_DATA)
+    coordinator.data = replace(MOCK_DASHBOARD_DATA)
     coordinator.api = mock_api
     coordinator.entry = mock_config_entry
     coordinator.vin = MOCK_VIN

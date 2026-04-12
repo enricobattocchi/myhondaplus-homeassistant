@@ -31,31 +31,31 @@ def charge_switch(mock_coordinator):
 
 class TestClimateSwitch:
     def test_is_on_true(self, climate_switch):
-        climate_switch.coordinator.data["climate_active"] = True
+        climate_switch.coordinator.data.climate_active = True
         assert climate_switch.is_on is True
 
     def test_is_on_false(self, climate_switch):
-        climate_switch.coordinator.data["climate_active"] = False
+        climate_switch.coordinator.data.climate_active = False
         assert climate_switch.is_on is False
 
     def test_is_on_string_active(self, climate_switch):
-        climate_switch.coordinator.data["climate_active"] = "active"
+        climate_switch.coordinator.data.climate_active = "active"
         assert climate_switch.is_on is True
 
     def test_is_on_string_true(self, climate_switch):
-        climate_switch.coordinator.data["climate_active"] = "true"
+        climate_switch.coordinator.data.climate_active = "true"
         assert climate_switch.is_on is True
 
     def test_is_on_string_false(self, climate_switch):
-        climate_switch.coordinator.data["climate_active"] = "false"
+        climate_switch.coordinator.data.climate_active = "false"
         assert climate_switch.is_on is False
 
     def test_is_on_none(self, climate_switch):
-        climate_switch.coordinator.data["climate_active"] = None
+        climate_switch.coordinator.data.climate_active = None
         assert climate_switch.is_on is None
 
     def test_is_on_missing_key(self, climate_switch):
-        climate_switch.coordinator.data.pop("climate_active", None)
+        climate_switch.coordinator.data.climate_active = None
         assert climate_switch.is_on is None
 
     @pytest.mark.asyncio
@@ -95,38 +95,38 @@ class TestClimateSwitch:
 
 class TestChargeSwitch:
     def test_is_on_charging(self, charge_switch):
-        charge_switch.coordinator.data["charge_status"] = "charging"
+        charge_switch.coordinator.data.charge_status = "charging"
         assert charge_switch.is_on is True
 
     def test_is_on_running(self, charge_switch):
-        charge_switch.coordinator.data["charge_status"] = "running"
+        charge_switch.coordinator.data.charge_status = "running"
         assert charge_switch.is_on is True
 
     def test_is_on_not_charging(self, charge_switch):
-        charge_switch.coordinator.data["charge_status"] = "not_charging"
+        charge_switch.coordinator.data.charge_status = "not_charging"
         assert charge_switch.is_on is False
 
     def test_is_on_unknown(self, charge_switch):
-        charge_switch.coordinator.data["charge_status"] = "unknown"
+        charge_switch.coordinator.data.charge_status = "unknown"
         assert charge_switch.is_on is False
 
     def test_is_on_none(self, charge_switch):
-        charge_switch.coordinator.data["charge_status"] = None
+        charge_switch.coordinator.data.charge_status = None
         assert charge_switch.is_on is None
 
     def test_is_on_missing_key(self, charge_switch):
-        charge_switch.coordinator.data.pop("charge_status", None)
+        charge_switch.coordinator.data.charge_status = None
         assert charge_switch.is_on is None
 
     def test_is_on_case_insensitive(self, charge_switch):
-        charge_switch.coordinator.data["charge_status"] = "CHARGING"
+        charge_switch.coordinator.data.charge_status = "CHARGING"
         assert charge_switch.is_on is True
 
-        charge_switch.coordinator.data["charge_status"] = "Running"
+        charge_switch.coordinator.data.charge_status = "Running"
         assert charge_switch.is_on is True
 
     def test_is_on_non_string_truthy(self, charge_switch):
-        charge_switch.coordinator.data["charge_status"] = 1
+        charge_switch.coordinator.data.charge_status = 1
         assert charge_switch.is_on is True
 
     @pytest.mark.asyncio
@@ -180,7 +180,7 @@ class TestDefrostSwitch:
         return sw
 
     def test_is_on_false(self, defrost_switch):
-        defrost_switch.coordinator.data["climate_defrost"] = False
+        defrost_switch.coordinator.data.climate_defrost = False
         assert defrost_switch.is_on is False
 
     @pytest.mark.asyncio

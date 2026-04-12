@@ -1,6 +1,7 @@
 """My Honda+ integration for Home Assistant."""
 
 import re
+from dataclasses import replace
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntryState
@@ -561,9 +562,9 @@ def _register_services(hass: HomeAssistant) -> None:
             if isinstance(days, str):
                 rule["days"] = [d.strip() for d in days.split(",") if d.strip()]
             enriched.append(rule)
-        data = dict(coordinator.data)
-        data[key] = enriched
-        coordinator.async_set_updated_data(data)
+        coordinator.async_set_updated_data(
+            replace(coordinator.data, **{key: enriched})
+        )
 
         @callback
         def _refresh(_now):
@@ -608,12 +609,15 @@ def _register_services(hass: HomeAssistant) -> None:
             coordinator.vin,
         )
         if confirmed:
-            new_data = dict(coordinator.data)
-            new_data["climate_active"] = True
-            new_data["climate_temp"] = temp
-            new_data["climate_duration"] = duration
-            new_data["climate_defrost"] = defrost
-            coordinator.async_set_updated_data(new_data)
+            coordinator.async_set_updated_data(
+                replace(
+                    coordinator.data,
+                    climate_active=True,
+                    climate_temp=temp,
+                    climate_duration=duration,
+                    climate_defrost=defrost,
+                )
+            )
 
     hass.services.async_register(
         DOMAIN,

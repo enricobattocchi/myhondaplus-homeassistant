@@ -1,6 +1,7 @@
 """Tests for the coordinator."""
 
 from collections import namedtuple
+from dataclasses import replace
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -45,7 +46,7 @@ def coordinator(mock_hass, mock_entry):
         coord.vin = MOCK_VIN
         coord.api = MagicMock()
         coord.api.tokens = Tokens("fake-access-token", "fake-refresh-token")
-        coord.data = dict(MOCK_DASHBOARD_DATA)
+        coord.data = replace(MOCK_DASHBOARD_DATA)
         coord.logger = MagicMock()
         coord._service_available = True
         coord._vehicle_name = MOCK_VEHICLE_NAME
@@ -73,7 +74,7 @@ def trip_coordinator(mock_hass, mock_entry):
 class TestHondaDataUpdateCoordinator:
     @pytest.mark.asyncio
     async def test_update_success(self, coordinator):
-        coordinator.hass.async_add_executor_job.return_value = dict(MOCK_DASHBOARD_DATA)
+        coordinator.hass.async_add_executor_job.return_value = replace(MOCK_DASHBOARD_DATA)
         result = await coordinator._async_update_data()
         assert result["battery_level"] == 75
 
@@ -138,7 +139,7 @@ class TestHondaDataUpdateCoordinator:
             coordinator.hass.async_add_executor_job.side_effect = [
                 HondaAPIError(503, "Service Unavailable"),
                 HondaAPIError(503, "Service Unavailable"),
-                dict(MOCK_DASHBOARD_DATA),
+                replace(MOCK_DASHBOARD_DATA),
             ]
 
             assert await coordinator._async_update_data() == coordinator.data
@@ -157,7 +158,7 @@ class TestHondaDataUpdateCoordinator:
             SimpleNamespace(
                 success=True, status="success", timed_out=False, reason=None
             ),
-            dict(MOCK_DASHBOARD_DATA),
+            replace(MOCK_DASHBOARD_DATA),
         ]
         await coordinator.async_refresh_from_car()
         coordinator.async_set_updated_data.assert_called_once()
@@ -338,7 +339,7 @@ class TestHondaDataUpdateCoordinator:
             SimpleNamespace(
                 success=True, status="success", timed_out=False, reason=None
             ),
-            dict(MOCK_DASHBOARD_DATA),
+            replace(MOCK_DASHBOARD_DATA),
         ]
 
         await coordinator.async_refresh_location()
@@ -356,7 +357,7 @@ class TestHondaDataUpdateCoordinator:
             coordinator._fetch_data,
         )
         coordinator.async_set_updated_data.assert_called_once_with(
-            dict(MOCK_DASHBOARD_DATA)
+            replace(MOCK_DASHBOARD_DATA)
         )
 
     @pytest.mark.asyncio

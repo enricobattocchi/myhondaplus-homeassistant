@@ -78,8 +78,8 @@ class TestChargeLimitNumber:
     @pytest.mark.asyncio
     async def test_set_limit_uses_current_values_for_other(self, mock_coordinator):
         """Setting home should pass the current away value and vice versa."""
-        mock_coordinator.data["charge_limit_home"] = 80
-        mock_coordinator.data["charge_limit_away"] = 95
+        mock_coordinator.data.charge_limit_home = 80
+        mock_coordinator.data.charge_limit_away = 95
         number = make_number(mock_coordinator, "charge_limit_home")
         await number.async_set_native_value(100.0)
         mock_coordinator.async_send_command_and_wait.assert_awaited_once_with(

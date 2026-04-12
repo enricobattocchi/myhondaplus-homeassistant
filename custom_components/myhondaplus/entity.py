@@ -9,6 +9,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import DOMAIN
+from .coordinator import DashboardData
 
 
 def to_bool(value) -> bool | None:
@@ -22,7 +23,7 @@ def to_bool(value) -> bool | None:
     return bool(value)
 
 
-class MyHondaPlusEntity(CoordinatorEntity[DataUpdateCoordinator[dict]]):
+class MyHondaPlusEntity(CoordinatorEntity[DataUpdateCoordinator[DashboardData]]):
     """Base class for My Honda+ entities."""
 
     _attr_has_entity_name = True

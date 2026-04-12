@@ -1,6 +1,6 @@
 """Number platform for My Honda+ (charge limits)."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from homeassistant.components.number import NumberEntity, NumberEntityDescription
 from homeassistant.const import PERCENTAGE
@@ -68,7 +68,7 @@ class HondaChargeLimitNumber(MyHondaPlusEntity, NumberEntity):
 
     @property
     def native_value(self) -> float | None:
-        val = self.coordinator.data.get(self.entity_description.key)
+        val = getattr(self.coordinator.data, self.entity_description.key, None)
         return float(val) if val is not None else None
 
     @property
@@ -76,9 +76,9 @@ class HondaChargeLimitNumber(MyHondaPlusEntity, NumberEntity):
         return False
 
     async def async_set_native_value(self, value: float) -> None:
-        data = self.coordinator.data or {}
-        home = data.get("charge_limit_home", 80)
-        away = data.get("charge_limit_away", 90)
+        data = self.coordinator.data
+        home = data.charge_limit_home
+        away = data.charge_limit_away
 
         if self.entity_description.limit_key == "home":
             home = int(value)
@@ -92,6 +92,6 @@ class HondaChargeLimitNumber(MyHondaPlusEntity, NumberEntity):
             away,
         )
         if confirmed:
-            new_data = dict(self.coordinator.data)
-            new_data[self.entity_description.key] = int(value)
-            self.coordinator.async_set_updated_data(new_data)
+            self.coordinator.async_set_updated_data(
+                replace(data, **{self.entity_description.key: int(value)})
+            )

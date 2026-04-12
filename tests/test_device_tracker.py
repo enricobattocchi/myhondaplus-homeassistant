@@ -17,37 +17,37 @@ def make_tracker(coordinator):
 class TestDeviceTracker:
     def test_latitude_decimal_string(self, mock_coordinator):
         tracker = make_tracker(mock_coordinator)
-        mock_coordinator.data["latitude"] = "45.123"
+        mock_coordinator.data.latitude = "45.123"
         assert tracker.latitude == 45.123
 
     def test_longitude_decimal_string(self, mock_coordinator):
         tracker = make_tracker(mock_coordinator)
-        mock_coordinator.data["longitude"] = "9.456"
+        mock_coordinator.data.longitude = "9.456"
         assert tracker.longitude == 9.456
 
     def test_latitude_dms(self, mock_coordinator):
         tracker = make_tracker(mock_coordinator)
-        mock_coordinator.data["latitude"] = "43,33,12.391"
+        mock_coordinator.data.latitude = "43,33,12.391"
         assert abs(tracker.latitude - 43.55344) < 0.0001
 
     def test_longitude_dms(self, mock_coordinator):
         tracker = make_tracker(mock_coordinator)
-        mock_coordinator.data["longitude"] = "010,19,56.497"
+        mock_coordinator.data.longitude = "010,19,56.497"
         assert abs(tracker.longitude - 10.33236) < 0.0001
 
     def test_latitude_none(self, mock_coordinator):
         tracker = make_tracker(mock_coordinator)
-        mock_coordinator.data.pop("latitude", None)
+        mock_coordinator.data.latitude = None
         assert tracker.latitude is None
 
     def test_longitude_none(self, mock_coordinator):
         tracker = make_tracker(mock_coordinator)
-        mock_coordinator.data.pop("longitude", None)
+        mock_coordinator.data.longitude = None
         assert tracker.longitude is None
 
     def test_latitude_numeric(self, mock_coordinator):
         tracker = make_tracker(mock_coordinator)
-        mock_coordinator.data["latitude"] = 45.0
+        mock_coordinator.data.latitude = 45.0
         assert tracker.latitude == 45.0
 
     def test_source_type(self, mock_coordinator):

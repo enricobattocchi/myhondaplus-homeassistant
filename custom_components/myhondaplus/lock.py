@@ -1,5 +1,7 @@
 """Lock platform for My Honda+."""
 
+from dataclasses import replace
+
 from homeassistant.components.lock import LockEntity, LockEntityDescription
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -40,8 +42,7 @@ class HondaDoorLock(MyHondaPlusEntity, LockEntity):
     @property
     def is_locked(self) -> bool | None:
         """Return true if doors are locked."""
-        value = self.coordinator.data.get("doors_locked")
-        return to_bool(value)
+        return to_bool(self.coordinator.data.doors_locked)
 
     async def async_lock(self, **kwargs) -> None:
         """Lock the doors."""
@@ -53,9 +54,9 @@ class HondaDoorLock(MyHondaPlusEntity, LockEntity):
                 self._vin,
             )
             if confirmed:
-                data = dict(self.coordinator.data)
-                data["doors_locked"] = True
-                self.coordinator.async_set_updated_data(data)
+                self.coordinator.async_set_updated_data(
+                    replace(self.coordinator.data, doors_locked=True)
+                )
         finally:
             self._attr_is_locking = False
             self.async_write_ha_state()
@@ -70,9 +71,9 @@ class HondaDoorLock(MyHondaPlusEntity, LockEntity):
                 self._vin,
             )
             if confirmed:
-                data = dict(self.coordinator.data)
-                data["doors_locked"] = False
-                self.coordinator.async_set_updated_data(data)
+                self.coordinator.async_set_updated_data(
+                    replace(self.coordinator.data, doors_locked=False)
+                )
         finally:
             self._attr_is_unlocking = False
             self.async_write_ha_state()

@@ -20,31 +20,31 @@ def door_lock(mock_coordinator):
 
 class TestDoorLock:
     def test_is_locked_true(self, door_lock):
-        door_lock.coordinator.data["doors_locked"] = True
+        door_lock.coordinator.data.doors_locked = True
         assert door_lock.is_locked is True
 
     def test_is_locked_false(self, door_lock):
-        door_lock.coordinator.data["doors_locked"] = False
+        door_lock.coordinator.data.doors_locked = False
         assert door_lock.is_locked is False
 
     def test_is_locked_string_locked(self, door_lock):
-        door_lock.coordinator.data["doors_locked"] = "locked"
+        door_lock.coordinator.data.doors_locked = "locked"
         assert door_lock.is_locked is True
 
     def test_is_locked_string_true(self, door_lock):
-        door_lock.coordinator.data["doors_locked"] = "true"
+        door_lock.coordinator.data.doors_locked = "true"
         assert door_lock.is_locked is True
 
     def test_is_locked_string_unlocked(self, door_lock):
-        door_lock.coordinator.data["doors_locked"] = "unlocked"
+        door_lock.coordinator.data.doors_locked = "unlocked"
         assert door_lock.is_locked is False
 
     def test_is_locked_none(self, door_lock):
-        door_lock.coordinator.data["doors_locked"] = None
+        door_lock.coordinator.data.doors_locked = None
         assert door_lock.is_locked is None
 
     def test_is_locked_missing_key(self, door_lock):
-        door_lock.coordinator.data.pop("doors_locked", None)
+        door_lock.coordinator.data.doors_locked = None
         assert door_lock.is_locked is None
 
     @pytest.mark.asyncio

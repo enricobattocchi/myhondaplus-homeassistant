@@ -1,5 +1,6 @@
 """Data coordinator for My Honda+."""
 
+from dataclasses import dataclass, field, fields
 from datetime import timedelta
 
 from homeassistant.components.persistent_notification import (
@@ -10,6 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pymyhondaplus.api import (
+    EVStatus,
     HondaAPI,
     HondaAPIError,
     HondaAuthError,
@@ -31,11 +33,19 @@ from .const import (
 from .entry_options import get_entry_value
 
 
+@dataclass
+class DashboardData(EVStatus):
+    """Vehicle dashboard data: EVStatus fields plus parsed schedules."""
+
+    charge_schedule: list[dict] = field(default_factory=list)
+    climate_schedule: list[dict] = field(default_factory=list)
+
+
 def _handle_api_error(
     err: HondaAPIError,
     persist_tokens: callable,
-    cached_data: dict | None = None,
-) -> dict | None:
+    cached_data=None,
+):
     """Handle HondaAPIError consistently across coordinators.
 
     Returns cached data for transient 5xx errors, raises
@@ -49,7 +59,7 @@ def _handle_api_error(
     return None
 
 
-class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
+class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
     def __init__(
         self,
         hass: HomeAssistant,
@@ -85,12 +95,15 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             }
             self.hass.config_entries.async_update_entry(self.entry, data=new_data)
 
-    def _fetch_data(self) -> dict:
+    def _fetch_data(self) -> DashboardData:
         dashboard = self.api.get_dashboard_cached(self.vin)
-        data = parse_ev_status(dashboard)
-        data["charge_schedule"] = parse_charge_schedule(dashboard)
-        data["climate_schedule"] = parse_climate_schedule(dashboard)
-        return data
+        ev = parse_ev_status(dashboard)
+        ev_values = {f.name: getattr(ev, f.name) for f in fields(ev)}
+        return DashboardData(
+            **ev_values,
+            charge_schedule=parse_charge_schedule(dashboard),
+            climate_schedule=parse_climate_schedule(dashboard),
+        )
 
     def _log_unavailable_once(self, message: str, *args) -> None:
         """Log when the Honda service becomes unavailable."""
@@ -104,7 +117,7 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[dict]):
             LOGGER.info("Connection to Honda API restored")
             self._service_available = True
 
-    async def _async_update_data(self) -> dict:
+    async def _async_update_data(self) -> DashboardData:
         try:
             data = await self.hass.async_add_executor_job(self._fetch_data)
         except HondaAPIError as err:
@@ -305,7 +318,7 @@ class HondaTripCoordinator(DataUpdateCoordinator[dict]):
         rows = self.api.get_all_trips(self.vin)
         distance_unit = "km"
         if self._main_coordinator and self._main_coordinator.data:
-            distance_unit = self._main_coordinator.data.get("distance_unit", "km")
+            distance_unit = self._main_coordinator.data.distance_unit
         return compute_trip_stats(
             rows,
             "month",

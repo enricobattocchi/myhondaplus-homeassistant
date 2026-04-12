@@ -1,5 +1,7 @@
 """Select platform for My Honda+."""
 
+from dataclasses import replace
+
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
@@ -55,18 +57,18 @@ class HondaClimateTempSelect(MyHondaPlusEntity, SelectEntity):
 
     @property
     def current_option(self) -> str | None:
-        value = self.coordinator.data.get("climate_temp")
+        value = self.coordinator.data.climate_temp
         if value in CLIMATE_TEMP_OPTIONS:
             return value
         return "normal"
 
     async def async_select_option(self, option: str) -> None:
         """Update climate temperature setting on the vehicle."""
-        data = self.coordinator.data or {}
-        duration = data.get("climate_duration", 30)
+        data = self.coordinator.data
+        duration = data.climate_duration
         if duration not in (10, 20, 30):
             duration = 30
-        defrost = data.get("climate_defrost", True)
+        defrost = data.climate_defrost
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.set_climate_settings,
             self._vin,
@@ -75,9 +77,9 @@ class HondaClimateTempSelect(MyHondaPlusEntity, SelectEntity):
             defrost,
         )
         if confirmed:
-            new_data = dict(self.coordinator.data)
-            new_data["climate_temp"] = option
-            self.coordinator.async_set_updated_data(new_data)
+            self.coordinator.async_set_updated_data(
+                replace(self.coordinator.data, climate_temp=option)
+            )
 
 
 class HondaClimateDurationSelect(MyHondaPlusEntity, SelectEntity):
@@ -99,18 +101,18 @@ class HondaClimateDurationSelect(MyHondaPlusEntity, SelectEntity):
 
     @property
     def current_option(self) -> str | None:
-        value = self.coordinator.data.get("climate_duration")
+        value = self.coordinator.data.climate_duration
         if value in (10, 20, 30):
             return str(value)
         return "30"
 
     async def async_select_option(self, option: str) -> None:
         """Update climate duration setting on the vehicle."""
-        data = self.coordinator.data or {}
-        temp = data.get("climate_temp", "normal")
+        data = self.coordinator.data
+        temp = data.climate_temp
         if temp not in CLIMATE_TEMP_OPTIONS:
             temp = "normal"
-        defrost = data.get("climate_defrost", True)
+        defrost = data.climate_defrost
         duration = int(option)
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.set_climate_settings,
@@ -120,6 +122,6 @@ class HondaClimateDurationSelect(MyHondaPlusEntity, SelectEntity):
             defrost,
         )
         if confirmed:
-            new_data = dict(self.coordinator.data)
-            new_data["climate_duration"] = duration
-            self.coordinator.async_set_updated_data(new_data)
+            self.coordinator.async_set_updated_data(
+                replace(self.coordinator.data, climate_duration=duration)
+            )

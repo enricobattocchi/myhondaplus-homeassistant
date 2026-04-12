@@ -292,11 +292,11 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-def _resolve_unit(data: dict, description: HondaSensorDescription) -> str | None:
+def _resolve_unit(data, description: HondaSensorDescription) -> str | None:
     """Resolve the unit of measurement from coordinator data."""
     if not description.dynamic_unit or not data:
         return description.native_unit_of_measurement
-    distance_unit = data.get("distance_unit", "km")
+    distance_unit = data.distance_unit if hasattr(data, "distance_unit") else "km"
     units = UNIT_MAP.get(distance_unit, UNIT_MAP["km"])
     return units.get(description.dynamic_unit)
 
@@ -309,7 +309,7 @@ class HondaSensor(MyHondaPlusEntity, SensorEntity):
 
     @property
     def native_value(self):
-        value = self.coordinator.data.get(self.entity_description.key)
+        value = getattr(self.coordinator.data, self.entity_description.key, None)
         if self.entity_description.key in SCHEDULE_KEYS:
             if not isinstance(value, list):
                 return 0
@@ -339,7 +339,7 @@ class HondaSensor(MyHondaPlusEntity, SensorEntity):
     def extra_state_attributes(self) -> dict | None:
         if self.entity_description.key not in SCHEDULE_KEYS:
             return None
-        value = self.coordinator.data.get(self.entity_description.key)
+        value = getattr(self.coordinator.data, self.entity_description.key, None)
         if not isinstance(value, list):
             return None
         return {"rules": value}

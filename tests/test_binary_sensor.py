@@ -23,12 +23,12 @@ def make_binary_sensor(coordinator, key):
 class TestDoorsBinarySensor:
     def test_is_on_when_doors_open(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "doors_open")
-        mock_coordinator.data["all_doors_closed"] = False
+        mock_coordinator.data.all_doors_closed = False
         assert sensor.is_on is True
 
     def test_is_off_when_doors_closed(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "doors_open")
-        mock_coordinator.data["all_doors_closed"] = True
+        mock_coordinator.data.all_doors_closed = True
         assert sensor.is_on is False
 
     def test_device_class(self, mock_coordinator):
@@ -37,19 +37,19 @@ class TestDoorsBinarySensor:
 
     def test_none_when_missing(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "doors_open")
-        mock_coordinator.data.pop("all_doors_closed", None)
+        mock_coordinator.data.all_doors_closed = None
         assert sensor.is_on is None
 
 
 class TestWindowsBinarySensor:
     def test_is_on_when_windows_open(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "windows_open")
-        mock_coordinator.data["all_windows_closed"] = False
+        mock_coordinator.data.all_windows_closed = False
         assert sensor.is_on is True
 
     def test_is_off_when_windows_closed(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "windows_open")
-        mock_coordinator.data["all_windows_closed"] = True
+        mock_coordinator.data.all_windows_closed = True
         assert sensor.is_on is False
 
     def test_device_class(self, mock_coordinator):
@@ -60,12 +60,12 @@ class TestWindowsBinarySensor:
 class TestHoodBinarySensor:
     def test_is_on_when_hood_open(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "hood")
-        mock_coordinator.data["hood_open"] = True
+        mock_coordinator.data.hood_open = True
         assert sensor.is_on is True
 
     def test_is_off_when_hood_closed(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "hood")
-        mock_coordinator.data["hood_open"] = False
+        mock_coordinator.data.hood_open = False
         assert sensor.is_on is False
 
     def test_device_class(self, mock_coordinator):
@@ -76,24 +76,24 @@ class TestHoodBinarySensor:
 class TestTrunkBinarySensor:
     def test_is_on_when_trunk_open(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "trunk")
-        mock_coordinator.data["trunk_open"] = True
+        mock_coordinator.data.trunk_open = True
         assert sensor.is_on is True
 
     def test_is_off_when_trunk_closed(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "trunk")
-        mock_coordinator.data["trunk_open"] = False
+        mock_coordinator.data.trunk_open = False
         assert sensor.is_on is False
 
 
 class TestLightsBinarySensor:
     def test_is_on_when_lights_on(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "lights")
-        mock_coordinator.data["lights_on"] = True
+        mock_coordinator.data.lights_on = True
         assert sensor.is_on is True
 
     def test_is_off_when_lights_off(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "lights")
-        mock_coordinator.data["lights_on"] = False
+        mock_coordinator.data.lights_on = False
         assert sensor.is_on is False
 
     def test_device_class(self, mock_coordinator):
@@ -106,20 +106,20 @@ class TestStringCoercion:
 
     def test_string_true(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "hood")
-        mock_coordinator.data["hood_open"] = "true"
+        mock_coordinator.data.hood_open = "true"
         assert sensor.is_on is True
 
     def test_string_false(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "hood")
-        mock_coordinator.data["hood_open"] = "false"
+        mock_coordinator.data.hood_open = "false"
         assert sensor.is_on is False
 
     def test_inverted_string_true(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "doors_open")
-        mock_coordinator.data["all_doors_closed"] = "true"
+        mock_coordinator.data.all_doors_closed = "true"
         assert sensor.is_on is False  # inverted: closed=true means NOT open
 
     def test_inverted_string_false(self, mock_coordinator):
         sensor = make_binary_sensor(mock_coordinator, "doors_open")
-        mock_coordinator.data["all_doors_closed"] = "false"
+        mock_coordinator.data.all_doors_closed = "false"
         assert sensor.is_on is True  # inverted: closed=false means open

@@ -1,5 +1,6 @@
 """Tests for diagnostics."""
 
+from dataclasses import replace
 from unittest.mock import MagicMock
 
 import pytest
@@ -25,7 +26,7 @@ def mock_entry_for_diag(mock_runtime_data):
     entry.as_dict.return_value = dict(MOCK_ENTRY_DATA)
     entry.runtime_data = mock_runtime_data
     # Set realistic data on the vehicle's coordinators
-    entry.runtime_data.vehicles[MOCK_VIN].coordinator.data = dict(MOCK_DASHBOARD_DATA)
+    entry.runtime_data.vehicles[MOCK_VIN].coordinator.data = replace(MOCK_DASHBOARD_DATA)
     entry.runtime_data.vehicles[MOCK_VIN].trip_coordinator.data = dict(MOCK_TRIP_DATA)
     return entry
 
