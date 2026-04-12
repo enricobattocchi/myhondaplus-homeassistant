@@ -87,6 +87,9 @@
     "send_command_failed": {
       "message": "Unable to send command to vehicle"
     },
+    "capability_not_supported": {
+      "message": "This vehicle does not support the requested feature"
+    },
     "refresh_location_failed": {
       "message": "Unable to refresh location from vehicle"
     },
