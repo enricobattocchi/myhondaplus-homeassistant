@@ -55,12 +55,12 @@ class TestHondaSensor:
         assert sensor.native_value is None
 
     def test_list_value_joins(self, mock_coordinator):
-        mock_coordinator.data["warning_lamps"] = ["oil", "tire"]
+        mock_coordinator.data.warning_lamps = ["oil", "tire"]
         sensor = make_sensor(mock_coordinator, "warning_lamps")
         assert sensor.native_value == "oil, tire"
 
     def test_empty_list_returns_none_string(self, mock_coordinator):
-        mock_coordinator.data["warning_lamps"] = []
+        mock_coordinator.data.warning_lamps = []
         sensor = make_sensor(mock_coordinator, "warning_lamps")
         assert sensor.native_value == "none"
 
@@ -84,17 +84,17 @@ class TestHondaSensor:
         assert sensor.native_unit_of_measurement == "°C"
 
     def test_dynamic_unit_distance_miles(self, mock_coordinator):
-        mock_coordinator.data["distance_unit"] = "miles"
+        mock_coordinator.data.distance_unit = "miles"
         sensor = make_sensor(mock_coordinator, "range_climate_on")
         assert sensor.native_unit_of_measurement == "mi"
 
     def test_dynamic_unit_speed_miles(self, mock_coordinator):
-        mock_coordinator.data["distance_unit"] = "miles"
+        mock_coordinator.data.distance_unit = "miles"
         sensor = make_sensor(mock_coordinator, "speed")
         assert sensor.native_unit_of_measurement == "mph"
 
     def test_dynamic_unit_temp_miles(self, mock_coordinator):
-        mock_coordinator.data["distance_unit"] = "miles"
+        mock_coordinator.data.distance_unit = "miles"
         sensor = make_sensor(mock_coordinator, "cabin_temp")
         assert sensor.native_unit_of_measurement == "°F"
 
@@ -128,7 +128,7 @@ class TestHondaSensor:
         assert sensor.extra_state_attributes is None
 
     def test_schedule_empty_list(self, mock_coordinator):
-        mock_coordinator.data["charge_schedule"] = []
+        mock_coordinator.data.charge_schedule = []
         sensor = make_sensor(mock_coordinator, "charge_schedule")
         assert sensor.native_value == 0
         assert sensor.extra_state_attributes == {"rules": []}

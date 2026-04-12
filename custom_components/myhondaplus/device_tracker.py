@@ -70,8 +70,8 @@ class HondaDeviceTracker(MyHondaPlusEntity, TrackerEntity):
 
     @property
     def latitude(self) -> float | None:
-        return _dms_to_decimal(self.coordinator.data.get("latitude"))
+        return _dms_to_decimal(self.coordinator.data.latitude)
 
     @property
     def longitude(self) -> float | None:
-        return _dms_to_decimal(self.coordinator.data.get("longitude"))
+        return _dms_to_decimal(self.coordinator.data.longitude)

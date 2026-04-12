@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -10,7 +11,7 @@ import voluptuous as vol
 from homeassistant.const import PERCENTAGE
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityDescription
-from pymyhondaplus.api import HondaAPIError
+from pymyhondaplus.api import EVStatus, HondaAPIError
 
 from custom_components.myhondaplus import (
     _cleanup_removed_vehicles,
@@ -31,6 +32,7 @@ from custom_components.myhondaplus.button import (
     async_setup_entry as button_setup_entry,
 )
 from custom_components.myhondaplus.coordinator import (
+    DashboardData,
     HondaDataUpdateCoordinator,
     HondaTripCoordinator,
 )
@@ -305,7 +307,7 @@ class TestNumberCoverage:
     async def test_set_limit_no_update_on_failure(self):
         class FakeCoordinator:
             def __init__(self) -> None:
-                self.data = dict(MOCK_DASHBOARD_DATA)
+                self.data = replace(MOCK_DASHBOARD_DATA)
                 self.api = SimpleNamespace(set_charge_limit=MagicMock())
                 self.entry = SimpleNamespace(data=dict(MOCK_ENTRY_DATA))
                 self.async_set_updated_data = MagicMock()
@@ -332,7 +334,7 @@ class TestSelectCoverage:
     @pytest.mark.asyncio
     async def test_temp_select_uses_default_duration_on_invalid_value(self):
         coordinator = SimpleNamespace(
-            data={**MOCK_DASHBOARD_DATA, "climate_duration": 99},
+            data=replace(MOCK_DASHBOARD_DATA, climate_duration=99),
             api=SimpleNamespace(set_climate_settings=MagicMock()),
             entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA)),
             async_send_command_and_wait=AsyncMock(return_value=True),
@@ -347,7 +349,7 @@ class TestSelectCoverage:
     @pytest.mark.asyncio
     async def test_duration_select_uses_default_temp_on_invalid_value(self):
         coordinator = SimpleNamespace(
-            data={**MOCK_DASHBOARD_DATA, "climate_temp": "weird"},
+            data=replace(MOCK_DASHBOARD_DATA, climate_temp="weird"),
             api=SimpleNamespace(set_climate_settings=MagicMock()),
             entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA)),
             async_send_command_and_wait=AsyncMock(return_value=True),
@@ -375,7 +377,7 @@ class TestSwitchCoverage:
     async def test_charge_switch_bool_and_failure_paths(self, mock_coordinator):
         entity = HondaChargeSwitch(mock_coordinator, MOCK_VIN, MOCK_VEHICLE_NAME, "E")
         entity.hass = _make_hass_mock()
-        mock_coordinator.data["charge_status"] = True
+        mock_coordinator.data.charge_status = True
         assert entity.is_on is True
         mock_coordinator.async_send_command_and_wait.return_value = False
         await entity.async_turn_off()
@@ -385,8 +387,8 @@ class TestSwitchCoverage:
     async def test_defrost_switch_defaults_and_no_update_on_failure(
         self, mock_coordinator
     ):
-        mock_coordinator.data["climate_temp"] = "bad"
-        mock_coordinator.data["climate_duration"] = 99
+        mock_coordinator.data.climate_temp = "bad"
+        mock_coordinator.data.climate_duration = 99
         mock_coordinator.async_send_command_and_wait.return_value = False
         entity = HondaDefrostSwitch(mock_coordinator, MOCK_VIN, MOCK_VEHICLE_NAME, "E")
         entity.hass = _make_hass_mock()
@@ -440,11 +442,11 @@ class TestSensorCoverage:
     def test_sensor_timestamp_parsing(self, mock_coordinator):
         entity = make_sensor(mock_coordinator, "timestamp")
         assert entity.native_value.year == 2026
-        mock_coordinator.data["timestamp"] = "bad"
+        mock_coordinator.data.timestamp = "bad"
         assert entity.native_value is None
 
     def test_sensor_schedule_non_list(self, mock_coordinator):
-        mock_coordinator.data["charge_schedule"] = "bad"
+        mock_coordinator.data.charge_schedule = "bad"
         entity = make_sensor(mock_coordinator, "charge_schedule")
         assert entity.native_value == 0
         assert entity.extra_state_attributes is None
@@ -550,10 +552,11 @@ class TestCoordinatorCoverage:
         coord = HondaDataUpdateCoordinator.__new__(HondaDataUpdateCoordinator)
         coord.vin = MOCK_VIN
         coord.api = MagicMock()
+        mock_ev = EVStatus(battery_level=42)
         with (
             patch(
                 "custom_components.myhondaplus.coordinator.parse_ev_status",
-                return_value={"x": 1},
+                return_value=mock_ev,
             ),
             patch(
                 "custom_components.myhondaplus.coordinator.parse_charge_schedule",
@@ -566,11 +569,11 @@ class TestCoordinatorCoverage:
         ):
             coord.api.get_dashboard_cached.return_value = {"dash": 1}
             coord.api.refresh_dashboard.return_value = SimpleNamespace(success=True)
-            assert HondaDataUpdateCoordinator._fetch_data(coord) == {
-                "x": 1,
-                "charge_schedule": ["a"],
-                "climate_schedule": ["b"],
-            }
+            result = HondaDataUpdateCoordinator._fetch_data(coord)
+            assert isinstance(result, DashboardData)
+            assert result.battery_level == 42
+            assert result.charge_schedule == ["a"]
+            assert result.climate_schedule == ["b"]
             assert HondaDataUpdateCoordinator._refresh_from_car(coord).success is True
 
     def test_trip_fetch_data_uses_main_coordinator_distance(self):
@@ -578,7 +581,7 @@ class TestCoordinatorCoverage:
         coord.vin = MOCK_VIN
         coord.api = MagicMock()
         coord._fuel_type = "E"
-        coord._main_coordinator = MagicMock(data={"distance_unit": "miles"})
+        coord._main_coordinator = MagicMock(data=replace(MOCK_DASHBOARD_DATA, distance_unit="miles"))
         with patch(
             "custom_components.myhondaplus.coordinator.compute_trip_stats",
             return_value={"ok": True},

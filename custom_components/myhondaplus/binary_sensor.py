@@ -95,7 +95,7 @@ class HondaBinarySensor(MyHondaPlusEntity, BinarySensorEntity):
 
     @property
     def is_on(self) -> bool | None:
-        value = self.coordinator.data.get(self.entity_description.data_key)
+        value = getattr(self.coordinator.data, self.entity_description.data_key, None)
         result = to_bool(value)
         if result is None:
             return None

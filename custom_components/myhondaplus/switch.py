@@ -1,5 +1,7 @@
 """Switch platform for My Honda+."""
 
+from dataclasses import replace
+
 from homeassistant.components.switch import (
     SwitchDeviceClass,
     SwitchEntity,
@@ -58,7 +60,7 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
     @property
     def is_on(self) -> bool | None:
         """Return true if climate is active."""
-        value = self.coordinator.data.get("climate_active")
+        value = self.coordinator.data.climate_active
         if isinstance(value, str) and value.lower() == "active":
             return True
         return to_bool(value)
@@ -70,9 +72,9 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
             self._vin,
         )
         if confirmed:
-            data = dict(self.coordinator.data)
-            data["climate_active"] = True
-            self.coordinator.async_set_updated_data(data)
+            self.coordinator.async_set_updated_data(
+                replace(self.coordinator.data, climate_active=True)
+            )
 
     async def async_turn_off(self, **kwargs) -> None:
         """Stop climate pre-conditioning."""
@@ -81,9 +83,9 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
             self._vin,
         )
         if confirmed:
-            data = dict(self.coordinator.data)
-            data["climate_active"] = False
-            self.coordinator.async_set_updated_data(data)
+            self.coordinator.async_set_updated_data(
+                replace(self.coordinator.data, climate_active=False)
+            )
 
 
 class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
@@ -105,11 +107,9 @@ class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
     @property
     def is_on(self) -> bool | None:
         """Return true if charging is active."""
-        value = self.coordinator.data.get("charge_status")
+        value = self.coordinator.data.charge_status
         if value is None:
             return None
-        if isinstance(value, bool):
-            return value
         if isinstance(value, str):
             return value.lower() in ("charging", "running")
         return bool(value)
@@ -121,9 +121,9 @@ class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
             self._vin,
         )
         if confirmed:
-            data = dict(self.coordinator.data)
-            data["charge_status"] = "charging"
-            self.coordinator.async_set_updated_data(data)
+            self.coordinator.async_set_updated_data(
+                replace(self.coordinator.data, charge_status="charging")
+            )
 
     async def async_turn_off(self, **kwargs) -> None:
         """Stop charging."""
@@ -132,9 +132,9 @@ class HondaChargeSwitch(MyHondaPlusEntity, SwitchEntity):
             self._vin,
         )
         if confirmed:
-            data = dict(self.coordinator.data)
-            data["charge_status"] = "not_charging"
-            self.coordinator.async_set_updated_data(data)
+            self.coordinator.async_set_updated_data(
+                replace(self.coordinator.data, charge_status="not_charging")
+            )
 
 
 class HondaDefrostSwitch(MyHondaPlusEntity, SwitchEntity):
@@ -157,7 +157,7 @@ class HondaDefrostSwitch(MyHondaPlusEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if defrost is enabled."""
-        return bool(self.coordinator.data.get("climate_defrost", True))
+        return bool(self.coordinator.data.climate_defrost)
 
     async def async_turn_on(self, **kwargs) -> None:
         """Enable defrost."""
@@ -168,11 +168,11 @@ class HondaDefrostSwitch(MyHondaPlusEntity, SwitchEntity):
         await self._set_defrost(False)
 
     async def _set_defrost(self, defrost: bool) -> None:
-        data = self.coordinator.data or {}
-        temp = data.get("climate_temp", "normal")
+        data = self.coordinator.data
+        temp = data.climate_temp
         if temp not in ("cooler", "normal", "hotter"):
             temp = "normal"
-        duration = data.get("climate_duration", 30)
+        duration = data.climate_duration
         if duration not in (10, 20, 30):
             duration = 30
         confirmed = await self.coordinator.async_send_command_and_wait(
@@ -183,9 +183,9 @@ class HondaDefrostSwitch(MyHondaPlusEntity, SwitchEntity):
             defrost,
         )
         if confirmed:
-            new_data = dict(self.coordinator.data)
-            new_data["climate_defrost"] = defrost
-            self.coordinator.async_set_updated_data(new_data)
+            self.coordinator.async_set_updated_data(
+                replace(self.coordinator.data, climate_defrost=defrost)
+            )
 
 
 class HondaAutoRefreshSwitch(MyHondaPlusEntity, SwitchEntity):
