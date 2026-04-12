@@ -188,6 +188,11 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
     async def async_send_command(self, func, *args) -> str:
         try:
             result = await self.hass.async_add_executor_job(func, *args)
+        except ValueError as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="capability_not_supported",
+            ) from err
         except HondaAPIError as err:
             _handle_api_error(err, self._persist_tokens_if_changed)
             LOGGER.error("Remote command failed: %s", err)
