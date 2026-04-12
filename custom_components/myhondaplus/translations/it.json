@@ -292,5 +292,10 @@
         "name": "Limite ricarica (fuori)"
       }
     }
+  },
+  "notifications": {
+    "refresh_timeout": "L'aggiornamento della dashboard per {vehicle} è scaduto in attesa della risposta del veicolo.",
+    "command_timeout": "Un comando per {vehicle} è scaduto in attesa della risposta del veicolo.",
+    "location_timeout": "L'aggiornamento della posizione per {vehicle} è scaduto in attesa della risposta del veicolo."
   }
 }

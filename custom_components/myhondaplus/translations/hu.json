@@ -292,5 +292,10 @@
         "name": "Töltési limit (távol)"
       }
     }
+  },
+  "notifications": {
+    "refresh_timeout": "Az irányítópult frissítése ({vehicle}) időtúllépés miatt megszakadt, mert a jármű nem válaszolt.",
+    "command_timeout": "Egy parancs ({vehicle}) időtúllépés miatt megszakadt, mert a jármű nem válaszolt.",
+    "location_timeout": "A helyzet frissítése ({vehicle}) időtúllépés miatt megszakadt, mert a jármű nem válaszolt."
   }
 }

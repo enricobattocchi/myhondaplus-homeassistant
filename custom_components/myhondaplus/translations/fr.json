@@ -292,5 +292,10 @@
         "name": "Limite de charge (extérieur)"
       }
     }
+  },
+  "notifications": {
+    "refresh_timeout": "L'actualisation du tableau de bord pour {vehicle} a expiré en attendant la réponse du véhicule.",
+    "command_timeout": "Une commande pour {vehicle} a expiré en attendant la réponse du véhicule.",
+    "location_timeout": "L'actualisation de la position pour {vehicle} a expiré en attendant la réponse du véhicule."
   }
 }

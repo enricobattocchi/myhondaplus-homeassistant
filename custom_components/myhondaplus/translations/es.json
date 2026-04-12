@@ -292,5 +292,10 @@
         "name": "Límite de carga (fuera)"
       }
     }
+  },
+  "notifications": {
+    "refresh_timeout": "La actualización del panel para {vehicle} agotó el tiempo de espera de respuesta del vehículo.",
+    "command_timeout": "Un comando para {vehicle} agotó el tiempo de espera de respuesta del vehículo.",
+    "location_timeout": "La actualización de ubicación para {vehicle} agotó el tiempo de espera de respuesta del vehículo."
   }
 }

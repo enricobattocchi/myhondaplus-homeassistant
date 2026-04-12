@@ -292,5 +292,10 @@
         "name": "Limit nabíjania (preč)"
       }
     }
+  },
+  "notifications": {
+    "refresh_timeout": "Aktualizácia údajov pre {vehicle} vypršala, pretože vozidlo neodpovedalo.",
+    "command_timeout": "Príkaz pre {vehicle} vypršal, pretože vozidlo neodpovedalo.",
+    "location_timeout": "Aktualizácia polohy pre {vehicle} vypršala, pretože vozidlo neodpovedalo."
   }
 }

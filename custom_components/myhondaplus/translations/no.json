@@ -292,5 +292,10 @@
         "name": "Ladegrense (borte)"
       }
     }
+  },
+  "notifications": {
+    "refresh_timeout": "Oppdatering av dashbordet for {vehicle} fikk tidsavbrudd mens den ventet på svar fra kjøretøyet.",
+    "command_timeout": "En kommando for {vehicle} fikk tidsavbrudd mens den ventet på svar fra kjøretøyet.",
+    "location_timeout": "Oppdatering av posisjonen for {vehicle} fikk tidsavbrudd mens den ventet på svar fra kjøretøyet."
   }
 }

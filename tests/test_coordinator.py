@@ -51,6 +51,13 @@ def coordinator(mock_hass, mock_entry):
         coord._service_available = True
         coord._vehicle_name = MOCK_VEHICLE_NAME
         coord.async_set_updated_data = MagicMock()
+        coord._translated_notification = AsyncMock(
+            side_effect=lambda key: {
+                "refresh_timeout": f"Dashboard refresh for {MOCK_VEHICLE_NAME} timed out waiting for the car to respond.",
+                "command_timeout": f"A command for {MOCK_VEHICLE_NAME} timed out waiting for the car to respond.",
+                "location_timeout": f"Location refresh for {MOCK_VEHICLE_NAME} timed out waiting for the car to respond.",
+            }[key]
+        )
         return coord
 
 

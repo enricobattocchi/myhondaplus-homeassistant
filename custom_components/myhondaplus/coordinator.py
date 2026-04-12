@@ -9,6 +9,7 @@ from homeassistant.components.persistent_notification import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
+from homeassistant.helpers.translation import async_get_translations
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pymyhondaplus.api import (
     EVStatus,
@@ -95,6 +96,16 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
             }
             self.hass.config_entries.async_update_entry(self.entry, data=new_data)
 
+    async def _translated_notification(self, key: str) -> str:
+        """Return a translated notification message with the vehicle name filled in."""
+        translations = await async_get_translations(
+            self.hass, self.hass.config.language, "notifications", {DOMAIN}
+        )
+        tkey = f"component.{DOMAIN}.notifications.{key}"
+        fallback = f"{key.replace('_', ' ').capitalize()} for {{vehicle}}."
+        msg = translations.get(tkey, fallback)
+        return msg.format(vehicle=self._vehicle_name or self.vin)
+
     def _fetch_data(self) -> DashboardData:
         dashboard = self.api.get_dashboard_cached(self.vin)
         ev = parse_ev_status(dashboard)
@@ -160,7 +171,7 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
                     if notify_on_timeout:
                         pn_async_create(
                             self.hass,
-                            f"Dashboard refresh for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
+                            await self._translated_notification("refresh_timeout"),
                             title="My Honda+",
                             notification_id=f"{DOMAIN}_refresh_timeout",
                         )
@@ -230,7 +241,7 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
                 if notify_on_timeout:
                     pn_async_create(
                         self.hass,
-                        f"A command for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
+                        await self._translated_notification("command_timeout"),
                         title="My Honda+",
                         notification_id=f"{DOMAIN}_command_timeout",
                     )
@@ -266,7 +277,7 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
                     if notify_on_timeout:
                         pn_async_create(
                             self.hass,
-                            f"Location refresh for {self._vehicle_name or self.vin} timed out waiting for the car to respond.",
+                            await self._translated_notification("location_timeout"),
                             title="My Honda+",
                             notification_id=f"{DOMAIN}_location_timeout",
                         )

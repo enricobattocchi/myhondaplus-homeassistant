@@ -292,5 +292,10 @@
         "name": "Limit nabíjení (pryč)"
       }
     }
+  },
+  "notifications": {
+    "refresh_timeout": "Aktualizace dat pro {vehicle} vypršela při čekání na odpověď vozidla.",
+    "command_timeout": "Příkaz pro {vehicle} vypršel při čekání na odpověď vozidla.",
+    "location_timeout": "Aktualizace polohy pro {vehicle} vypršela při čekání na odpověď vozidla."
   }
 }

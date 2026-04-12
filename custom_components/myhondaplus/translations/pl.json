@@ -292,5 +292,10 @@
         "name": "Limit ładowania (poza domem)"
       }
     }
+  },
+  "notifications": {
+    "refresh_timeout": "Odświeżanie danych dla {vehicle} przekroczyło limit czasu oczekiwania na odpowiedź pojazdu.",
+    "command_timeout": "Polecenie dla {vehicle} przekroczyło limit czasu oczekiwania na odpowiedź pojazdu.",
+    "location_timeout": "Odświeżanie lokalizacji dla {vehicle} przekroczyło limit czasu oczekiwania na odpowiedź pojazdu."
   }
 }

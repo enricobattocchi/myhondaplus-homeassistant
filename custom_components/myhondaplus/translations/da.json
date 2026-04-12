@@ -292,5 +292,10 @@
         "name": "Ladegrænse (ude)"
       }
     }
+  },
+  "notifications": {
+    "refresh_timeout": "Opdatering af dashboard for {vehicle} fik timeout, mens den ventede på svar fra køretøjet.",
+    "command_timeout": "En kommando for {vehicle} fik timeout, mens den ventede på svar fra køretøjet.",
+    "location_timeout": "Opdatering af positionen for {vehicle} fik timeout, mens den ventede på svar fra køretøjet."
   }
 }

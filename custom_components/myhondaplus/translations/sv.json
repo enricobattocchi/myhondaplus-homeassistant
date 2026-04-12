@@ -292,5 +292,10 @@
         "name": "Laddgräns (borta)"
       }
     }
+  },
+  "notifications": {
+    "refresh_timeout": "Uppdatering av instrumentpanelen för {vehicle} överskred tidsgränsen i väntan på svar från fordonet.",
+    "command_timeout": "Ett kommando för {vehicle} överskred tidsgränsen i väntan på svar från fordonet.",
+    "location_timeout": "Uppdatering av positionen för {vehicle} överskred tidsgränsen i väntan på svar från fordonet."
   }
 }
