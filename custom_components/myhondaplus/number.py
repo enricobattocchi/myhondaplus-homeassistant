@@ -51,12 +51,13 @@ async def async_setup_entry(
     """Set up My Honda+ charge limit numbers."""
     entities = []
     for v in entry.runtime_data.vehicles.values():
-        entities.extend(
-            HondaChargeLimitNumber(
-                v.coordinator, desc, v.vin, v.vehicle_name, v.fuel_type
+        if v.capabilities.remote_charge and v.capabilities.max_charge:
+            entities.extend(
+                HondaChargeLimitNumber(
+                    v.coordinator, desc, v.vin, v.vehicle_name, v.fuel_type
+                )
+                for desc in NUMBER_DESCRIPTIONS
             )
-            for desc in NUMBER_DESCRIPTIONS
-        )
     async_add_entities(entities)
 
 
