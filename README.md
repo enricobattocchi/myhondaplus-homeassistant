@@ -237,5 +237,3 @@ All vehicles on your account are automatically detected and added as separate de
 [download-latest]: https://img.shields.io/github/downloads/enricobattocchi/myhondaplus-homeassistant/latest/total.svg
 [commits-shield]: https://img.shields.io/github/commit-activity/y/enricobattocchi/myhondaplus-homeassistant.svg
 [commits]: https://github.com/enricobattocchi/myhondaplus-homeassistant/commits/main
-![GitHub release (latest by SemVer)][download-latest]
-[![GitHub Activity][commits-shield]][commits]
