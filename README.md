@@ -1,10 +1,26 @@
-# My Honda+ for Home Assistant
+# My Honda+ for Home Assistant (unofficial)
 
-Home Assistant custom component for Honda Connect Europe vehicles (My Honda+ app).
+[![GitHub Release][releases-shield]][releases]
+![GitHub all releases][download-all]
+![GitHub release (latest by SemVer)][download-latest]
+[![GitHub Activity][commits-shield]][commits]
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+Unofficial Home Assistant custom component for Honda Connect Europe vehicles (My Honda+ app).
 
 > **Europe only** — this integration uses the Honda Connect Europe API (My Honda+ app). It does **not** work with HondaLink (North America), Honda Connect (Japan/Asia), or any non-European Honda connected service.
 
 Tested on Honda e. Should work with other Honda Connect Europe vehicles (e:Ny1, ZR-V, CR-V, Civic, HR-V, Jazz 2020+) but these are untested — contributions welcome!
+
+## Disclaimer
+
+This project is **unofficial** and **not affiliated with, endorsed by, or connected to Honda Motor Co., Ltd.** in any way.
+
+- Use at your own risk. The authors accept no responsibility for any damage to your vehicle, account, or warranty.
+- Honda may change their API at any time, which could break this integration without notice.
+- Sending remote commands (lock, unlock, climate, charging) to your vehicle is your responsibility.
+- This integration does not store or transmit your credentials to any third party. Authentication is performed directly with Honda's servers.
 
 ## Installation
 
@@ -212,12 +228,3 @@ All vehicles on your account are automatically detected and added as separate de
 
 - [pymyhondaplus](https://github.com/enricobattocchi/pymyhondaplus) — Python client library and CLI for the Honda Connect Europe API
 - [myhondaplus-desktop](https://github.com/enricobattocchi/myhondaplus-desktop) — Desktop GUI application
-
-## Disclaimer
-
-This project is **unofficial** and **not affiliated with, endorsed by, or connected to Honda Motor Co., Ltd.** in any way.
-
-- Use at your own risk. The authors accept no responsibility for any damage to your vehicle, account, or warranty.
-- Honda may change their API at any time, which could break this integration without notice.
-- Sending remote commands (lock, unlock, climate, charging) to your vehicle is your responsibility.
-- This integration does not store or transmit your credentials to any third party. Authentication is performed directly with Honda's servers.
