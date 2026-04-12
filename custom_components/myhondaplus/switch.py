@@ -27,14 +27,15 @@ async def async_setup_entry(
         vin = vehicle.vin
         name = vehicle.vehicle_name
         fuel_type = vehicle.fuel_type
-        entities.extend(
-            [
-                HondaClimateSwitch(c, vin, name, fuel_type),
-                HondaChargeSwitch(c, vin, name, fuel_type),
-                HondaDefrostSwitch(c, vin, name, fuel_type),
-                HondaAutoRefreshSwitch(c, vin, name, fuel_type, vehicle),
-            ]
-        )
+        caps = vehicle.capabilities
+        ui = vehicle.ui_config
+        if caps.remote_climate:
+            entities.append(HondaClimateSwitch(c, vin, name, fuel_type))
+            if not ui.hide_climate_settings:
+                entities.append(HondaDefrostSwitch(c, vin, name, fuel_type))
+        if caps.remote_charge:
+            entities.append(HondaChargeSwitch(c, vin, name, fuel_type))
+        entities.append(HondaAutoRefreshSwitch(c, vin, name, fuel_type, vehicle))
     async_add_entities(entities)
 
 

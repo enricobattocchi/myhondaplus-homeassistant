@@ -10,7 +10,7 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import selector
 from homeassistant.helpers.event import async_call_later
-from pymyhondaplus.api import HondaAPI
+from pymyhondaplus.api import HondaAPI, Vehicle
 
 from .const import (
     CONF_ACCESS_TOKEN,
@@ -258,8 +258,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
         user_id=entry.data.get(CONF_USER_ID, ""),
     )
 
-    # Backfill model names for upgrades from versions without model data
-    await _backfill_models(hass, entry, api)
+    # Fetch vehicle metadata (capabilities, UI config, backfill models)
+    api_vehicles = await _fetch_vehicle_metadata(hass, entry, api)
 
     vehicles: dict[str, VehicleData] = {}
     for v in entry.data.get(CONF_VEHICLES, []):
@@ -287,12 +287,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
         )
         await trip_coordinator.async_config_entry_first_refresh()
 
+        api_vehicle = api_vehicles.get(vin)
         vehicles[vin] = VehicleData(
             coordinator=coordinator,
             trip_coordinator=trip_coordinator,
             vin=vin,
             vehicle_name=vehicle_name,
             fuel_type=fuel_type,
+            **(
+                {
+                    "capabilities": api_vehicle.capabilities,
+                    "ui_config": api_vehicle.ui_config,
+                }
+                if api_vehicle
+                else {}
+            ),
         )
 
     entry.runtime_data = MyHondaPlusData(vehicles=vehicles, api=api)
@@ -313,32 +322,62 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
     return True
 
 
-async def _backfill_models(
+async def _fetch_vehicle_metadata(
     hass: HomeAssistant,
     entry: MyHondaPlusConfigEntry,
     api: HondaAPI,
-) -> None:
-    """Fetch model names for vehicles that don't have them (upgrade path)."""
-    vehicle_list = entry.data.get(CONF_VEHICLES, [])
-    if all(v.get(CONF_MODEL) for v in vehicle_list):
-        return
+) -> dict[str, Vehicle]:
+    """Fetch Vehicle objects from the API.
 
+    Also backfills model names for vehicles that don't have them (upgrade path).
+    Returns a dict of VIN → Vehicle for capability/UI config extraction.
+    """
     try:
-        from .config_flow import _parse_vehicles
+        api_vehicles = await hass.async_add_executor_job(api.get_vehicles)
+    except Exception:
+        LOGGER.debug("Could not fetch vehicle metadata", exc_info=True)
+        return {}
 
-        user_info = await hass.async_add_executor_job(api.get_user_info)
-        api_vehicles = {v["vin"]: v for v in _parse_vehicles(user_info)}
+    vehicles_by_vin = {v.vin: v for v in api_vehicles}
+
+    # Backfill model names if missing
+    vehicle_list = entry.data.get(CONF_VEHICLES, [])
+    if not all(v.get(CONF_MODEL) for v in vehicle_list):
         updated = []
         for v in vehicle_list:
             vin = v[CONF_VIN]
-            api_v = api_vehicles.get(vin, {})
-            updated.append({**v, CONF_MODEL: api_v.get("model", v.get(CONF_MODEL, ""))})
+            api_v = vehicles_by_vin.get(vin)
+            if api_v and not v.get(CONF_MODEL):
+                model = _build_model_name_from_vehicle(api_v)
+                updated.append({**v, CONF_MODEL: model})
+            else:
+                updated.append(v)
         hass.config_entries.async_update_entry(
             entry,
             data={**entry.data, CONF_VEHICLES: updated},
         )
-    except Exception:
-        LOGGER.debug("Could not backfill model names", exc_info=True)
+
+    return vehicles_by_vin
+
+
+def _build_model_name_from_vehicle(vehicle: Vehicle) -> str:
+    """Build a display model name from a Vehicle dataclass."""
+    friendly = vehicle.model_name
+    grade = vehicle.grade
+    year = vehicle.model_year
+
+    if friendly and grade:
+        parts = grade.split(None, 1)
+        grade = (
+            parts[1].title() if len(parts) > 1 and len(parts[0]) <= 2 else grade.title()
+        )
+
+    name = friendly
+    if grade:
+        name = f"{name} {grade}" if name else grade
+    if year:
+        name = f"{name} ({year})" if name else str(year)
+    return name
 
 
 def _update_device_models(

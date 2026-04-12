@@ -15,6 +15,7 @@ PARALLEL_UPDATES = 1
 @dataclass(frozen=True, kw_only=True)
 class HondaButtonDescription(ButtonEntityDescription):
     action: str = ""
+    capability: str = ""
 
 
 BUTTON_DESCRIPTIONS: list[HondaButtonDescription] = [
@@ -23,6 +24,7 @@ BUTTON_DESCRIPTIONS: list[HondaButtonDescription] = [
         translation_key="horn_lights",
         icon="mdi:bullhorn",
         action="horn_lights",
+        capability="remote_horn",
     ),
     HondaButtonDescription(
         key="refresh_cached",
@@ -50,6 +52,8 @@ async def async_setup_entry(
         entities.extend(
             HondaButton(v.coordinator, desc, v.vin, v.vehicle_name, v.fuel_type)
             for desc in BUTTON_DESCRIPTIONS
+            if not desc.capability
+            or getattr(v.capabilities, desc.capability, True)
         )
     async_add_entities(entities)
 

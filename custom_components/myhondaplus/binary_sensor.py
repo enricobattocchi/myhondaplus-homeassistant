@@ -20,6 +20,7 @@ PARALLEL_UPDATES = 0
 class HondaBinarySensorDescription(BinarySensorEntityDescription):
     data_key: str = ""
     invert: bool = False
+    ui_hide: str = ""
 
 
 BINARY_SENSOR_DESCRIPTIONS: list[HondaBinarySensorDescription] = [
@@ -38,6 +39,7 @@ BINARY_SENSOR_DESCRIPTIONS: list[HondaBinarySensorDescription] = [
         icon="mdi:car-door",
         data_key="all_windows_closed",
         invert=True,
+        ui_hide="hide_window_status",
     ),
     HondaBinarySensorDescription(
         key="hood",
@@ -80,6 +82,8 @@ async def async_setup_entry(
                 vehicle.fuel_type,
             )
             for desc in BINARY_SENSOR_DESCRIPTIONS
+            if not desc.ui_hide
+            or not getattr(vehicle.ui_config, desc.ui_hide, False)
         )
     async_add_entities(entities)
 
