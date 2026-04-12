@@ -156,6 +156,10 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         if "currently blocked" not in str(e2):
                             errors["base"] = "cannot_connect"
                             return self._show_user_form(errors)
+                    except Exception:
+                        LOGGER.exception("Device registration failed")
+                        errors["base"] = "cannot_connect"
+                        return self._show_user_form(errors)
 
                     return await self.async_step_verify()
                 elif (
@@ -214,6 +218,14 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                                 data_schema=STEP_REAUTH_SCHEMA,
                                 errors=errors,
                             )
+                    except Exception:
+                        LOGGER.exception("Device registration failed")
+                        errors["base"] = "cannot_connect"
+                        return self.async_show_form(
+                            step_id="reauth_confirm",
+                            data_schema=STEP_REAUTH_SCHEMA,
+                            errors=errors,
+                        )
                     return await self.async_step_verify()
                 elif (
                     "invalid-credentials" in error_text.lower()
