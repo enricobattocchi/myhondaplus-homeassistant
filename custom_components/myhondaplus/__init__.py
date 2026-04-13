@@ -4,7 +4,7 @@ import re
 from dataclasses import replace
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntryState
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_EMAIL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ServiceValidationError
@@ -16,6 +16,7 @@ from pymyhondaplus.api import HondaAPI, Vehicle
 from .const import (
     CONF_ACCESS_TOKEN,
     CONF_CAR_REFRESH_INTERVAL,
+    CONF_EXPIRES_AT,
     CONF_FUEL_TYPE,
     CONF_LOCATION_REFRESH_INTERVAL,
     CONF_MODEL,
@@ -124,6 +125,47 @@ SERVICE_CLIMATE_SCHEDULE_FIELDS = {
 SERVICE_CLIMATE_ON_SCHEMA = vol.Schema(SERVICE_CLIMATE_ON_FIELDS)
 SERVICE_CHARGE_SCHEDULE_SCHEMA = vol.Schema(SERVICE_CHARGE_SCHEDULE_FIELDS)
 SERVICE_CLIMATE_SCHEDULE_SCHEMA = vol.Schema(SERVICE_CLIMATE_SCHEDULE_FIELDS)
+
+
+class _ConfigEntryTokenStorage:
+    """Storage adapter that persists tokens to the HA config entry.
+
+    Implements the save_tokens/load_tokens interface expected by HondaAPI,
+    so token refreshes are persisted immediately (just like CLI/desktop).
+    """
+
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        self._hass = hass
+        self._entry = entry
+
+    def load_tokens(self) -> dict | None:
+        data = self._entry.data
+        access = data.get(CONF_ACCESS_TOKEN)
+        if not access:
+            return None
+        return {
+            "access_token": access,
+            "refresh_token": data.get(CONF_REFRESH_TOKEN, ""),
+            "expires_at": data.get(CONF_EXPIRES_AT, 0),
+            "personal_id": data.get(CONF_PERSONAL_ID, ""),
+            "user_id": data.get(CONF_USER_ID, ""),
+        }
+
+    def save_tokens(self, tokens_dict: dict) -> None:
+        token_fields = {
+            CONF_ACCESS_TOKEN: tokens_dict.get("access_token", ""),
+            CONF_REFRESH_TOKEN: tokens_dict.get("refresh_token", ""),
+            CONF_EXPIRES_AT: tokens_dict.get("expires_at", 0),
+        }
+        self._hass.loop.call_soon_threadsafe(
+            self._do_update, token_fields,
+        )
+
+    def _do_update(self, token_fields: dict) -> None:
+        """Merge token fields with the latest entry data on the event loop."""
+        self._hass.config_entries.async_update_entry(
+            self._entry, data={**self._entry.data, **token_fields},
+        )
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
@@ -248,16 +290,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
     # Phase 2: consolidate duplicate entries from migration
     _consolidate_duplicate_entries(hass, entry)
 
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    # Only reload on options changes (scan interval, refresh intervals),
+    # not on token-only data updates which happen frequently.
+    _prev_options = dict(entry.options)
 
-    # Create one shared API instance
-    api = HondaAPI()
-    api.set_tokens(
-        access_token=entry.data[CONF_ACCESS_TOKEN],
-        refresh_token=entry.data[CONF_REFRESH_TOKEN],
-        personal_id=entry.data.get(CONF_PERSONAL_ID, ""),
-        user_id=entry.data.get(CONF_USER_ID, ""),
-    )
+    async def _on_entry_updated(
+        hass: HomeAssistant, entry: MyHondaPlusConfigEntry
+    ) -> None:
+        nonlocal _prev_options
+        if dict(entry.options) != _prev_options:
+            _prev_options = dict(entry.options)
+            await hass.config_entries.async_reload(entry.entry_id)
+
+    entry.async_on_unload(entry.add_update_listener(_on_entry_updated))
+
+    # Create one shared API instance with storage that persists tokens
+    # to the config entry immediately on refresh (like CLI/desktop).
+    token_storage = _ConfigEntryTokenStorage(hass, entry)
+    api = HondaAPI(storage=token_storage)
 
     # Fetch vehicle metadata (capabilities, UI config, backfill models)
     api_vehicles = await _fetch_vehicle_metadata(hass, entry, api)

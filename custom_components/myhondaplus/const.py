@@ -13,6 +13,7 @@ CONF_SCAN_INTERVAL = "scan_interval"
 CONF_DEVICE_KEY_PEM = "device_key_pem"
 CONF_VEHICLE_NAME = "vehicle_name"
 CONF_FUEL_TYPE = "fuel_type"
+CONF_EXPIRES_AT = "token_expires_at"
 CONF_MODEL = "model"
 CONF_VEHICLES = "vehicles"
 

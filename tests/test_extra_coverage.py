@@ -41,6 +41,14 @@ from custom_components.myhondaplus.button import (
     async_setup_entry as button_setup_entry,
 )
 from custom_components.myhondaplus.config_flow import MyHondaPlusConfigFlow
+from custom_components.myhondaplus.const import (
+    CONF_CAR_REFRESH_INTERVAL,
+    CONF_LOCATION_REFRESH_INTERVAL,
+    CONF_SCAN_INTERVAL,
+    DEFAULT_CAR_REFRESH_INTERVAL,
+    DEFAULT_LOCATION_REFRESH_INTERVAL,
+    DEFAULT_SCAN_INTERVAL,
+)
 from custom_components.myhondaplus.coordinator import (
     DashboardData,
     HondaDataUpdateCoordinator,
@@ -546,18 +554,189 @@ class TestCoordinatorCoverage:
         with pytest.raises(HomeAssistantError):
             await HondaDataUpdateCoordinator.async_refresh_location(coord)
 
-    def test_persist_tokens(self):
+    def test_persist_tokens_is_noop(self):
+        """Token persistence is now handled by the library's storage backend."""
         coord = HondaDataUpdateCoordinator.__new__(HondaDataUpdateCoordinator)
-        coord.entry = MagicMock()
-        coord.entry.data = dict(MOCK_ENTRY_DATA)
         coord.hass = MagicMock()
-        coord.api = MagicMock()
-        coord.api.tokens = SimpleNamespace(
-            access_token="new-access",
-            refresh_token="new-refresh",
-        )
         HondaDataUpdateCoordinator._persist_tokens_if_changed(coord)
-        coord.hass.config_entries.async_update_entry.assert_called_once()
+        coord.hass.config_entries.async_update_entry.assert_not_called()
+
+
+class TestConfigEntryTokenStorage:
+    """Tests for _ConfigEntryTokenStorage adapter."""
+
+    def _make_storage(self):
+        from custom_components.myhondaplus import _ConfigEntryTokenStorage
+
+        hass = _make_hass_mock()
+        entry = MagicMock()
+        entry.data = dict(MOCK_ENTRY_DATA)
+        storage = _ConfigEntryTokenStorage(hass, entry)
+        return storage, hass, entry
+
+    def test_load_tokens_returns_entry_data(self):
+        storage, _, entry = self._make_storage()
+        result = storage.load_tokens()
+        assert result["access_token"] == "fake-access-token"
+        assert result["refresh_token"] == "fake-refresh-token"
+        assert result["personal_id"] == "fake-personal-id"
+        assert result["user_id"] == "fake-user-id"
+
+    def test_load_tokens_returns_none_when_no_access_token(self):
+        storage, _, entry = self._make_storage()
+        entry.data = {}
+        assert storage.load_tokens() is None
+
+    def test_save_tokens_schedules_update_on_event_loop(self):
+        storage, hass, entry = self._make_storage()
+        storage.save_tokens({
+            "access_token": "new-access",
+            "refresh_token": "new-refresh",
+            "expires_at": 9999999.0,
+        })
+        hass.loop.call_soon_threadsafe.assert_called_once()
+
+    def test_do_update_merges_with_latest_entry_data(self):
+        """Token save must use current entry.data, not a stale snapshot."""
+        storage, hass, entry = self._make_storage()
+        # Simulate _fetch_vehicle_metadata updating entry.data after save_tokens
+        # was called but before _do_update runs.
+        entry.data = {**MOCK_ENTRY_DATA, "model": "HR-V"}
+        token_fields = {
+            "access_token": "new-access",
+            "refresh_token": "new-refresh",
+            "token_expires_at": 9999999.0,
+        }
+        storage._do_update(token_fields)
+        call_args = hass.config_entries.async_update_entry.call_args
+        written_data = call_args.kwargs.get("data", call_args[1].get("data"))
+        # Must contain BOTH the model backfill AND the new tokens
+        assert written_data["model"] == "HR-V"
+        assert written_data["access_token"] == "new-access"
+        assert written_data["refresh_token"] == "new-refresh"
+        assert written_data["token_expires_at"] == 9999999.0
+        # Must preserve other fields
+        assert written_data["email"] == "test@example.com"
+
+
+class TestUpdateListenerFiltering:
+    """Tests for the options-only reload behavior."""
+
+    @pytest.mark.asyncio
+    async def test_token_only_update_does_not_reload(self):
+        """Updating tokens in entry.data must not trigger a reload."""
+        from custom_components.myhondaplus import async_setup_entry
+
+        hass = _make_hass_mock()
+        entry = MagicMock()
+        entry.data = dict(MOCK_ENTRY_DATA)
+        entry.options = {
+            CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
+            CONF_CAR_REFRESH_INTERVAL: DEFAULT_CAR_REFRESH_INTERVAL,
+            CONF_LOCATION_REFRESH_INTERVAL: DEFAULT_LOCATION_REFRESH_INTERVAL,
+        }
+        # Capture the update listener callback
+        listeners = []
+        entry.add_update_listener = MagicMock(side_effect=lambda cb: listeners.append(cb))
+        entry.async_on_unload = MagicMock()
+
+        with patch("custom_components.myhondaplus.HondaAPI") as mock_api_cls, \
+             patch("custom_components.myhondaplus._fetch_vehicle_metadata", return_value={}), \
+             patch("custom_components.myhondaplus._cleanup_removed_vehicles"), \
+             patch("custom_components.myhondaplus._schedule_car_refresh"), \
+             patch("custom_components.myhondaplus._schedule_location_refresh"), \
+             patch("custom_components.myhondaplus._update_device_models"), \
+             patch("custom_components.myhondaplus._consolidate_duplicate_entries"):
+            mock_api = MagicMock()
+            mock_api_cls.return_value = mock_api
+            mock_api.tokens = SimpleNamespace(
+                access_token="a", refresh_token="r", expires_at=0,
+                personal_id="p", user_id="u",
+            )
+            coordinator = MagicMock()
+            coordinator._persist_tokens_if_changed = MagicMock()
+            coordinator.async_config_entry_first_refresh = AsyncMock()
+            trip_coordinator = MagicMock()
+            trip_coordinator.async_config_entry_first_refresh = AsyncMock()
+            with patch(
+                "custom_components.myhondaplus.HondaDataUpdateCoordinator",
+                return_value=coordinator,
+            ), patch(
+                "custom_components.myhondaplus.HondaTripCoordinator",
+                return_value=trip_coordinator,
+            ):
+                hass.config_entries.async_forward_entry_setups = AsyncMock()
+                await async_setup_entry(hass, entry)
+
+        assert len(listeners) == 1
+        on_update = listeners[0]
+
+        # Simulate token-only change (options unchanged)
+        hass.config_entries.async_reload = AsyncMock()
+        await on_update(hass, entry)
+        hass.config_entries.async_reload.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_options_change_triggers_reload(self):
+        """Changing options (e.g. scan interval) must trigger a reload."""
+        from custom_components.myhondaplus import async_setup_entry
+
+        hass = _make_hass_mock()
+        entry = MagicMock()
+        entry.data = dict(MOCK_ENTRY_DATA)
+        entry.options = {
+            CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
+            CONF_CAR_REFRESH_INTERVAL: DEFAULT_CAR_REFRESH_INTERVAL,
+            CONF_LOCATION_REFRESH_INTERVAL: DEFAULT_LOCATION_REFRESH_INTERVAL,
+        }
+        listeners = []
+        entry.add_update_listener = MagicMock(side_effect=lambda cb: listeners.append(cb))
+        entry.async_on_unload = MagicMock()
+
+        with patch("custom_components.myhondaplus.HondaAPI") as mock_api_cls, \
+             patch("custom_components.myhondaplus._fetch_vehicle_metadata", return_value={}), \
+             patch("custom_components.myhondaplus._cleanup_removed_vehicles"), \
+             patch("custom_components.myhondaplus._schedule_car_refresh"), \
+             patch("custom_components.myhondaplus._schedule_location_refresh"), \
+             patch("custom_components.myhondaplus._update_device_models"), \
+             patch("custom_components.myhondaplus._consolidate_duplicate_entries"):
+            mock_api = MagicMock()
+            mock_api_cls.return_value = mock_api
+            mock_api.tokens = SimpleNamespace(
+                access_token="a", refresh_token="r", expires_at=0,
+                personal_id="p", user_id="u",
+            )
+            coordinator = MagicMock()
+            coordinator._persist_tokens_if_changed = MagicMock()
+            coordinator.async_config_entry_first_refresh = AsyncMock()
+            trip_coordinator = MagicMock()
+            trip_coordinator.async_config_entry_first_refresh = AsyncMock()
+            with patch(
+                "custom_components.myhondaplus.HondaDataUpdateCoordinator",
+                return_value=coordinator,
+            ), patch(
+                "custom_components.myhondaplus.HondaTripCoordinator",
+                return_value=trip_coordinator,
+            ):
+                hass.config_entries.async_forward_entry_setups = AsyncMock()
+                await async_setup_entry(hass, entry)
+
+        assert len(listeners) == 1
+        on_update = listeners[0]
+
+        # Simulate options change
+        entry.options = {
+            CONF_SCAN_INTERVAL: 300,  # changed
+            CONF_CAR_REFRESH_INTERVAL: DEFAULT_CAR_REFRESH_INTERVAL,
+            CONF_LOCATION_REFRESH_INTERVAL: DEFAULT_LOCATION_REFRESH_INTERVAL,
+        }
+        hass.config_entries.async_reload = AsyncMock()
+        await on_update(hass, entry)
+        hass.config_entries.async_reload.assert_called_once_with(entry.entry_id)
+
+
+class TestCoordinatorCoveragePart2:
+    """Continuation of coordinator tests (split for readability)."""
 
     def test_fetch_data_and_refresh_command(self):
         coord = HondaDataUpdateCoordinator.__new__(HondaDataUpdateCoordinator)

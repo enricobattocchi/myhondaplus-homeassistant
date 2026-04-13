@@ -23,8 +23,6 @@ from pymyhondaplus.api import (
 )
 
 from .const import (
-    CONF_ACCESS_TOKEN,
-    CONF_REFRESH_TOKEN,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_TRIP_INTERVAL,
@@ -84,17 +82,7 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
         )
 
     def _persist_tokens_if_changed(self) -> None:
-        tokens = self.api.tokens
-        data = self.entry.data
-        if tokens.access_token != data.get(
-            CONF_ACCESS_TOKEN
-        ) or tokens.refresh_token != data.get(CONF_REFRESH_TOKEN):
-            new_data = {
-                **data,
-                CONF_ACCESS_TOKEN: tokens.access_token,
-                CONF_REFRESH_TOKEN: tokens.refresh_token,
-            }
-            self.hass.config_entries.async_update_entry(self.entry, data=new_data)
+        """No-op: tokens are now persisted by the library's storage backend."""
 
     async def _translated_notification(self, key: str) -> str:
         """Return a translated notification message with the vehicle name filled in."""
