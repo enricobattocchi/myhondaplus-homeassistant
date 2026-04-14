@@ -11,6 +11,17 @@
             "statusMessage": "Running ruff check..."
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(jq -r '.tool_input.command'); if echo \"$CMD\" | grep -qE '^(git (push|tag |reset --hard)|gh (release (create|delete)|pr (merge|close)))'; then printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"⛔ %s — irreversible action, needs user confirmation\"}}\\n' \"$CMD\"; fi",
+            "timeout": 5,
+            "statusMessage": "Checking for irreversible commands..."
+          }
+        ]
       }
     ]
   }
