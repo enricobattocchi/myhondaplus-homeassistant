@@ -95,6 +95,15 @@
     },
     "device_not_found": {
       "message": "Vehicle not found or not loaded."
+    },
+    "refresh_timeout": {
+      "message": "Dashboard refresh for {vehicle} timed out waiting for the car to respond."
+    },
+    "command_timeout": {
+      "message": "A command for {vehicle} timed out waiting for the car to respond."
+    },
+    "location_timeout": {
+      "message": "Location refresh for {vehicle} timed out waiting for the car to respond."
     }
   },
   "entity": {
@@ -292,10 +301,5 @@
         "name": "Charge limit (away)"
       }
     }
-  },
-  "notifications": {
-    "refresh_timeout": "Dashboard refresh for {vehicle} timed out waiting for the car to respond.",
-    "command_timeout": "A command for {vehicle} timed out waiting for the car to respond.",
-    "location_timeout": "Location refresh for {vehicle} timed out waiting for the car to respond."
   }
 }

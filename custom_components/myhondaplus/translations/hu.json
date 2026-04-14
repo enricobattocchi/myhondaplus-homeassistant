@@ -95,6 +95,15 @@
     },
     "device_not_found": {
       "message": "Vehicle not found or not loaded."
+    },
+    "refresh_timeout": {
+      "message": "Az irányítópult frissítése ({vehicle}) időtúllépés miatt megszakadt, mert a jármű nem válaszolt."
+    },
+    "command_timeout": {
+      "message": "Egy parancs ({vehicle}) időtúllépés miatt megszakadt, mert a jármű nem válaszolt."
+    },
+    "location_timeout": {
+      "message": "A helyzet frissítése ({vehicle}) időtúllépés miatt megszakadt, mert a jármű nem válaszolt."
     }
   },
   "entity": {
@@ -292,10 +301,5 @@
         "name": "Töltési limit (távol)"
       }
     }
-  },
-  "notifications": {
-    "refresh_timeout": "Az irányítópult frissítése ({vehicle}) időtúllépés miatt megszakadt, mert a jármű nem válaszolt.",
-    "command_timeout": "Egy parancs ({vehicle}) időtúllépés miatt megszakadt, mert a jármű nem válaszolt.",
-    "location_timeout": "A helyzet frissítése ({vehicle}) időtúllépés miatt megszakadt, mert a jármű nem válaszolt."
   }
 }

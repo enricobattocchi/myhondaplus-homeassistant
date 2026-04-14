@@ -95,6 +95,15 @@
     },
     "device_not_found": {
       "message": "Vehicle not found or not loaded."
+    },
+    "refresh_timeout": {
+      "message": "Uppdatering av instrumentpanelen för {vehicle} överskred tidsgränsen i väntan på svar från fordonet."
+    },
+    "command_timeout": {
+      "message": "Ett kommando för {vehicle} överskred tidsgränsen i väntan på svar från fordonet."
+    },
+    "location_timeout": {
+      "message": "Uppdatering av positionen för {vehicle} överskred tidsgränsen i väntan på svar från fordonet."
     }
   },
   "entity": {
@@ -292,10 +301,5 @@
         "name": "Laddgräns (borta)"
       }
     }
-  },
-  "notifications": {
-    "refresh_timeout": "Uppdatering av instrumentpanelen för {vehicle} överskred tidsgränsen i väntan på svar från fordonet.",
-    "command_timeout": "Ett kommando för {vehicle} överskred tidsgränsen i väntan på svar från fordonet.",
-    "location_timeout": "Uppdatering av positionen för {vehicle} överskred tidsgränsen i väntan på svar från fordonet."
   }
 }

@@ -95,6 +95,15 @@
     },
     "device_not_found": {
       "message": "Vehicle not found or not loaded."
+    },
+    "refresh_timeout": {
+      "message": "Het vernieuwen van het dashboard voor {vehicle} is verlopen omdat het voertuig niet reageerde."
+    },
+    "command_timeout": {
+      "message": "Een opdracht voor {vehicle} is verlopen omdat het voertuig niet reageerde."
+    },
+    "location_timeout": {
+      "message": "Het vernieuwen van de locatie voor {vehicle} is verlopen omdat het voertuig niet reageerde."
     }
   },
   "entity": {
@@ -292,10 +301,5 @@
         "name": "Laadlimiet (weg)"
       }
     }
-  },
-  "notifications": {
-    "refresh_timeout": "Het vernieuwen van het dashboard voor {vehicle} is verlopen omdat het voertuig niet reageerde.",
-    "command_timeout": "Een opdracht voor {vehicle} is verlopen omdat het voertuig niet reageerde.",
-    "location_timeout": "Het vernieuwen van de locatie voor {vehicle} is verlopen omdat het voertuig niet reageerde."
   }
 }

@@ -87,9 +87,9 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
     async def _translated_notification(self, key: str) -> str:
         """Return a translated notification message with the vehicle name filled in."""
         translations = await async_get_translations(
-            self.hass, self.hass.config.language, "notifications", {DOMAIN}
+            self.hass, self.hass.config.language, "exceptions", {DOMAIN}
         )
-        tkey = f"component.{DOMAIN}.notifications.{key}"
+        tkey = f"component.{DOMAIN}.exceptions.{key}.message"
         fallback = f"{key.replace('_', ' ').capitalize()} for {{vehicle}}."
         msg = translations.get(tkey, fallback)
         return msg.format(vehicle=self._vehicle_name or self.vin)
