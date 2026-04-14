@@ -95,6 +95,15 @@
     },
     "device_not_found": {
       "message": "Vehicle not found or not loaded."
+    },
+    "refresh_timeout": {
+      "message": "Odświeżanie danych dla {vehicle} przekroczyło limit czasu oczekiwania na odpowiedź pojazdu."
+    },
+    "command_timeout": {
+      "message": "Polecenie dla {vehicle} przekroczyło limit czasu oczekiwania na odpowiedź pojazdu."
+    },
+    "location_timeout": {
+      "message": "Odświeżanie lokalizacji dla {vehicle} przekroczyło limit czasu oczekiwania na odpowiedź pojazdu."
     }
   },
   "entity": {
@@ -292,10 +301,5 @@
         "name": "Limit ładowania (poza domem)"
       }
     }
-  },
-  "notifications": {
-    "refresh_timeout": "Odświeżanie danych dla {vehicle} przekroczyło limit czasu oczekiwania na odpowiedź pojazdu.",
-    "command_timeout": "Polecenie dla {vehicle} przekroczyło limit czasu oczekiwania na odpowiedź pojazdu.",
-    "location_timeout": "Odświeżanie lokalizacji dla {vehicle} przekroczyło limit czasu oczekiwania na odpowiedź pojazdu."
   }
 }

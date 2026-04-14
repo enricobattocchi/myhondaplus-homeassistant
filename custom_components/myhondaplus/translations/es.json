@@ -95,6 +95,15 @@
     },
     "device_not_found": {
       "message": "Vehicle not found or not loaded."
+    },
+    "refresh_timeout": {
+      "message": "La actualización del panel para {vehicle} agotó el tiempo de espera de respuesta del vehículo."
+    },
+    "command_timeout": {
+      "message": "Un comando para {vehicle} agotó el tiempo de espera de respuesta del vehículo."
+    },
+    "location_timeout": {
+      "message": "La actualización de ubicación para {vehicle} agotó el tiempo de espera de respuesta del vehículo."
     }
   },
   "entity": {
@@ -292,10 +301,5 @@
         "name": "Límite de carga (fuera)"
       }
     }
-  },
-  "notifications": {
-    "refresh_timeout": "La actualización del panel para {vehicle} agotó el tiempo de espera de respuesta del vehículo.",
-    "command_timeout": "Un comando para {vehicle} agotó el tiempo de espera de respuesta del vehículo.",
-    "location_timeout": "La actualización de ubicación para {vehicle} agotó el tiempo de espera de respuesta del vehículo."
   }
 }

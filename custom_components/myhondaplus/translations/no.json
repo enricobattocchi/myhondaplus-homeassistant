@@ -95,6 +95,15 @@
     },
     "device_not_found": {
       "message": "Vehicle not found or not loaded."
+    },
+    "refresh_timeout": {
+      "message": "Oppdatering av dashbordet for {vehicle} fikk tidsavbrudd mens den ventet på svar fra kjøretøyet."
+    },
+    "command_timeout": {
+      "message": "En kommando for {vehicle} fikk tidsavbrudd mens den ventet på svar fra kjøretøyet."
+    },
+    "location_timeout": {
+      "message": "Oppdatering av posisjonen for {vehicle} fikk tidsavbrudd mens den ventet på svar fra kjøretøyet."
     }
   },
   "entity": {
@@ -292,10 +301,5 @@
         "name": "Ladegrense (borte)"
       }
     }
-  },
-  "notifications": {
-    "refresh_timeout": "Oppdatering av dashbordet for {vehicle} fikk tidsavbrudd mens den ventet på svar fra kjøretøyet.",
-    "command_timeout": "En kommando for {vehicle} fikk tidsavbrudd mens den ventet på svar fra kjøretøyet.",
-    "location_timeout": "Oppdatering av posisjonen for {vehicle} fikk tidsavbrudd mens den ventet på svar fra kjøretøyet."
   }
 }
