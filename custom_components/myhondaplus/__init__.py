@@ -3,6 +3,7 @@
 import re
 from dataclasses import replace
 
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_EMAIL, Platform
@@ -35,6 +36,8 @@ from .const import (
 from .coordinator import HondaDataUpdateCoordinator, HondaTripCoordinator
 from .data import MyHondaPlusConfigEntry, MyHondaPlusData, VehicleData
 from .entry_options import get_entry_value
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 PLATFORMS = [
     Platform.BINARY_SENSOR,

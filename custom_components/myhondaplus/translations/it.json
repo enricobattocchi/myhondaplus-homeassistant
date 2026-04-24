@@ -95,6 +95,15 @@
     },
     "device_not_found": {
       "message": "Vehicle not found or not loaded."
+    },
+    "refresh_timeout": {
+      "message": "L'aggiornamento della dashboard per {vehicle} è scaduto in attesa della risposta del veicolo."
+    },
+    "command_timeout": {
+      "message": "Un comando per {vehicle} è scaduto in attesa della risposta del veicolo."
+    },
+    "location_timeout": {
+      "message": "L'aggiornamento della posizione per {vehicle} è scaduto in attesa della risposta del veicolo."
     }
   },
   "entity": {
@@ -292,10 +301,5 @@
         "name": "Limite ricarica (fuori)"
       }
     }
-  },
-  "notifications": {
-    "refresh_timeout": "L'aggiornamento della dashboard per {vehicle} è scaduto in attesa della risposta del veicolo.",
-    "command_timeout": "Un comando per {vehicle} è scaduto in attesa della risposta del veicolo.",
-    "location_timeout": "L'aggiornamento della posizione per {vehicle} è scaduto in attesa della risposta del veicolo."
   }
 }

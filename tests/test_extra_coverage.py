@@ -56,9 +56,6 @@ from custom_components.myhondaplus.coordinator import (
 )
 from custom_components.myhondaplus.data import VehicleData
 from custom_components.myhondaplus.device_tracker import (
-    _dms_to_decimal,
-)
-from custom_components.myhondaplus.device_tracker import (
     async_setup_entry as device_tracker_setup_entry,
 )
 from custom_components.myhondaplus.entity import MyHondaPlusEntity, to_bool
@@ -183,10 +180,17 @@ class TestHelpers:
         assert to_bool(1) is True
         assert to_bool(0) is False
 
-    def test_dms_to_decimal_invalid_inputs(self):
-        assert _dms_to_decimal({}) is None
-        assert _dms_to_decimal("not-a-number") is None
-        assert _dms_to_decimal("1,2,boom") is None
+    def test_latitude_longitude_zero_returns_none(self):
+        """Verify device tracker returns None for zero coordinates."""
+        from custom_components.myhondaplus.device_tracker import HondaDeviceTracker
+
+        tracker = HondaDeviceTracker.__new__(HondaDeviceTracker)
+        coordinator = MagicMock()
+        coordinator.data.latitude = 0.0
+        coordinator.data.longitude = 0.0
+        tracker.coordinator = coordinator
+        assert tracker.latitude is None
+        assert tracker.longitude is None
 
 
 class TestEntityHelpers:
@@ -506,6 +510,7 @@ class TestCoordinatorCoverage:
                 reason=None,
             ),
         )
+        coord._translated_notification = AsyncMock(return_value="timeout msg")
         with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
             with patch("custom_components.myhondaplus.coordinator.pn_async_create"):
                 result = await HondaDataUpdateCoordinator.async_send_command_and_wait(
@@ -521,6 +526,7 @@ class TestCoordinatorCoverage:
         coord.hass = MagicMock()
         coord.api = MagicMock()
         coord._vehicle_name = MOCK_VEHICLE_NAME
+        coord._translated_notification = AsyncMock(return_value="timeout msg")
         coord.hass.async_add_executor_job = AsyncMock(
             return_value=SimpleNamespace(
                 success=False,

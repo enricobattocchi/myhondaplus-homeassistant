@@ -95,6 +95,15 @@
     },
     "device_not_found": {
       "message": "Vehicle not found or not loaded."
+    },
+    "refresh_timeout": {
+      "message": "Aktualizácia údajov pre {vehicle} vypršala, pretože vozidlo neodpovedalo."
+    },
+    "command_timeout": {
+      "message": "Príkaz pre {vehicle} vypršal, pretože vozidlo neodpovedalo."
+    },
+    "location_timeout": {
+      "message": "Aktualizácia polohy pre {vehicle} vypršala, pretože vozidlo neodpovedalo."
     }
   },
   "entity": {
@@ -292,10 +301,5 @@
         "name": "Limit nabíjania (preč)"
       }
     }
-  },
-  "notifications": {
-    "refresh_timeout": "Aktualizácia údajov pre {vehicle} vypršala, pretože vozidlo neodpovedalo.",
-    "command_timeout": "Príkaz pre {vehicle} vypršal, pretože vozidlo neodpovedalo.",
-    "location_timeout": "Aktualizácia polohy pre {vehicle} vypršala, pretože vozidlo neodpovedalo."
   }
 }

@@ -95,6 +95,15 @@
     },
     "device_not_found": {
       "message": "Vehicle not found or not loaded."
+    },
+    "refresh_timeout": {
+      "message": "Die Datenaktualisierung für {vehicle} hat das Zeitlimit überschritten, da das Fahrzeug nicht geantwortet hat."
+    },
+    "command_timeout": {
+      "message": "Ein Befehl für {vehicle} hat das Zeitlimit überschritten, da das Fahrzeug nicht geantwortet hat."
+    },
+    "location_timeout": {
+      "message": "Die Standortaktualisierung für {vehicle} hat das Zeitlimit überschritten, da das Fahrzeug nicht geantwortet hat."
     }
   },
   "entity": {
@@ -292,10 +301,5 @@
         "name": "Ladelimit (Unterwegs)"
       }
     }
-  },
-  "notifications": {
-    "refresh_timeout": "Die Datenaktualisierung für {vehicle} hat das Zeitlimit überschritten, da das Fahrzeug nicht geantwortet hat.",
-    "command_timeout": "Ein Befehl für {vehicle} hat das Zeitlimit überschritten, da das Fahrzeug nicht geantwortet hat.",
-    "location_timeout": "Die Standortaktualisierung für {vehicle} hat das Zeitlimit überschritten, da das Fahrzeug nicht geantwortet hat."
   }
 }
