@@ -63,9 +63,6 @@ _KNOWN_DRIFT = {
     "entity.sensor.odometer.name": "odometer_label",
     # HA "Allumage" vs lib "Contact" in French
     "entity.sensor.ignition.name": "ignition_label",
-    # Scheduling noun differs (Plan/Ladeplan/Programma/Programmazione…)
-    "entity.sensor.charge_schedule.name": "cap_charge_schedule",
-    "entity.sensor.climate_schedule.name": "cap_climate_schedule",
     # HA uses "Email" verbatim in all non-en locales; lib uses native form
     "config.step.user.data.email": "profile_email",
     "config.step.reauth_confirm.data.email": "profile_email",
