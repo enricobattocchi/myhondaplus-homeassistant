@@ -66,6 +66,14 @@ Surface findings as part of your response, in a compact format:
 
 The CLI in `pymyhondaplus` is often N/A for UI-gating questions (it's a thin pass-through that defers to Honda's API), but check before assuming.
 
+### Smoothing legacy-user flows on API/behavior changes
+
+Whenever you change behavior, contract, or storage shape that already-installed users rely on, **first** map what existing entries / cached state / config files look like (read past migrations, config-flow code, storage handlers) and decide whether they will break, degrade, or stay fine under the new code.
+
+If they break or degrade, look for a silent self-heal path before writing release notes that ask users to delete and re-add or reauth. Examples: re-run discovery against API metadata on next startup; backfill missing fields from data the integration already has access to; drop stale flags that no longer reflect reality; reconcile via existing migration / `_fetch_*_metadata` paths.
+
+Only escalate to "user must take action" when the code genuinely cannot fix the entry from data already available. Each forced manual step is a chance for users to drop off and an entry in the issue tracker; each silent self-heal is invisible. Bias toward fixing things automatically.
+
 ### Release & change mechanics
 
 - **Release order is library first, then consumers.** Bump `pymyhondaplus`, tag, GitHub-release; then update HA `manifest.json` `requirements` (`==X.Y.Z`) and/or desktop `pyproject.toml` + `README.md` (`>=X.Y.Z`), then release each consumer.
