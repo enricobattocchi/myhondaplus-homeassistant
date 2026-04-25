@@ -1118,6 +1118,88 @@ class TestFetchVehicleMetadata:
         await _fetch_vehicle_metadata(hass, entry, api)
         hass.config_entries.async_update_entry.assert_called_once()
 
+    @pytest.mark.asyncio
+    async def test_backfills_fuel_type_for_legacy_entries(self):
+        """Pre-2.1.0 entries with empty fuel_type get healed from API metadata."""
+        from custom_components.myhondaplus.const import (
+            CONF_FUEL_TYPE,
+            CONF_VEHICLES,
+            CONF_VIN,
+        )
+
+        vehicle = Vehicle(vin=MOCK_VIN, model_name="Honda e", fuel_type="E")
+        api = MagicMock()
+        hass = MagicMock()
+        hass.async_add_executor_job = AsyncMock(return_value=[vehicle])
+        entry = MagicMock()
+        entry.data = {
+            **MOCK_ENTRY_DATA,
+            CONF_VEHICLES: [
+                {CONF_VIN: MOCK_VIN, CONF_FUEL_TYPE: "", "model": "Honda e"}
+            ],
+        }
+
+        await _fetch_vehicle_metadata(hass, entry, api)
+        hass.config_entries.async_update_entry.assert_called_once()
+        new_data = hass.config_entries.async_update_entry.call_args.kwargs["data"]
+        assert new_data[CONF_VEHICLES][0][CONF_FUEL_TYPE] == "E"
+
+    @pytest.mark.asyncio
+    async def test_no_update_when_metadata_already_complete(self):
+        """No config-entry write when both model and fuel_type are populated."""
+        from custom_components.myhondaplus.const import (
+            CONF_FUEL_TYPE,
+            CONF_MODEL,
+            CONF_VEHICLES,
+            CONF_VIN,
+        )
+
+        vehicle = Vehicle(vin=MOCK_VIN, model_name="Honda e", fuel_type="E")
+        api = MagicMock()
+        hass = MagicMock()
+        hass.async_add_executor_job = AsyncMock(return_value=[vehicle])
+        entry = MagicMock()
+        entry.data = {
+            **MOCK_ENTRY_DATA,
+            CONF_VEHICLES: [
+                {
+                    CONF_VIN: MOCK_VIN,
+                    CONF_FUEL_TYPE: "E",
+                    CONF_MODEL: "Honda e Advance",
+                }
+            ],
+        }
+
+        await _fetch_vehicle_metadata(hass, entry, api)
+        hass.config_entries.async_update_entry.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_no_fuel_type_backfill_when_api_lacks_it(self):
+        """Manual-VIN entries (no API metadata) keep their empty fuel_type."""
+        from custom_components.myhondaplus.const import (
+            CONF_FUEL_TYPE,
+            CONF_VEHICLES,
+            CONF_VIN,
+        )
+
+        # API returns NO vehicle for this VIN — simulates manual-VIN setup
+        api = MagicMock()
+        hass = MagicMock()
+        hass.async_add_executor_job = AsyncMock(return_value=[])
+        entry = MagicMock()
+        entry.data = {
+            **MOCK_ENTRY_DATA,
+            CONF_VEHICLES: [
+                {CONF_VIN: MOCK_VIN, CONF_FUEL_TYPE: "", "model": "Honda e"}
+            ],
+        }
+
+        await _fetch_vehicle_metadata(hass, entry, api)
+        # update_entry called because fuel_type is missing, but no patch applied
+        if hass.config_entries.async_update_entry.called:
+            new_data = hass.config_entries.async_update_entry.call_args.kwargs["data"]
+            assert new_data[CONF_VEHICLES][0][CONF_FUEL_TYPE] == ""
+
 
 class TestSensorEnabled:
     """Tests for _sensor_enabled ev_only/ui_hide filtering."""

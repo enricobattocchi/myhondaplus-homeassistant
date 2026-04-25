@@ -399,18 +399,26 @@ async def _fetch_vehicle_metadata(
 
     vehicles_by_vin = {v.vin: v for v in api_vehicles}
 
-    # Backfill model names if missing
+    # Backfill model and fuel_type when missing. fuel_type was introduced
+    # in 2.1.0; older entries that never re-ran discovery have it empty,
+    # which would now hide EV sensors under the fuel_type-based gate.
     vehicle_list = entry.data.get(CONF_VEHICLES, [])
-    if not all(v.get(CONF_MODEL) for v in vehicle_list):
+    needs_update = any(
+        not v.get(CONF_MODEL) or not v.get(CONF_FUEL_TYPE) for v in vehicle_list
+    )
+    if needs_update:
         updated = []
         for v in vehicle_list:
-            vin = v[CONF_VIN]
-            api_v = vehicles_by_vin.get(vin)
-            if api_v and not v.get(CONF_MODEL):
-                model = _build_model_name_from_vehicle(api_v)
-                updated.append({**v, CONF_MODEL: model})
-            else:
+            api_v = vehicles_by_vin.get(v[CONF_VIN])
+            if not api_v:
                 updated.append(v)
+                continue
+            patch = {}
+            if not v.get(CONF_MODEL):
+                patch[CONF_MODEL] = _build_model_name_from_vehicle(api_v)
+            if not v.get(CONF_FUEL_TYPE) and getattr(api_v, "fuel_type", ""):
+                patch[CONF_FUEL_TYPE] = api_v.fuel_type
+            updated.append({**v, **patch} if patch else v)
         hass.config_entries.async_update_entry(
             entry,
             data={**entry.data, CONF_VEHICLES: updated},
