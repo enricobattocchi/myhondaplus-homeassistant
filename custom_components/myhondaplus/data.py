@@ -40,7 +40,7 @@ class VehicleData:
     """Data for a single vehicle."""
 
     coordinator: HondaDataUpdateCoordinator
-    trip_coordinator: HondaTripCoordinator
+    trip_coordinator: HondaTripCoordinator | None
     vin: str
     vehicle_name: str = ""
     fuel_type: str = ""

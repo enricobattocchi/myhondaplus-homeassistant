@@ -91,3 +91,11 @@ class TestDiagnostics:
         ui = result["vehicles"][MOCK_VIN]["ui_config"]
         assert "hide_window_status" in ui
         assert "hide_internal_temperature" in ui
+
+    @pytest.mark.asyncio
+    async def test_trip_data_none_when_coordinator_skipped(self, mock_entry_for_diag):
+        """Issue #33: trip_data is None when journey_history capability is not Active."""
+        mock_entry_for_diag.runtime_data.vehicles[MOCK_VIN].trip_coordinator = None
+        hass = MagicMock()
+        result = await async_get_config_entry_diagnostics(hass, mock_entry_for_diag)
+        assert result["vehicles"][MOCK_VIN]["trip_data"] is None

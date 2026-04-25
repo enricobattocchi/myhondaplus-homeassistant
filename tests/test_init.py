@@ -285,6 +285,80 @@ class TestSetupEntry:
 
         mock_hass.config_entries.async_reload.assert_awaited_once_with("entry_1")
 
+    async def _setup_entry_with_journey_capability(self, mock_hass, *, journey_history: bool):
+        """Run async_setup_entry with a vehicle whose journey_history capability is set."""
+        from types import SimpleNamespace
+
+        from pymyhondaplus.api import UIConfiguration, VehicleCapabilities
+
+        entry = MagicMock()
+        entry.data = {
+            "email": "test@example.com",
+            CONF_ACCESS_TOKEN: "tok",
+            CONF_REFRESH_TOKEN: "ref",
+            CONF_USER_ID: "uid",
+            CONF_VEHICLES: [
+                {CONF_VIN: MOCK_VIN, CONF_VEHICLE_NAME: "Car", CONF_FUEL_TYPE: "E"}
+            ],
+        }
+        entry.options = {}
+        entry.entry_id = "test"
+        entry.add_update_listener = MagicMock(return_value="listener")
+        entry.async_on_unload = MagicMock()
+        mock_hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=True)
+        mock_hass.config_entries.async_entries.return_value = [entry]
+
+        api_vehicles = {
+            MOCK_VIN: SimpleNamespace(
+                capabilities=VehicleCapabilities(journey_history=journey_history),
+                ui_config=UIConfiguration(),
+            )
+        }
+
+        with (
+            patch("custom_components.myhondaplus.HondaAPI") as api_cls,
+            patch(
+                "custom_components.myhondaplus.HondaDataUpdateCoordinator"
+            ) as coord_cls,
+            patch("custom_components.myhondaplus.HondaTripCoordinator") as trip_cls,
+            patch(
+                "custom_components.myhondaplus._fetch_vehicle_metadata",
+                AsyncMock(return_value=api_vehicles),
+            ),
+            patch("custom_components.myhondaplus._schedule_car_refresh"),
+            patch("custom_components.myhondaplus._schedule_location_refresh"),
+            patch("custom_components.myhondaplus._cleanup_removed_vehicles"),
+        ):
+            api_cls.return_value = MagicMock()
+            coord = MagicMock()
+            coord.async_config_entry_first_refresh = AsyncMock()
+            coord._persist_tokens_if_changed = MagicMock()
+            coord_cls.return_value = coord
+            trip = MagicMock()
+            trip.async_config_entry_first_refresh = AsyncMock()
+            trip_cls.return_value = trip
+
+            assert await async_setup_entry(mock_hass, entry) is True
+            return SimpleNamespace(trip_cls=trip_cls, trip_first_refresh=trip.async_config_entry_first_refresh, runtime_data=entry.runtime_data)
+
+    @pytest.mark.asyncio
+    async def test_setup_entry_creates_trip_coordinator_when_journey_history_true(self, mock_hass):
+        """Trip coordinator is instantiated when capability is Active."""
+        result = await self._setup_entry_with_journey_capability(mock_hass, journey_history=True)
+        result.trip_cls.assert_called_once()
+        result.trip_first_refresh.assert_awaited_once()
+        vd = result.runtime_data.vehicles[MOCK_VIN]
+        assert vd.trip_coordinator is not None
+
+    @pytest.mark.asyncio
+    async def test_setup_entry_skips_trip_coordinator_when_journey_history_false(self, mock_hass):
+        """Issue #33: trip coordinator not instantiated when capability is notSupported."""
+        result = await self._setup_entry_with_journey_capability(mock_hass, journey_history=False)
+        result.trip_cls.assert_not_called()
+        result.trip_first_refresh.assert_not_awaited()
+        vd = result.runtime_data.vehicles[MOCK_VIN]
+        assert vd.trip_coordinator is None
+
 
 class TestChargeScheduleSchema:
     def test_valid_charge_rule(self):
