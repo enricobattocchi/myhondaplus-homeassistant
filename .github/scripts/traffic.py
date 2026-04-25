@@ -21,12 +21,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.dates as mdates  # noqa: E402
-import matplotlib.pyplot as plt  # noqa: E402
-
 REPO = os.environ["GITHUB_REPOSITORY"]
 TOKEN = os.environ["TRAFFIC_TOKEN"]
 OUT = Path("stats")
@@ -69,6 +63,14 @@ def merge(path: Path, rows: list[dict]) -> None:
 
 
 def plot(csv_path: Path, png_path: Path, title: str) -> None:
+    # Lazy import so the rest of the module (and its tests) don't require
+    # matplotlib — only the plot step does, and the workflow installs it
+    # explicitly before running.
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.dates as mdates
+    import matplotlib.pyplot as plt
+
     dates: list[datetime] = []
     counts: list[int] = []
     uniques: list[int] = []

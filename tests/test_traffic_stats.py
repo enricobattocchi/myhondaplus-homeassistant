@@ -75,6 +75,9 @@ class TestMerge:
 
 
 class TestPlot:
+    def setup_method(self):
+        pytest.importorskip("matplotlib")
+
     def test_writes_png(self, tmp_path, traffic_module):
         csv_path = tmp_path / "clones.csv"
         csv_path.write_text(
@@ -91,6 +94,9 @@ class TestPlot:
 
 
 class TestMain:
+    def setup_method(self):
+        pytest.importorskip("matplotlib")
+
     def test_runs_end_to_end_with_stubbed_fetch(self, tmp_path, monkeypatch, traffic_module):
         sample_clones = {
             "count": 200, "uniques": 50,
