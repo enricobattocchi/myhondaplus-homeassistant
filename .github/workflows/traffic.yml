@@ -17,7 +17,21 @@ jobs:
   traffic:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # The data lives on the orphan `stats` branch so daily auto-commits
+      # don't have to clear `main`'s required-status-check gate.
+      - name: Checkout stats branch (data working tree)
+        uses: actions/checkout@v4
+        with:
+          ref: stats
+          path: data
+
+      # The script lives on `main`; check it out into a separate path
+      # and invoke it from the data working tree.
+      - name: Checkout main (script source)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: code
 
       - uses: actions/setup-python@v5
         with:
@@ -27,12 +41,14 @@ jobs:
         run: pip install matplotlib==3.9.2
 
       - name: Snapshot traffic
+        working-directory: data
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           TRAFFIC_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
-        run: python .github/scripts/traffic.py
+        run: python ../code/.github/scripts/traffic.py
 
       - name: Commit and push
+        working-directory: data
         run: |
           if [[ -z "$(git status --porcelain stats/)" ]]; then
             echo "No traffic changes."
