@@ -7,8 +7,49 @@ on:
     branches: [main]
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      code_changed: ${{ steps.filter.outputs.code_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: filter
+        name: Classify changed files
+        shell: bash
+        run: |
+          base_sha="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [ -z "$base_sha" ] || [[ "$base_sha" =~ ^0+$ ]]; then
+            base_sha="$(git rev-parse HEAD^ 2>/dev/null || true)"
+          fi
+
+          if [ -n "$base_sha" ]; then
+            changed_files="$(git diff --name-only "$base_sha" "$GITHUB_SHA")"
+          else
+            changed_files="$(git ls-files)"
+          fi
+
+          code_changed=false
+          while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            case "$path" in
+              *.md|docs/*|docs/**|scripts/check_agents_mirror.py|.github/workflows/agents-docs.yml)
+                ;;
+              *)
+                code_changed=true
+                ;;
+            esac
+          done <<< "$changed_files"
+
+          echo "code_changed=$code_changed" >> "$GITHUB_OUTPUT"
+
   test:
     name: Pytest
+    needs: changes
+    if: needs.changes.outputs.code_changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

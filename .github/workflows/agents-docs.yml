@@ -1,0 +1,29 @@
+name: Agent Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - AGENTS.md
+      - scripts/check_agents_mirror.py
+      - .github/workflows/agents-docs.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - AGENTS.md
+      - scripts/check_agents_mirror.py
+      - .github/workflows/agents-docs.yml
+
+jobs:
+  mirror:
+    name: AGENTS mirror
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Check mirrored sections
+        run: python scripts/check_agents_mirror.py
