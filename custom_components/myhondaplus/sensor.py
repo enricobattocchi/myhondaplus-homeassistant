@@ -281,9 +281,7 @@ async def async_setup_entry(
             for desc in SENSOR_DESCRIPTIONS
             if _sensor_enabled(desc, vehicle)
         )
-        # TODO: trip-history asymmetry — trip_coordinator is fetched regardless,
-        # but entities only register when journey_history is True. See follow-up issue.
-        if vehicle.capabilities.journey_history:
+        if vehicle.trip_coordinator is not None:
             entities.extend(
                 HondaTripSensor(vehicle.trip_coordinator, desc, vin, name, fuel_type)
                 for desc in TRIP_SENSOR_DESCRIPTIONS

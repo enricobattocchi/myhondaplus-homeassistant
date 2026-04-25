@@ -32,7 +32,7 @@ async def async_get_config_entry_diagnostics(
     for vin, vd in entry.runtime_data.vehicles.items():
         vehicles_diag[vin] = {
             "coordinator_data": vd.coordinator.data,
-            "trip_data": vd.trip_coordinator.data,
+            "trip_data": vd.trip_coordinator.data if vd.trip_coordinator else None,
             "capabilities": vd.capabilities.to_dict(),
             "ui_config": vd.ui_config.to_dict(),
         }

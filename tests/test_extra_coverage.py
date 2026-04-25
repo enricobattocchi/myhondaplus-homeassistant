@@ -110,13 +110,23 @@ def _make_hass_mock():
     return hass
 
 
+_UNSET = object()
+
+
 def _make_entry_with_vehicles(
-    coordinator, trip_coordinator=None, fuel_type="E", capabilities=None
+    coordinator, trip_coordinator=_UNSET, fuel_type="E", capabilities=None
 ):
-    """Create a mock entry with the new vehicles-based runtime_data."""
+    """Create a mock entry with the new vehicles-based runtime_data.
+
+    Pass ``trip_coordinator=None`` to simulate ``journey_history=False`` —
+    the helper distinguishes "not provided" (defaults to MagicMock) from
+    "explicitly None" (sticks).
+    """
+    if trip_coordinator is _UNSET:
+        trip_coordinator = MagicMock()
     kwargs = {
         "coordinator": coordinator,
-        "trip_coordinator": trip_coordinator or MagicMock(),
+        "trip_coordinator": trip_coordinator,
         "vin": MOCK_VIN,
         "vehicle_name": MOCK_VEHICLE_NAME,
         "fuel_type": fuel_type,
@@ -374,26 +384,29 @@ class TestPlatformSetupCoverage:
 
     @pytest.mark.asyncio
     async def test_sensor_platform_setup_entry_expired_subscription(self):
-        """Issue #25: read sensors register even when all capabilities are False."""
+        """Issue #25: read sensors register even when all capabilities are False.
+
+        Trip sensors are gated separately on ``trip_coordinator is None``,
+        which simulates the ``journey_history=False`` setup path in
+        ``__init__.py`` where the coordinator is not even instantiated.
+        """
         coordinator = SimpleNamespace(entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA)))
-        trip_coordinator = SimpleNamespace(
-            entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA))
-        )
         entry = _make_entry_with_vehicles(
-            coordinator, trip_coordinator, capabilities=VehicleCapabilities()
+            coordinator, trip_coordinator=None, capabilities=VehicleCapabilities()
         )
         added = []
 
         await sensor_setup_entry(None, entry, added.extend)
 
-        # Read sensors don't depend on capabilities; trip sensors still gated
-        # by journey_history (False here), so subtract the trip ones.
         assert len(added) == len(SENSOR_DESCRIPTIONS)
         added_keys = {e.entity_description.key for e in added}
         assert "battery_level" in added_keys
         assert "charge_status" in added_keys
         assert "climate_active" in added_keys
         assert "charge_schedule" in added_keys
+        # Trip sensors not registered when trip_coordinator is None
+        assert "trips" not in added_keys
+        assert "total_distance" not in added_keys
 
     @pytest.mark.asyncio
     async def test_switch_platform_setup_entry(self):

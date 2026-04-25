@@ -330,18 +330,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
         )
         await coordinator.async_config_entry_first_refresh()
 
-        trip_coordinator = HondaTripCoordinator(
-            hass,
-            entry,
-            api,
-            coordinator._persist_tokens_if_changed,
-            vin=vin,
-            fuel_type=fuel_type,
-            main_coordinator=coordinator,
-        )
-        await trip_coordinator.async_config_entry_first_refresh()
-
         api_vehicle = api_vehicles.get(vin)
+        journey_history_available = (
+            api_vehicle.capabilities.journey_history if api_vehicle else True
+        )
+        trip_coordinator: HondaTripCoordinator | None = None
+        if journey_history_available:
+            trip_coordinator = HondaTripCoordinator(
+                hass,
+                entry,
+                api,
+                coordinator._persist_tokens_if_changed,
+                vin=vin,
+                fuel_type=fuel_type,
+                main_coordinator=coordinator,
+            )
+            await trip_coordinator.async_config_entry_first_refresh()
+
         vehicles[vin] = VehicleData(
             coordinator=coordinator,
             trip_coordinator=trip_coordinator,
