@@ -33,7 +33,7 @@ A 95% coverage gate is enforced in CI.
 ## Submitting changes
 
 1. Fork the repo and create a branch from `main`.
-2. Make your changes. Add tests for new functionality.
+2. Every code change must extend test coverage to exercise the new or modified behavior. Tests go in the same commit/PR as the code — assume existing tests cover only what they explicitly assert. If something genuinely can't be tested, explain why in the PR description.
 3. Run `pytest` and `ruff check` locally.
 4. Open a pull request with a clear description of what you changed and why.
 
