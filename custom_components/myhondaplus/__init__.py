@@ -399,26 +399,39 @@ async def _fetch_vehicle_metadata(
 
     vehicles_by_vin = {v.vin: v for v in api_vehicles}
 
-    # Backfill model and fuel_type when missing. fuel_type was introduced
-    # in 2.1.0; older entries that never re-ran discovery have it empty,
-    # which would now hide EV sensors under the fuel_type-based gate.
+    # Self-heal stale entry metadata against the API response:
+    # - Backfill model and fuel_type when missing (fuel_type was introduced
+    #   in 2.1.0; older entries that never re-ran discovery have it empty,
+    #   which would hide EV sensors under the fuel_type-based gate).
+    # - Promote legacy manual-VIN entries (from before #36) to regular
+    #   entries when Honda's API now returns the VIN: copy the metadata
+    #   in and drop the `manual: True` flag. This means users who set up
+    #   via manual VIN don't have to delete + re-add — they just restart.
     vehicle_list = entry.data.get(CONF_VEHICLES, [])
-    needs_update = any(
-        not v.get(CONF_MODEL) or not v.get(CONF_FUEL_TYPE) for v in vehicle_list
-    )
-    if needs_update:
-        updated = []
-        for v in vehicle_list:
-            api_v = vehicles_by_vin.get(v[CONF_VIN])
-            if not api_v:
-                updated.append(v)
-                continue
-            patch = {}
-            if not v.get(CONF_MODEL):
-                patch[CONF_MODEL] = _build_model_name_from_vehicle(api_v)
-            if not v.get(CONF_FUEL_TYPE) and getattr(api_v, "fuel_type", ""):
-                patch[CONF_FUEL_TYPE] = api_v.fuel_type
-            updated.append({**v, **patch} if patch else v)
+    patches: dict[str, dict] = {}
+    for v in vehicle_list:
+        api_v = vehicles_by_vin.get(v[CONF_VIN])
+        if not api_v:
+            continue
+        new_v = dict(v)
+        changed = False
+        if not new_v.get(CONF_MODEL):
+            new_v[CONF_MODEL] = _build_model_name_from_vehicle(api_v)
+            changed = True
+        if not new_v.get(CONF_FUEL_TYPE) and getattr(api_v, "fuel_type", ""):
+            new_v[CONF_FUEL_TYPE] = api_v.fuel_type
+            changed = True
+        if not new_v.get(CONF_VEHICLE_NAME) and getattr(api_v, "name", ""):
+            new_v[CONF_VEHICLE_NAME] = api_v.name
+            changed = True
+        if new_v.get("manual"):
+            del new_v["manual"]
+            changed = True
+        if changed:
+            patches[v[CONF_VIN]] = new_v
+
+    if patches:
+        updated = [patches.get(v[CONF_VIN], v) for v in vehicle_list]
         hass.config_entries.async_update_entry(
             entry,
             data={**entry.data, CONF_VEHICLES: updated},
