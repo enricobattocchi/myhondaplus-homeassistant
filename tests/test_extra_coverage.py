@@ -1174,13 +1174,9 @@ class TestFetchVehicleMetadata:
         hass.config_entries.async_update_entry.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_no_fuel_type_backfill_when_api_lacks_it(self):
-        """Manual-VIN entries (no API metadata) keep their empty fuel_type."""
-        from custom_components.myhondaplus.const import (
-            CONF_FUEL_TYPE,
-            CONF_VEHICLES,
-            CONF_VIN,
-        )
+    async def test_no_backfill_when_api_lacks_vehicle(self):
+        """Legacy manual-VIN entries Honda still doesn't list stay unchanged."""
+        from custom_components.myhondaplus.const import CONF_VEHICLES, CONF_VIN
 
         # API returns NO vehicle for this VIN — simulates a legacy manual-VIN
         # entry (the manual-VIN setup path was removed in #36).
@@ -1191,15 +1187,64 @@ class TestFetchVehicleMetadata:
         entry.data = {
             **MOCK_ENTRY_DATA,
             CONF_VEHICLES: [
-                {CONF_VIN: MOCK_VIN, CONF_FUEL_TYPE: "", "model": "Honda e"}
+                {CONF_VIN: MOCK_VIN, "fuel_type": "", "model": "", "manual": True}
             ],
         }
 
         await _fetch_vehicle_metadata(hass, entry, api)
-        # update_entry called because fuel_type is missing, but no patch applied
-        if hass.config_entries.async_update_entry.called:
-            new_data = hass.config_entries.async_update_entry.call_args.kwargs["data"]
-            assert new_data[CONF_VEHICLES][0][CONF_FUEL_TYPE] == ""
+
+        # No api_v means no patch — entry stays as-is, no update_entry call.
+        hass.config_entries.async_update_entry.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_auto_heals_legacy_manual_entry_when_api_lists_vin(self):
+        """Legacy manual-VIN entry self-heals when Honda's API now returns the VIN.
+
+        Drops the `manual: True` flag, backfills fuel_type / model / name from
+        the API response. User doesn't have to delete + re-add the integration.
+        """
+        from custom_components.myhondaplus.const import (
+            CONF_FUEL_TYPE,
+            CONF_MODEL,
+            CONF_VEHICLE_NAME,
+            CONF_VEHICLES,
+            CONF_VIN,
+        )
+
+        vehicle = Vehicle(
+            vin=MOCK_VIN,
+            name="My Honda e",
+            model_name="Honda e",
+            grade="Advance",
+            model_year="2020",
+            fuel_type="E",
+        )
+        api = MagicMock()
+        hass = MagicMock()
+        hass.async_add_executor_job = AsyncMock(return_value=[vehicle])
+        entry = MagicMock()
+        entry.data = {
+            **MOCK_ENTRY_DATA,
+            CONF_VEHICLES: [
+                {
+                    CONF_VIN: MOCK_VIN,
+                    CONF_VEHICLE_NAME: "",
+                    CONF_FUEL_TYPE: "",
+                    CONF_MODEL: "",
+                    "manual": True,
+                }
+            ],
+        }
+
+        await _fetch_vehicle_metadata(hass, entry, api)
+
+        hass.config_entries.async_update_entry.assert_called_once()
+        new_data = hass.config_entries.async_update_entry.call_args.kwargs["data"]
+        new_vehicle = new_data[CONF_VEHICLES][0]
+        assert new_vehicle[CONF_FUEL_TYPE] == "E"
+        assert new_vehicle[CONF_VEHICLE_NAME] == "My Honda e"
+        assert new_vehicle[CONF_MODEL].startswith("Honda e")
+        assert "manual" not in new_vehicle
 
 
 class TestSensorEnabled:
