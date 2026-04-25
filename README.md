@@ -1,8 +1,6 @@
 # My Honda+ for Home Assistant (unofficial)
 
 [![GitHub Release][releases-shield]][releases]
-![GitHub all releases][download-all]
-![GitHub release (latest by SemVer)][download-latest]
 [![GitHub Activity][commits-shield]][commits]
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -233,7 +231,5 @@ All vehicles on your account are automatically detected and added as separate de
 
 [releases-shield]: https://img.shields.io/github/release/enricobattocchi/myhondaplus-homeassistant.svg
 [releases]: https://github.com/enricobattocchi/myhondaplus-homeassistant/releases
-[download-all]: https://img.shields.io/github/downloads/enricobattocchi/myhondaplus-homeassistant/total.svg
-[download-latest]: https://img.shields.io/github/downloads/enricobattocchi/myhondaplus-homeassistant/latest/total.svg
 [commits-shield]: https://img.shields.io/github/commit-activity/y/enricobattocchi/myhondaplus-homeassistant.svg
 [commits]: https://github.com/enricobattocchi/myhondaplus-homeassistant/commits/main
