@@ -20,7 +20,7 @@ Refer to the upstream service as "the My Honda+ API" or "the Honda Connect Europ
 
 [`pymyhondaplus`](https://github.com/enricobattocchi/pymyhondaplus) (Python library + CLI) is consumed by:
 
-- `myhondaplus-homeassistant` (this repo) — Home Assistant integration, pinned `==X.Y.Z` (HA convention).
+- [`myhondaplus-homeassistant`](https://github.com/enricobattocchi/myhondaplus-homeassistant) — Home Assistant integration, pinned `==X.Y.Z` (HA convention).
 - [`myhondaplus-desktop`](https://github.com/enricobattocchi/myhondaplus-desktop) — PyQt6 desktop app, pinned `>=X.Y.Z`.
 
 **Ownership boundaries** — each concern lives in exactly one repo:
@@ -52,6 +52,7 @@ If a task feels like it crosses boundaries, default to "the library owns the API
 - **Release order is library first, then consumers.** Bump `pymyhondaplus`, tag, GitHub-release; then update HA `manifest.json` `requirements` (`==X.Y.Z`) and/or desktop `pyproject.toml` + `README.md` (`>=X.Y.Z`), then release each consumer.
 - **Pin update rule**: HA pins exact (Home Assistant convention); desktop pins minimum.
 - **Translation-drift PRs** may span library + HA. When a string converges in wording, move the pair from `_KNOWN_DRIFT` to `ENFORCED_OVERLAPS` in the same PR (HA test: `tests/test_translation_drift.py`).
+- **Cross-repo change checklist**: land library-owned API/parsing/auth/translation behavior in `pymyhondaplus` first; update HA's exact pin and desktop's minimum pin only after a library release; keep consumer enum options, entity descriptors, and UI copy aligned with canonical library behavior.
 
 ## 6. Common pitfalls
 
@@ -62,7 +63,12 @@ If a task feels like it crosses boundaries, default to "the library owns the API
 - Optimistic updates mutate `coordinator.data` before the API confirms; revert on failure.
 - All 13 locale files must stay current — auditing them is a blocking pre-tag step.
 
-## 7. Gates
+## 7. Gates and local commands
+
+- Setup: `pip install -e ".[dev]"`
+- Tests: `python -m pytest tests/ -x -q`
+- Lint: `ruff check custom_components/ tests/`
+- CI coverage gate: `pytest tests/ -v --cov=custom_components/myhondaplus --cov-report=term-missing --cov-fail-under=95`
 
 `Lint` (ruff), `Test` (pytest with 95% coverage), `Hassfest`, `HACS Validation` — all four required before merge. Tag is the bare version (e.g. `5.2.0`, not `v5.2.0`); `manifest.json` integration `version` must match the tag.
 
