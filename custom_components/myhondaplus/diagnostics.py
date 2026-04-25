@@ -33,6 +33,8 @@ async def async_get_config_entry_diagnostics(
         vehicles_diag[vin] = {
             "coordinator_data": vd.coordinator.data,
             "trip_data": vd.trip_coordinator.data,
+            "capabilities": vd.capabilities.to_dict(),
+            "ui_config": vd.ui_config.to_dict(),
         }
     return {
         "config_entry": async_redact_data(entry.as_dict(), TO_REDACT),
