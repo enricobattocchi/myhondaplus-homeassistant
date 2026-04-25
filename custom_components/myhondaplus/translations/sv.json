@@ -19,16 +19,6 @@
           "location_refresh_interval": "Hur ofta Home Assistant begär GPS-position från fordonet. Sätt till 0 för att inaktivera."
         }
       },
-      "manual_vin": {
-        "title": "Ange VIN",
-        "description": "Automatisk identifiering av fordon misslyckades. Ange VIN manuellt.",
-        "data": {
-          "vin": "Fordonsidentifieringsnummer (VIN)"
-        },
-        "data_description": {
-          "vin": "Ange VIN exakt som det rapporterats av Honda om automatisk identifiering inte fungerade."
-        }
-      },
       "verify": {
         "title": "Verifiera e-post",
         "description": "Honda har skickat ett verifieringsmeddelande. Kopiera URL:en från länken i e-postmeddelandet (klicka INTE på den) och klistra in den nedan.",
@@ -53,6 +43,7 @@
       }
     },
     "abort": {
+      "no_vehicles": "Inga fordon hittades på detta konto.",
       "reauth_successful": "Omautentisering lyckades"
     },
     "error": {

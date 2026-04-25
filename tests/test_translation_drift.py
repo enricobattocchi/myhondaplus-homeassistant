@@ -47,6 +47,7 @@ ENFORCED_OVERLAPS = {
     "entity.sensor.charge_mode.state.unconfirmed": "unconfirmed",
     "entity.device_tracker.vehicle_location.name": "location_label",
     "entity.binary_sensor.doors_open.name": "doors_label",
+    "config.abort.no_vehicles": "no_vehicles",
 }
 
 # Overlap pairs with pre-existing wording drift between HA integration and

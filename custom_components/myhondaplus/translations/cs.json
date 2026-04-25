@@ -19,16 +19,6 @@
           "location_refresh_interval": "Jak často Home Assistant požaduje GPS polohu z vozidla. Nastavte 0 pro vypnutí."
         }
       },
-      "manual_vin": {
-        "title": "Zadejte VIN",
-        "description": "Automatická detekce vozidel se nezdařila. Zadejte VIN ručně.",
-        "data": {
-          "vin": "Identifikační číslo vozidla (VIN)"
-        },
-        "data_description": {
-          "vin": "Zadejte VIN přesně tak, jak jej uvádí Honda, pokud automatická detekce nefungovala."
-        }
-      },
       "verify": {
         "title": "Ověření e-mailu",
         "description": "Honda odeslala ověřovací e-mail. Zkopírujte URL odkazu z e-mailu (NEKLIKEJTE na něj) a vložte jej níže.",
@@ -53,6 +43,7 @@
       }
     },
     "abort": {
+      "no_vehicles": "Na tomto účtu nebyla nalezena žádná vozidla.",
       "reauth_successful": "Opětovné ověření úspěšné"
     },
     "error": {

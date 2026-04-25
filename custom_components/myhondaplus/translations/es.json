@@ -19,16 +19,6 @@
           "location_refresh_interval": "Frecuencia con la que Home Assistant solicita la posición GPS del vehículo. Establecer en 0 para desactivar."
         }
       },
-      "manual_vin": {
-        "title": "Introducir VIN",
-        "description": "No se pudieron detectar los vehículos automáticamente. Introduce el VIN manualmente.",
-        "data": {
-          "vin": "Número de identificación del vehículo (VIN)"
-        },
-        "data_description": {
-          "vin": "Introduce el VIN exactamente como lo indica Honda si la detección automática no funcionó."
-        }
-      },
       "verify": {
         "title": "Verificar email",
         "description": "Honda ha enviado un email de verificación. Copia la URL del enlace del email (NO hagas clic en él) y pégala a continuación.",
@@ -53,6 +43,7 @@
       }
     },
     "abort": {
+      "no_vehicles": "No se encontraron vehículos en esta cuenta.",
       "reauth_successful": "Reautenticación exitosa"
     },
     "error": {

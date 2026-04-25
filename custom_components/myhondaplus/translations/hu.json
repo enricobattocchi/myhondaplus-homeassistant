@@ -19,16 +19,6 @@
           "location_refresh_interval": "Milyen gyakran kérje le a Home Assistant a GPS helyzetet a járműtől. Állítsd 0-ra a letiltáshoz."
         }
       },
-      "manual_vin": {
-        "title": "VIN megadása",
-        "description": "A járművek automatikus felismerése nem sikerült. Add meg a VIN-t kézzel.",
-        "data": {
-          "vin": "Járműazonosító szám (VIN)"
-        },
-        "data_description": {
-          "vin": "Add meg a VIN-t pontosan úgy, ahogy a Honda rendszerben szerepel, ha az automatikus felismerés nem működött."
-        }
-      },
       "verify": {
         "title": "Email ellenőrzés",
         "description": "A Honda ellenőrző emailt küldött. Másold ki a link URL-jét az emailből (NE kattints rá), és illeszd be ide.",
@@ -53,6 +43,7 @@
       }
     },
     "abort": {
+      "no_vehicles": "Nem található jármű ezen a fiókon.",
       "reauth_successful": "Újrahitelesítés sikeres"
     },
     "error": {

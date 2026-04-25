@@ -3,7 +3,7 @@
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD, CONF_SCAN_INTERVAL
-from pymyhondaplus.api import HondaAPI, HondaAuthError
+from pymyhondaplus.api import HondaAPI, HondaAPIError, HondaAuthError
 from pymyhondaplus.auth import DeviceKey, HondaAuth
 
 from .const import (
@@ -341,40 +341,20 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             user_info = await self.hass.async_add_executor_job(
                 self._api.get_user_info,
             )
-            self._personal_id = str(user_info.get("personalId", ""))
-            self._vehicles = _parse_vehicles(user_info)
+        except HondaAPIError as err:
+            LOGGER.warning("Failed to fetch vehicles: %s", err)
+            return self.async_abort(reason="cannot_connect")
         except Exception:
-            LOGGER.exception("Failed to fetch vehicles")
-            self._personal_id = ""
-            self._vehicles = []
+            LOGGER.exception("Unexpected error fetching vehicles")
+            return self.async_abort(reason="cannot_connect")
 
-        if self._vehicles:
-            return await self._create_entry()
+        self._personal_id = str(user_info.get("personalId", ""))
+        self._vehicles = _parse_vehicles(user_info)
 
-        # No vehicles found — fall back to manual VIN entry
-        return await self.async_step_manual_vin()
+        if not self._vehicles:
+            return self.async_abort(reason="no_vehicles")
 
-    async def async_step_manual_vin(self, user_input=None):
-        """Fallback: manual VIN entry if vehicle discovery fails."""
-        if user_input is not None:
-            self._vehicles = [
-                {
-                    "vin": user_input[CONF_VIN],
-                    "name": "",
-                    "fuel_type": "",
-                    "manual": True,
-                }
-            ]
-            return await self._create_entry()
-
-        return self.async_show_form(
-            step_id="manual_vin",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_VIN): str,
-                }
-            ),
-        )
+        return await self._create_entry()
 
     async def _create_entry(self):
         user_id = HondaAuth.extract_user_id(self._tokens["access_token"])
@@ -407,6 +387,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_VEHICLE_NAME: v.get("name", ""),
                 CONF_FUEL_TYPE: v.get("fuel_type", ""),
                 CONF_MODEL: v.get("model", ""),
+                # Preserved for legacy entries; new entries never set this
                 **({"manual": True} if v.get("manual") else {}),
             }
             for v in self._vehicles
@@ -485,7 +466,7 @@ def _reconcile_vehicles(
     for v in existing:
         vin = v[CONF_VIN]
         if v.get("manual"):
-            # Manual VINs always preserved
+            # Legacy manual VINs (from before #36) always preserved
             result.append(v)
         elif vin in api_by_vin:
             # Update name/fuel_type from API
