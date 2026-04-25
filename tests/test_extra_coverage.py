@@ -1182,7 +1182,8 @@ class TestFetchVehicleMetadata:
             CONF_VIN,
         )
 
-        # API returns NO vehicle for this VIN — simulates manual-VIN setup
+        # API returns NO vehicle for this VIN — simulates a legacy manual-VIN
+        # entry (the manual-VIN setup path was removed in #36).
         api = MagicMock()
         hass = MagicMock()
         hass.async_add_executor_job = AsyncMock(return_value=[])

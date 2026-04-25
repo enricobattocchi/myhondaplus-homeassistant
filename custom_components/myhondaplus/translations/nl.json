@@ -19,16 +19,6 @@
           "location_refresh_interval": "Hoe vaak Home Assistant de GPS-locatie van het voertuig opvraagt. Stel in op 0 om uit te schakelen."
         }
       },
-      "manual_vin": {
-        "title": "Voer VIN in",
-        "description": "Automatische detectie van voertuigen is mislukt. Voer het VIN handmatig in.",
-        "data": {
-          "vin": "Voertuigidentificatienummer (VIN)"
-        },
-        "data_description": {
-          "vin": "Voer het VIN in zoals opgegeven door Honda als automatische detectie niet heeft gewerkt."
-        }
-      },
       "verify": {
         "title": "E-mail verifiëren",
         "description": "Honda heeft een verificatie-e-mail gestuurd. Kopieer de URL van de link uit de e-mail (klik er NIET op) en plak deze hieronder.",
@@ -53,6 +43,7 @@
       }
     },
     "abort": {
+      "no_vehicles": "Geen voertuigen gevonden op dit account.",
       "reauth_successful": "Herauthenticatie geslaagd"
     },
     "error": {

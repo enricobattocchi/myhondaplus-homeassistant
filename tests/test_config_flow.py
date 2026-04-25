@@ -387,46 +387,6 @@ class TestAsyncStepVerify:
         assert errors["base"] == "verification_failed"
 
 
-class TestAsyncStepManualVin:
-    @pytest.mark.asyncio
-    async def test_shows_form_on_first_call(self, flow):
-        await flow.async_step_manual_vin(None)
-        flow.async_show_form.assert_called_once()
-        assert flow.async_show_form.call_args[1]["step_id"] == "manual_vin"
-
-    @pytest.mark.asyncio
-    async def test_manual_vin_creates_entry_with_manual_flag(self, flow):
-        """Manual VIN entry creates an entry with manual flag."""
-        flow._tokens = MOCK_TOKENS
-        flow._email = "test@test.com"
-        flow._scan_interval = DEFAULT_SCAN_INTERVAL
-        flow._car_refresh_interval = DEFAULT_CAR_REFRESH_INTERVAL
-        flow._device_key = MagicMock()
-        flow._device_key.pem_bytes = b"fake-pem"
-        flow._api = None
-
-        with (
-            patch(
-                "custom_components.myhondaplus.config_flow.HondaAuth"
-            ) as mock_auth_cls,
-            patch("custom_components.myhondaplus.config_flow.HondaAPI") as mock_api_cls,
-        ):
-            mock_auth_cls.extract_user_id.return_value = "fake-user-id"
-            mock_api = MagicMock()
-            mock_api_cls.return_value = mock_api
-            flow.hass.async_add_executor_job.side_effect = [MOCK_USER_INFO]
-
-            await flow.async_step_manual_vin({CONF_VIN: "MANUAL12345678901"})
-
-        flow.async_create_entry.assert_called_once()
-        entry_data = flow.async_create_entry.call_args[1]["data"]
-        vehicles = entry_data[CONF_VEHICLES]
-        assert len(vehicles) == 1
-        assert vehicles[0][CONF_VIN] == "MANUAL12345678901"
-        assert vehicles[0]["manual"] is True
-        assert CONF_SCAN_INTERVAL not in entry_data
-
-
 class TestOptionsFlow:
     def test_config_flow_returns_options_flow(self):
         assert isinstance(
@@ -728,10 +688,13 @@ class TestFetchVehiclesAndCreateEntry:
         assert result == {"type": "abort"}
 
     @pytest.mark.asyncio
-    async def test_fetch_vehicles_exception_falls_back_to_manual_vin(self, flow):
+    async def test_fetch_vehicles_unexpected_exception_aborts_cannot_connect(
+        self, flow
+    ):
+        """Unexpected exception during get_user_info aborts the config flow."""
         flow._tokens = MOCK_TOKENS
-        flow.async_step_manual_vin = AsyncMock(
-            return_value={"type": "form", "step_id": "manual_vin"}
+        flow.async_abort = MagicMock(
+            side_effect=lambda reason: {"type": "abort", "reason": reason}
         )
 
         with (
@@ -747,8 +710,62 @@ class TestFetchVehiclesAndCreateEntry:
 
             result = await flow._fetch_vehicles_and_continue()
 
-        assert result["step_id"] == "manual_vin"
-        flow.async_step_manual_vin.assert_awaited_once()
+        flow.async_abort.assert_called_once_with(reason="cannot_connect")
+        assert result == {"type": "abort", "reason": "cannot_connect"}
+
+    @pytest.mark.asyncio
+    async def test_fetch_vehicles_api_error_aborts_cannot_connect(self, flow):
+        """HondaAPIError during get_user_info aborts cleanly."""
+        from pymyhondaplus.api import HondaAPIError
+
+        flow._tokens = MOCK_TOKENS
+        flow.async_abort = MagicMock(
+            side_effect=lambda reason: {"type": "abort", "reason": reason}
+        )
+
+        with (
+            patch(
+                "custom_components.myhondaplus.config_flow.HondaAuth"
+            ) as mock_auth_cls,
+            patch("custom_components.myhondaplus.config_flow.HondaAPI") as mock_api_cls,
+        ):
+            mock_auth_cls.extract_user_id.return_value = "fake-user-id"
+            mock_api = MagicMock()
+            mock_api_cls.return_value = mock_api
+            flow.hass.async_add_executor_job.side_effect = [
+                HondaAPIError(503, "service unavailable")
+            ]
+
+            result = await flow._fetch_vehicles_and_continue()
+
+        flow.async_abort.assert_called_once_with(reason="cannot_connect")
+        assert result == {"type": "abort", "reason": "cannot_connect"}
+
+    @pytest.mark.asyncio
+    async def test_fetch_vehicles_empty_list_aborts_no_vehicles(self, flow):
+        """Issue #36: empty vehicles list aborts with no_vehicles instead of falling back to manual VIN."""
+        flow._tokens = MOCK_TOKENS
+        flow.async_abort = MagicMock(
+            side_effect=lambda reason: {"type": "abort", "reason": reason}
+        )
+
+        with (
+            patch(
+                "custom_components.myhondaplus.config_flow.HondaAuth"
+            ) as mock_auth_cls,
+            patch("custom_components.myhondaplus.config_flow.HondaAPI") as mock_api_cls,
+        ):
+            mock_auth_cls.extract_user_id.return_value = "fake-user-id"
+            mock_api = MagicMock()
+            mock_api_cls.return_value = mock_api
+            flow.hass.async_add_executor_job.side_effect = [
+                {"personalId": "p", "vehiclesInfo": []}
+            ]
+
+            result = await flow._fetch_vehicles_and_continue()
+
+        flow.async_abort.assert_called_once_with(reason="no_vehicles")
+        assert result == {"type": "abort", "reason": "no_vehicles"}
 
     @pytest.mark.asyncio
     async def test_create_entry_personal_id_fallback(self, flow):

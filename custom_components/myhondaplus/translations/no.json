@@ -19,16 +19,6 @@
           "location_refresh_interval": "Hvor ofte Home Assistant henter GPS-posisjonen fra kjøretøyet. Sett til 0 for å deaktivere."
         }
       },
-      "manual_vin": {
-        "title": "Skriv inn VIN",
-        "description": "Kunne ikke oppdage kjøretøy automatisk. Skriv inn VIN manuelt.",
-        "data": {
-          "vin": "Kjøretøyets identifikasjonsnummer (VIN)"
-        },
-        "data_description": {
-          "vin": "Skriv inn VIN nøyaktig slik det er registrert hos Honda, hvis automatisk oppdagelse ikke fungerte."
-        }
-      },
       "verify": {
         "title": "E-postbekreftelse",
         "description": "Honda har sendt en bekreftelses-e-post. Kopier URL-en fra lenken i e-posten (IKKE klikk på den) og lim den inn nedenfor.",
@@ -53,6 +43,7 @@
       }
     },
     "abort": {
+      "no_vehicles": "Ingen kjøretøy funnet på denne kontoen.",
       "reauth_successful": "Ny autentisering vellykket"
     },
     "error": {
