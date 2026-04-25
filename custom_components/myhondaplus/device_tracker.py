@@ -20,7 +20,6 @@ async def async_setup_entry(
     async_add_entities(
         HondaDeviceTracker(v.coordinator, v.vin, v.vehicle_name, v.fuel_type)
         for v in entry.runtime_data.vehicles.values()
-        if v.capabilities.car_finder
     )
 
 

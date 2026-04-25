@@ -110,15 +110,20 @@ def _make_hass_mock():
     return hass
 
 
-def _make_entry_with_vehicles(coordinator, trip_coordinator=None):
+def _make_entry_with_vehicles(
+    coordinator, trip_coordinator=None, fuel_type="E", capabilities=None
+):
     """Create a mock entry with the new vehicles-based runtime_data."""
-    vd = VehicleData(
-        coordinator=coordinator,
-        trip_coordinator=trip_coordinator or MagicMock(),
-        vin=MOCK_VIN,
-        vehicle_name=MOCK_VEHICLE_NAME,
-        fuel_type="E",
-    )
+    kwargs = {
+        "coordinator": coordinator,
+        "trip_coordinator": trip_coordinator or MagicMock(),
+        "vin": MOCK_VIN,
+        "vehicle_name": MOCK_VEHICLE_NAME,
+        "fuel_type": fuel_type,
+    }
+    if capabilities is not None:
+        kwargs["capabilities"] = capabilities
+    vd = VehicleData(**kwargs)
     return SimpleNamespace(
         runtime_data=SimpleNamespace(
             vehicles={MOCK_VIN: vd},
@@ -271,6 +276,19 @@ class TestPlatformSetupCoverage:
         assert added[0]._vin == MOCK_VIN
 
     @pytest.mark.asyncio
+    async def test_device_tracker_setup_entry_no_capability(self):
+        """Issue #25: device_tracker registers even when car_finder=False."""
+        coordinator = SimpleNamespace(entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA)))
+        entry = _make_entry_with_vehicles(
+            coordinator, capabilities=VehicleCapabilities()
+        )
+        added = []
+
+        await device_tracker_setup_entry(None, entry, added.extend)
+
+        assert len(added) == 1
+
+    @pytest.mark.asyncio
     async def test_lock_platform_setup_entry(self):
         coordinator = SimpleNamespace(entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA)))
         entry = _make_entry_with_vehicles(coordinator)
@@ -313,6 +331,69 @@ class TestPlatformSetupCoverage:
         await sensor_setup_entry(None, entry, added.extend)
 
         assert len(added) == len(SENSOR_DESCRIPTIONS) + len(TRIP_SENSOR_DESCRIPTIONS)
+
+    @pytest.mark.asyncio
+    async def test_sensor_platform_setup_entry_phev(self):
+        """PHEV (fuel_type=X) gets the same sensor count as BEV."""
+        coordinator = SimpleNamespace(entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA)))
+        trip_coordinator = SimpleNamespace(
+            entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA))
+        )
+        entry = _make_entry_with_vehicles(
+            coordinator, trip_coordinator, fuel_type="X"
+        )
+        added = []
+
+        await sensor_setup_entry(None, entry, added.extend)
+
+        assert len(added) == len(SENSOR_DESCRIPTIONS) + len(TRIP_SENSOR_DESCRIPTIONS)
+
+    @pytest.mark.asyncio
+    async def test_sensor_platform_setup_entry_ice_hides_ev_only(self):
+        """ICE vehicle hides ev_only sensors but keeps the rest."""
+        coordinator = SimpleNamespace(entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA)))
+        trip_coordinator = SimpleNamespace(
+            entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA))
+        )
+        entry = _make_entry_with_vehicles(
+            coordinator, trip_coordinator, fuel_type="G"
+        )
+        added = []
+
+        await sensor_setup_entry(None, entry, added.extend)
+
+        ev_only_count = sum(1 for d in SENSOR_DESCRIPTIONS if d.ev_only)
+        assert len(added) == (
+            len(SENSOR_DESCRIPTIONS) - ev_only_count + len(TRIP_SENSOR_DESCRIPTIONS)
+        )
+        added_keys = {e.entity_description.key for e in added}
+        assert "battery_level" not in added_keys
+        assert "charge_status" not in added_keys
+        assert "odometer" in added_keys
+        assert "climate_active" in added_keys
+
+    @pytest.mark.asyncio
+    async def test_sensor_platform_setup_entry_expired_subscription(self):
+        """Issue #25: read sensors register even when all capabilities are False."""
+        coordinator = SimpleNamespace(entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA)))
+        trip_coordinator = SimpleNamespace(
+            entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA))
+        )
+        entry = _make_entry_with_vehicles(
+            coordinator, trip_coordinator, capabilities=VehicleCapabilities()
+        )
+        added = []
+
+        await sensor_setup_entry(None, entry, added.extend)
+
+        # Read sensors don't depend on capabilities; trip sensors still gated
+        # by journey_history (False here), so subtract the trip ones.
+        assert len(added) == len(SENSOR_DESCRIPTIONS)
+        added_keys = {e.entity_description.key for e in added}
+        assert "battery_level" in added_keys
+        assert "charge_status" in added_keys
+        assert "climate_active" in added_keys
+        assert "charge_schedule" in added_keys
 
     @pytest.mark.asyncio
     async def test_switch_platform_setup_entry(self):
@@ -1026,28 +1107,42 @@ class TestFetchVehicleMetadata:
 
 
 class TestSensorEnabled:
-    """Tests for _sensor_enabled capability/ui_hide filtering."""
+    """Tests for _sensor_enabled ev_only/ui_hide filtering."""
 
-    def test_no_capability_always_enabled(self):
-        desc = SimpleNamespace(capability="", ui_hide="")
-        vehicle = SimpleNamespace(
-            capabilities=VehicleCapabilities(),
-            ui_config=UIConfiguration(),
-        )
+    def test_ev_fuel_types_constant(self):
+        from custom_components.myhondaplus.sensor import EV_FUEL_TYPES
+
+        assert EV_FUEL_TYPES == frozenset({"E", "X"})
+
+    def test_no_ev_only_always_enabled(self):
+        desc = SimpleNamespace(ev_only=False, ui_hide="")
+        vehicle = SimpleNamespace(fuel_type="G", ui_config=UIConfiguration())
         assert _sensor_enabled(desc, vehicle) is True
 
-    def test_capability_false_disables(self):
-        desc = SimpleNamespace(capability="remote_charge", ui_hide="")
-        vehicle = SimpleNamespace(
-            capabilities=VehicleCapabilities(remote_charge=False),
-            ui_config=UIConfiguration(),
-        )
+    def test_ev_only_hidden_for_ice(self):
+        desc = SimpleNamespace(ev_only=True, ui_hide="")
+        vehicle = SimpleNamespace(fuel_type="G", ui_config=UIConfiguration())
+        assert _sensor_enabled(desc, vehicle) is False
+
+    def test_ev_only_shown_for_bev(self):
+        desc = SimpleNamespace(ev_only=True, ui_hide="")
+        vehicle = SimpleNamespace(fuel_type="E", ui_config=UIConfiguration())
+        assert _sensor_enabled(desc, vehicle) is True
+
+    def test_ev_only_shown_for_phev(self):
+        desc = SimpleNamespace(ev_only=True, ui_hide="")
+        vehicle = SimpleNamespace(fuel_type="X", ui_config=UIConfiguration())
+        assert _sensor_enabled(desc, vehicle) is True
+
+    def test_ev_only_hidden_for_empty_fuel_type(self):
+        desc = SimpleNamespace(ev_only=True, ui_hide="")
+        vehicle = SimpleNamespace(fuel_type="", ui_config=UIConfiguration())
         assert _sensor_enabled(desc, vehicle) is False
 
     def test_ui_hide_true_disables(self):
-        desc = SimpleNamespace(capability="", ui_hide="hide_internal_temperature")
+        desc = SimpleNamespace(ev_only=False, ui_hide="hide_internal_temperature")
         vehicle = SimpleNamespace(
-            capabilities=VehicleCapabilities(),
+            fuel_type="E",
             ui_config=UIConfiguration(hide_internal_temperature=True),
         )
         assert _sensor_enabled(desc, vehicle) is False

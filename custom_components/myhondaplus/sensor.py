@@ -27,11 +27,13 @@ UNIT_MAP = {
     "miles": {"distance": "mi", "speed": "mph", "temp": "°F"},
 }
 
+EV_FUEL_TYPES = frozenset({"E", "X"})
+
 
 @dataclass(frozen=True, kw_only=True)
 class HondaSensorDescription(SensorEntityDescription):
     dynamic_unit: str = ""
-    capability: str = ""
+    ev_only: bool = False
     ui_hide: str = ""
 
 
@@ -42,7 +44,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
-        capability="remote_charge",
+        ev_only=True,
     ),
     HondaSensorDescription(
         key="range_climate_on",
@@ -51,7 +53,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:map-marker-distance",
         dynamic_unit="distance",
-        capability="remote_charge",
+        ev_only=True,
     ),
     HondaSensorDescription(
         key="range_climate_off",
@@ -60,7 +62,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:map-marker-distance",
         dynamic_unit="distance",
-        capability="remote_charge",
+        ev_only=True,
     ),
     HondaSensorDescription(
         key="total_range",
@@ -76,7 +78,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.ENUM,
         options=["stopped", "charging", "complete", "notcharging", "unknown"],
         icon="mdi:ev-station",
-        capability="remote_charge",
+        ev_only=True,
     ),
     HondaSensorDescription(
         key="plug_status",
@@ -84,7 +86,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.ENUM,
         options=["plugged_in", "connected", "unplugged", "disconnected", "unknown"],
         icon="mdi:power-plug",
-        capability="remote_charge",
+        ev_only=True,
     ),
     HondaSensorDescription(
         key="home_away",
@@ -97,7 +99,6 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         key="climate_active",
         translation_key="climate_active",
         icon="mdi:air-conditioner",
-        capability="remote_climate",
     ),
     HondaSensorDescription(
         key="cabin_temp",
@@ -144,7 +145,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
             "unknown",
         ],
         icon="mdi:ev-station",
-        capability="remote_charge",
+        ev_only=True,
     ),
     HondaSensorDescription(
         key="time_to_charge",
@@ -153,7 +154,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.DURATION,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:battery-clock",
-        capability="remote_charge",
+        ev_only=True,
     ),
     HondaSensorDescription(
         key="interior_temp",
@@ -191,7 +192,6 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.ENUM,
         options=["cooler", "normal", "hotter", "unknown"],
         icon="mdi:thermometer",
-        capability="remote_climate",
     ),
     HondaSensorDescription(
         key="climate_duration",
@@ -200,27 +200,24 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.DURATION,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:timer-outline",
-        capability="remote_climate",
     ),
     HondaSensorDescription(
         key="climate_defrost",
         translation_key="climate_defrost",
         icon="mdi:car-defrost-rear",
-        capability="remote_climate",
     ),
     HondaSensorDescription(
         key="charge_schedule",
         translation_key="charge_schedule",
         icon="mdi:calendar-clock",
         entity_category=EntityCategory.DIAGNOSTIC,
-        capability="charge_schedule",
+        ev_only=True,
     ),
     HondaSensorDescription(
         key="climate_schedule",
         translation_key="climate_schedule",
         icon="mdi:calendar-clock",
         entity_category=EntityCategory.DIAGNOSTIC,
-        capability="climate_schedule",
     ),
 ]
 
@@ -260,8 +257,8 @@ TRIP_SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
 def _sensor_enabled(
     desc: HondaSensorDescription, vehicle,
 ) -> bool:
-    """Check if a sensor should be created based on capabilities and UI config."""
-    if desc.capability and not getattr(vehicle.capabilities, desc.capability, True):
+    """Check if a sensor should be created based on fuel type and UI config."""
+    if desc.ev_only and vehicle.fuel_type not in EV_FUEL_TYPES:
         return False
     if desc.ui_hide and getattr(vehicle.ui_config, desc.ui_hide, False):
         return False
@@ -284,6 +281,8 @@ async def async_setup_entry(
             for desc in SENSOR_DESCRIPTIONS
             if _sensor_enabled(desc, vehicle)
         )
+        # TODO: trip-history asymmetry — trip_coordinator is fetched regardless,
+        # but entities only register when journey_history is True. See follow-up issue.
         if vehicle.capabilities.journey_history:
             entities.extend(
                 HondaTripSensor(vehicle.trip_coordinator, desc, vin, name, fuel_type)

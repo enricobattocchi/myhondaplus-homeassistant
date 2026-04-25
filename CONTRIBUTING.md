@@ -54,7 +54,7 @@ This is a Home Assistant custom integration for Honda vehicles, distributed via 
 
 - The library normalizes EV status enums (`charge_status`, `home_away`, `climate_temp`) to canonical values. The integration's ENUM sensors declare options that align with those canonical sets — do not list raw values like `"running"` or `"unavailable"`.
 - The library returns coordinates as floats. No conversion needed in the integration.
-- `VehicleCapabilities` is raw-backed in `pymyhondaplus`. The integration's gating pattern `getattr(vehicle.capabilities, desc.capability, True)` works transparently — known attribute names resolve through `__getattr__` to a bool, unknown names raise `AttributeError` and `getattr` falls through to the default. No code change is needed when capability fields are added on the library side.
+- `VehicleCapabilities` is raw-backed in `pymyhondaplus`. The command-entity gating pattern `if v.capabilities.<flag>` works transparently — known attribute names resolve through `__getattr__` to a bool, unknown names raise `AttributeError`. No code change is needed when capability fields are added on the library side.
 
 ### Translation drift
 
@@ -79,7 +79,9 @@ When updating a translation on either side, run the drift test. If a key crosses
 - Enum sensors must list all possible values in `options`. The library normalizes values; this integration does not re-normalize.
 - Dynamic units (km/miles, km/h/mph, C/F) come from `data.distance_unit` via `UNIT_MAP` in `sensor.py`.
 - Optimistic updates: entity commands mutate `coordinator.data` before API confirmation, revert on failure.
-- Capability gating: sensors check `_sensor_enabled()` against `VehicleCapabilities` before being created.
+- Entity gating policy:
+  - Read-only entities (sensor, binary_sensor, device_tracker) are **not** gated on `VehicleCapabilities`. They check `_sensor_enabled()` against `ev_only` (filtered by vehicle `fuel_type`, where `"E"`=BEV and `"X"`=PHEV) and `ui_hide` flags. This is so dashboard data stays visible when Honda's capability map flips to all-`notSupported` (e.g. lapsed subscription) but the data still flows.
+  - Command entities (switch, button, select, number, lock) **keep** their `VehicleCapabilities` gates because Honda rejects those API calls when the corresponding feature is `notSupported`.
 
 ## Translations
 
