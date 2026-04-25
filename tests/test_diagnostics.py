@@ -71,3 +71,23 @@ class TestDiagnostics:
         for key in TO_REDACT:
             if key in config:
                 assert config[key] == "**REDACTED**"
+
+    @pytest.mark.asyncio
+    async def test_capabilities_included(self, mock_entry_for_diag):
+        hass = MagicMock()
+        result = await async_get_config_entry_diagnostics(hass, mock_entry_for_diag)
+        caps = result["vehicles"][MOCK_VIN]["capabilities"]
+        # raw map is the load-bearing field for debugging — must be present
+        assert "raw" in caps
+        # known per-field booleans should round-trip alongside raw
+        assert "remote_charge" in caps
+        assert "remote_climate" in caps
+        assert "geo_fence" in caps
+
+    @pytest.mark.asyncio
+    async def test_ui_config_included(self, mock_entry_for_diag):
+        hass = MagicMock()
+        result = await async_get_config_entry_diagnostics(hass, mock_entry_for_diag)
+        ui = result["vehicles"][MOCK_VIN]["ui_config"]
+        assert "hide_window_status" in ui
+        assert "hide_internal_temperature" in ui
