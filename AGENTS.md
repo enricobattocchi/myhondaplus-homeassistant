@@ -49,6 +49,25 @@ If a task feels like it crosses boundaries, default to "the library owns the API
 
 *Mirrored from `pymyhondaplus/AGENTS.md` — update there first.*
 
+### Cross-product thinking when multiple repos are open
+
+If the user's session has more than one of `pymyhondaplus`, `myhondaplus-homeassistant`, or `myhondaplus-desktop` loaded as a working directory, treat that as a signal that they're managing parallel work and rely on you for cross-product memory. **Don't wait to be asked.** When making any non-trivial change in one repo:
+
+- Search the other loaded repo(s) for the same code path. A bug fix in HA's `sensor.py` may have a sibling in `myhondaplus-desktop/widgets/dashboard.py`. A library API change has at least two consumers.
+- Treat design contracts as cross-cutting: capability gating (read vs command), error-handling shape, naming, polling cadences, defaults, fuel-type semantics. When one repo settles a contract, the others should align unless the divergence is intentional and stated.
+- For bug fixes, audit the bug *class*, not just the specific symptom. If you fixed "X disappears when capability=False" in one repo, ask whether the equivalent code in the other repos has the same gate.
+- For library changes, surface the consumer impact inline. Don't say "library updated, what next" — say "library changed Y; HA needs Z, desktop needs W; here are the patches."
+
+Surface findings as part of your response, in a compact format:
+
+- *"Same pattern in `<repo>` at `<file:line>` — proposing same fix here."*
+- *"`<repo>` diverges intentionally because `<reason>` — keeping divergent."*
+- *"`<repo>` doesn't have this code path — N/A."*
+
+The CLI in `pymyhondaplus` is often N/A for UI-gating questions (it's a thin pass-through that defers to Honda's API), but check before assuming.
+
+### Release & change mechanics
+
 - **Release order is library first, then consumers.** Bump `pymyhondaplus`, tag, GitHub-release; then update HA `manifest.json` `requirements` (`==X.Y.Z`) and/or desktop `pyproject.toml` + `README.md` (`>=X.Y.Z`), then release each consumer.
 - **Pin update rule**: HA pins exact (Home Assistant convention); desktop pins minimum.
 - **Translation-drift PRs** may span library + HA. When a string converges in wording, move the pair from `_KNOWN_DRIFT` to `ENFORCED_OVERLAPS` in the same PR (HA test: `tests/test_translation_drift.py`).
