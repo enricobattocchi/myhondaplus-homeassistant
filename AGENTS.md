@@ -76,7 +76,7 @@ Only escalate to "user must take action" when the code genuinely cannot fix the 
 
 ### Release & change mechanics
 
-- **Docs before tag.** Audit `README.md` against the diff *before* bumping `manifest.json` `version`. A new service needs a §Services subsection; a removed or renamed config option must not still appear in §Configuration or §Troubleshooting. Updating `services.yaml` / `strings.json` / locale JSON is necessary but not sufficient — the README is a separate surface, and fixing it in a follow-up after the release has shipped is not OK.
+- **Docs before tag.** Audit narrative docs (`README.md`, plus `USAGE.md` / `CHANGELOG.md` where present) against the diff *before* bumping the version. A new feature / service / option / flag needs documenting; a removed or renamed one must not still be described. Updating code-adjacent files (`services.yaml`, `strings.json`, locale JSON, `manifest.json`) is necessary but not sufficient — the README is a separate surface, and fixing it in a follow-up after the release has shipped is not OK.
 - **Release order is library first, then consumers.** Bump `pymyhondaplus`, tag, GitHub-release; then update HA `manifest.json` `requirements` (`==X.Y.Z`) and/or desktop `pyproject.toml` + `README.md` (`>=X.Y.Z`), then release each consumer.
 - **Pin update rule**: HA pins exact (Home Assistant convention); desktop pins minimum.
 - **Translation-drift PRs** may span library + HA. When a string converges in wording, move the pair from `_KNOWN_DRIFT` to `ENFORCED_OVERLAPS` in the same PR (HA test: `tests/test_translation_drift.py`).
