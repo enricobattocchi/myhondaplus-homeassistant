@@ -33,6 +33,8 @@ If a task feels like it crosses boundaries, default to "the library owns the API
 
 **Triage rule.** When investigating an issue or fix in a consumer repo (HA or desktop), use the ownership boundaries above. If the symptom is in library-owned territory (API request/response shape, parsing, enum normalization, capability resolution, library-owned translation strings), the issue or PR should be opened in `pymyhondaplus` — even if it was first surfaced through a consumer. When in doubt, a short Python repro against the library is the fastest way to confirm.
 
+**Editing this file.** Sections `## 2. Naming`, `## 3. The three-repo ecosystem`, and `## 5. Cross-repo workflows` are mirrored verbatim from `pymyhondaplus/AGENTS.md` into the two consumer repos. When changing any of those sections, use **identical wording** across the three repos (no per-repo customization — keep it generic enough to apply everywhere) and run `python scripts/check_agents_mirror.py` from the HA or desktop repo before pushing. The same check enforces parity in CI and will block consumer PRs if the wording drifts.
+
 ## 4. Where to touch code
 
 | Task | Files |
