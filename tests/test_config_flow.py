@@ -13,7 +13,6 @@ from custom_components.myhondaplus.config_flow import (
 from custom_components.myhondaplus.const import (
     CONF_CAR_REFRESH_INTERVAL,
     CONF_FUEL_TYPE,
-    CONF_LOCATION_REFRESH_INTERVAL,
     CONF_SCAN_INTERVAL,
     CONF_VEHICLE_NAME,
     CONF_VEHICLES,
@@ -113,7 +112,6 @@ class TestAsyncStepUser:
                     "password": "pass123",
                     "scan_interval": 600,
                     "car_refresh_interval": 43200,
-                    "location_refresh_interval": 1800,
                 }
             )
 
@@ -130,7 +128,8 @@ class TestAsyncStepUser:
         assert CONF_VIN not in entry_data
         assert CONF_SCAN_INTERVAL not in entry_data
         assert entry_options[CONF_SCAN_INTERVAL] == 600
-        assert entry_options[CONF_LOCATION_REFRESH_INTERVAL] == 1800
+        # location_refresh_interval was removed in v4
+        assert "location_refresh_interval" not in entry_options
         # Title is email-based
         assert "test@test.com" in entry_kwargs["title"]
 
@@ -159,7 +158,6 @@ class TestAsyncStepUser:
                     "password": "pass123",
                     "scan_interval": 600,
                     "car_refresh_interval": 43200,
-                    "location_refresh_interval": 1800,
                 }
             )
 
@@ -774,7 +772,6 @@ class TestFetchVehiclesAndCreateEntry:
         flow._vehicles = [{"vin": "VIN12345678901234", "name": "", "fuel_type": ""}]
         flow._scan_interval = DEFAULT_SCAN_INTERVAL
         flow._car_refresh_interval = DEFAULT_CAR_REFRESH_INTERVAL
-        flow._location_refresh_interval = 3600
         flow._device_key = MagicMock()
         flow._device_key.pem_bytes = b"fake-pem"
         flow._api = None

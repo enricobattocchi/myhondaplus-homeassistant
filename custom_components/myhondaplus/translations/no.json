@@ -8,15 +8,13 @@
           "email": "Email",
           "password": "Password",
           "scan_interval": "Oppdateringsintervall (sekunder)",
-          "car_refresh_interval": "Kjøretøyoppdateringsintervall (sekunder, 0 for å deaktivere)",
-          "location_refresh_interval": "Posisjonsoppdateringsintervall (sekunder, 0 for å deaktivere)"
+          "car_refresh_interval": "Kjøretøyoppdateringsintervall (sekunder, 0 for å deaktivere)"
         },
         "data_description": {
           "email": "E-postadressen du bruker for å logge inn på My Honda+-appen.",
           "password": "Passordet til din My Honda+-konto.",
           "scan_interval": "Hvor ofte Home Assistant henter lagrede data fra Honda.",
-          "car_refresh_interval": "Hvor ofte Home Assistant vekker kjøretøyet for oppdaterte data. Sett til 0 for å deaktivere.",
-          "location_refresh_interval": "Hvor ofte Home Assistant henter GPS-posisjonen fra kjøretøyet. Sett til 0 for å deaktivere."
+          "car_refresh_interval": "Hvor ofte Home Assistant vekker kjøretøyet for oppdaterte data. Sett til 0 for å deaktivere."
         }
       },
       "verify": {
@@ -60,13 +58,11 @@
         "title": "My Honda+-innstillinger",
         "data": {
           "scan_interval": "Oppdateringsintervall (sekunder)",
-          "car_refresh_interval": "Kjøretøyoppdateringsintervall (sekunder, 0 for å deaktivere)",
-          "location_refresh_interval": "Posisjonsoppdateringsintervall (sekunder, 0 for å deaktivere)"
+          "car_refresh_interval": "Kjøretøyoppdateringsintervall (sekunder, 0 for å deaktivere)"
         },
         "data_description": {
           "scan_interval": "Hvor ofte Home Assistant henter lagrede data fra Honda.",
-          "car_refresh_interval": "Hvor ofte Home Assistant vekker kjøretøyet for oppdaterte data. Sett til 0 for å deaktivere.",
-          "location_refresh_interval": "Hvor ofte Home Assistant henter GPS-posisjonen fra kjøretøyet. Sett til 0 for å deaktivere."
+          "car_refresh_interval": "Hvor ofte Home Assistant vekker kjøretøyet for oppdaterte data. Sett til 0 for å deaktivere."
         }
       }
     }
@@ -77,9 +73,6 @@
     },
     "send_command_failed": {
       "message": "Kunne ikke sende kommando til kjøretøyet"
-    },
-    "refresh_location_failed": {
-      "message": "Kunne ikke oppdatere posisjonen fra kjøretøyet"
     },
     "device_required": {
       "message": "Select a vehicle to control."
@@ -93,8 +86,8 @@
     "command_timeout": {
       "message": "En kommando for {vehicle} fikk tidsavbrudd mens den ventet på svar fra kjøretøyet."
     },
-    "location_timeout": {
-      "message": "Oppdatering av posisjonen for {vehicle} fikk tidsavbrudd mens den ventet på svar fra kjøretøyet."
+    "car_finder_failed": {
+      "message": "Bilfinner-forespørsel mislyktes: kjøretøyet svarte ikke."
     }
   },
   "entity": {
@@ -290,6 +283,18 @@
       },
       "charge_limit_away": {
         "name": "Ladegrense (borte)"
+      }
+    }
+  },
+  "services": {
+    "car_finder_location": {
+      "name": "Bilfinner-plassering",
+      "description": "Ber om siste GPS-posisjon fra Hondas bilfinner-endepunkt og returnerer den som tjenestesvar. Endrer ingen sensorer.",
+      "fields": {
+        "device": {
+          "name": "Kjøretøy",
+          "description": "Velg My Honda+-kjøretøyet som skal forespørres."
+        }
       }
     }
   }

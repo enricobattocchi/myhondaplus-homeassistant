@@ -8,15 +8,13 @@
           "email": "Email",
           "password": "Password",
           "scan_interval": "Update interval (seconds)",
-          "car_refresh_interval": "Refresh from car interval (seconds, 0 to disable)",
-          "location_refresh_interval": "Location refresh interval (seconds, 0 to disable)"
+          "car_refresh_interval": "Refresh from car interval (seconds, 0 to disable)"
         },
         "data_description": {
           "email": "Email address used to sign in to the My Honda+ app.",
           "password": "Password for your My Honda+ account.",
           "scan_interval": "How often Home Assistant polls Honda's cached vehicle data.",
-          "car_refresh_interval": "How often Home Assistant wakes the vehicle for fresh status data. Set to 0 to disable.",
-          "location_refresh_interval": "How often Home Assistant requests fresh GPS data from the vehicle. Set to 0 to disable."
+          "car_refresh_interval": "How often Home Assistant wakes the vehicle for fresh status data. Set to 0 to disable."
         }
       },
       "verify": {
@@ -60,13 +58,11 @@
         "title": "My Honda+ settings",
         "data": {
           "scan_interval": "Update interval (seconds)",
-          "car_refresh_interval": "Refresh from car interval (seconds, 0 to disable)",
-          "location_refresh_interval": "Location refresh interval (seconds, 0 to disable)"
+          "car_refresh_interval": "Refresh from car interval (seconds, 0 to disable)"
         },
         "data_description": {
           "scan_interval": "How often Home Assistant polls Honda's cached vehicle data.",
-          "car_refresh_interval": "How often Home Assistant wakes the vehicle for fresh status data. Set to 0 to disable.",
-          "location_refresh_interval": "How often Home Assistant requests fresh GPS data from the vehicle. Set to 0 to disable."
+          "car_refresh_interval": "How often Home Assistant wakes the vehicle for fresh status data. Set to 0 to disable."
         }
       }
     }
@@ -81,9 +77,6 @@
     "capability_not_supported": {
       "message": "This vehicle does not support the requested feature"
     },
-    "refresh_location_failed": {
-      "message": "Unable to refresh location from vehicle"
-    },
     "device_required": {
       "message": "Select a vehicle to control."
     },
@@ -96,8 +89,8 @@
     "command_timeout": {
       "message": "A command for {vehicle} timed out waiting for the car to respond."
     },
-    "location_timeout": {
-      "message": "Location refresh for {vehicle} timed out waiting for the car to respond."
+    "car_finder_failed": {
+      "message": "Car finder request failed: the vehicle did not respond."
     }
   },
   "entity": {
@@ -293,6 +286,18 @@
       },
       "charge_limit_away": {
         "name": "Charge limit (away)"
+      }
+    }
+  },
+  "services": {
+    "car_finder_location": {
+      "name": "Car Finder location",
+      "description": "Request the last GPS fix from Honda's Car Finder endpoint and return it as the service response. Does not modify any sensors.",
+      "fields": {
+        "device": {
+          "name": "Vehicle",
+          "description": "Select the My Honda+ vehicle to query."
+        }
       }
     }
   }

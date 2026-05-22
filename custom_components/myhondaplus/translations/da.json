@@ -8,15 +8,13 @@
           "email": "Email",
           "password": "Password",
           "scan_interval": "Opdateringsinterval (sekunder)",
-          "car_refresh_interval": "Køretøjsopdateringsinterval (sekunder, 0 for at deaktivere)",
-          "location_refresh_interval": "Positionsopdateringsinterval (sekunder, 0 for at deaktivere)"
+          "car_refresh_interval": "Køretøjsopdateringsinterval (sekunder, 0 for at deaktivere)"
         },
         "data_description": {
           "email": "E-mailadresse brugt til at logge ind i My Honda+ appen.",
           "password": "Password til din My Honda+ konto.",
           "scan_interval": "Hvor ofte Home Assistant henter gemte data fra Honda.",
-          "car_refresh_interval": "Hvor ofte Home Assistant vækker køretøjet for opdaterede data. Sæt til 0 for at deaktivere.",
-          "location_refresh_interval": "Hvor ofte Home Assistant anmoder om GPS-position fra køretøjet. Sæt til 0 for at deaktivere."
+          "car_refresh_interval": "Hvor ofte Home Assistant vækker køretøjet for opdaterede data. Sæt til 0 for at deaktivere."
         }
       },
       "verify": {
@@ -60,13 +58,11 @@
         "title": "My Honda+ indstillinger",
         "data": {
           "scan_interval": "Opdateringsinterval (sekunder)",
-          "car_refresh_interval": "Køretøjsopdateringsinterval (sekunder, 0 for at deaktivere)",
-          "location_refresh_interval": "Positionsopdateringsinterval (sekunder, 0 for at deaktivere)"
+          "car_refresh_interval": "Køretøjsopdateringsinterval (sekunder, 0 for at deaktivere)"
         },
         "data_description": {
           "scan_interval": "Hvor ofte Home Assistant henter gemte data fra Honda.",
-          "car_refresh_interval": "Hvor ofte Home Assistant vækker køretøjet for opdaterede data. Sæt til 0 for at deaktivere.",
-          "location_refresh_interval": "Hvor ofte Home Assistant anmoder om GPS-position fra køretøjet. Sæt til 0 for at deaktivere."
+          "car_refresh_interval": "Hvor ofte Home Assistant vækker køretøjet for opdaterede data. Sæt til 0 for at deaktivere."
         }
       }
     }
@@ -77,9 +73,6 @@
     },
     "send_command_failed": {
       "message": "Kunne ikke sende kommandoen til køretøjet"
-    },
-    "refresh_location_failed": {
-      "message": "Kunne ikke opdatere positionen fra køretøjet"
     },
     "device_required": {
       "message": "Select a vehicle to control."
@@ -93,8 +86,8 @@
     "command_timeout": {
       "message": "En kommando for {vehicle} fik timeout, mens den ventede på svar fra køretøjet."
     },
-    "location_timeout": {
-      "message": "Opdatering af positionen for {vehicle} fik timeout, mens den ventede på svar fra køretøjet."
+    "car_finder_failed": {
+      "message": "Bilfinder-anmodning mislykkedes: køretøjet svarede ikke."
     }
   },
   "entity": {
@@ -290,6 +283,18 @@
       },
       "charge_limit_away": {
         "name": "Ladegrænse (ude)"
+      }
+    }
+  },
+  "services": {
+    "car_finder_location": {
+      "name": "Bilfinder-placering",
+      "description": "Anmoder om den seneste GPS-position fra Hondas bilfinder-endepunkt og returnerer den som svar fra tjenesten. Ændrer ingen sensorer.",
+      "fields": {
+        "device": {
+          "name": "Køretøj",
+          "description": "Vælg det My Honda+-køretøj, der skal forespørges."
+        }
       }
     }
   }

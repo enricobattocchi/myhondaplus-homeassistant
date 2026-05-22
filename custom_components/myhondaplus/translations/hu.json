@@ -8,15 +8,13 @@
           "email": "Email",
           "password": "Password",
           "scan_interval": "Frissítési időköz (másodperc)",
-          "car_refresh_interval": "Jármű frissítési időköz (másodperc, 0 a letiltáshoz)",
-          "location_refresh_interval": "Helyzet frissítési időköz (másodperc, 0 a letiltáshoz)"
+          "car_refresh_interval": "Jármű frissítési időköz (másodperc, 0 a letiltáshoz)"
         },
         "data_description": {
           "email": "A My Honda+ alkalmazásba való bejelentkezéshez használt email cím.",
           "password": "A My Honda+ fiókod jelszava.",
           "scan_interval": "Milyen gyakran kérje le a Home Assistant a Honda által tárolt adatokat.",
-          "car_refresh_interval": "Milyen gyakran ébressze fel a Home Assistant a járművet a friss adatokért. Állítsd 0-ra a letiltáshoz.",
-          "location_refresh_interval": "Milyen gyakran kérje le a Home Assistant a GPS helyzetet a járműtől. Állítsd 0-ra a letiltáshoz."
+          "car_refresh_interval": "Milyen gyakran ébressze fel a Home Assistant a járművet a friss adatokért. Állítsd 0-ra a letiltáshoz."
         }
       },
       "verify": {
@@ -60,13 +58,11 @@
         "title": "My Honda+ beállítások",
         "data": {
           "scan_interval": "Frissítési időköz (másodperc)",
-          "car_refresh_interval": "Jármű frissítési időköz (másodperc, 0 a letiltáshoz)",
-          "location_refresh_interval": "Helyzet frissítési időköz (másodperc, 0 a letiltáshoz)"
+          "car_refresh_interval": "Jármű frissítési időköz (másodperc, 0 a letiltáshoz)"
         },
         "data_description": {
           "scan_interval": "Milyen gyakran kérje le a Home Assistant a Honda által tárolt adatokat.",
-          "car_refresh_interval": "Milyen gyakran ébressze fel a Home Assistant a járművet a friss adatokért. Állítsd 0-ra a letiltáshoz.",
-          "location_refresh_interval": "Milyen gyakran kérje le a Home Assistant a GPS helyzetet a járműtől. Állítsd 0-ra a letiltáshoz."
+          "car_refresh_interval": "Milyen gyakran ébressze fel a Home Assistant a járművet a friss adatokért. Állítsd 0-ra a letiltáshoz."
         }
       }
     }
@@ -77,9 +73,6 @@
     },
     "send_command_failed": {
       "message": "Nem sikerült elküldeni a parancsot a járműnek"
-    },
-    "refresh_location_failed": {
-      "message": "Nem sikerült frissíteni a helyzetet a járműtől"
     },
     "device_required": {
       "message": "Select a vehicle to control."
@@ -93,8 +86,8 @@
     "command_timeout": {
       "message": "Egy parancs ({vehicle}) időtúllépés miatt megszakadt, mert a jármű nem válaszolt."
     },
-    "location_timeout": {
-      "message": "A helyzet frissítése ({vehicle}) időtúllépés miatt megszakadt, mert a jármű nem válaszolt."
+    "car_finder_failed": {
+      "message": "Az autókereső kérés sikertelen: a jármű nem válaszolt."
     }
   },
   "entity": {
@@ -290,6 +283,18 @@
       },
       "charge_limit_away": {
         "name": "Töltési limit (távol)"
+      }
+    }
+  },
+  "services": {
+    "car_finder_location": {
+      "name": "Autókereső helyzete",
+      "description": "Lekéri a Honda autókereső végpontjáról az utolsó GPS-pozíciót, és szolgáltatási válaszként adja vissza. Nem módosít szenzort.",
+      "fields": {
+        "device": {
+          "name": "Jármű",
+          "description": "Válassza ki a My Honda+ járművet a lekérdezéshez."
+        }
       }
     }
   }

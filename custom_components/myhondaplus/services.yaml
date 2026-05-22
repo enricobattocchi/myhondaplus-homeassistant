@@ -87,3 +87,21 @@ set_climate_schedule:
       example: '[{"days": "mon,tue,wed,thu,fri", "start_time": "07:00"}]'
       selector:
         object:
+
+car_finder_location:
+  name: Car Finder location
+  description: >
+    Request the vehicle's last GPS fix from Honda's Car Finder endpoint and
+    return it as the service response. The reported position may differ
+    from the vehicle's device_tracker (which is dashboard-derived); this is
+    Honda's truthful TCU fix-time, not a server-stamped refresh time. Does
+    not modify any sensors.
+
+  fields:
+    device:
+      name: Vehicle
+      description: Select the My Honda+ vehicle to query.
+      required: true
+      selector:
+        device:
+          integration: myhondaplus

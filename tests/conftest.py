@@ -12,7 +12,6 @@ from custom_components.myhondaplus.const import (
     CONF_ACCESS_TOKEN,
     CONF_CAR_REFRESH_INTERVAL,
     CONF_FUEL_TYPE,
-    CONF_LOCATION_REFRESH_INTERVAL,
     CONF_PERSONAL_ID,
     CONF_REFRESH_TOKEN,
     CONF_SCAN_INTERVAL,
@@ -21,7 +20,6 @@ from custom_components.myhondaplus.const import (
     CONF_VEHICLES,
     CONF_VIN,
     DEFAULT_CAR_REFRESH_INTERVAL,
-    DEFAULT_LOCATION_REFRESH_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -61,7 +59,6 @@ MOCK_V2_ENTRY_DATA = {
 MOCK_ENTRY_OPTIONS = {
     CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
     CONF_CAR_REFRESH_INTERVAL: DEFAULT_CAR_REFRESH_INTERVAL,
-    CONF_LOCATION_REFRESH_INTERVAL: DEFAULT_LOCATION_REFRESH_INTERVAL,
 }
 
 MOCK_DASHBOARD_DATA = DashboardData(
@@ -166,7 +163,7 @@ def mock_api():
     api.remote_unlock.return_value = "ok"
     api.set_charge_limit.return_value = "ok"
     api.set_tokens = MagicMock()
-    api.request_dashboard_refresh.return_value = None
+    api.refresh_dashboard.return_value = None
     return api
 
 
@@ -195,6 +192,7 @@ def mock_coordinator(mock_api, mock_config_entry):
     coordinator.async_send_command = AsyncMock()
     coordinator.async_send_command_and_wait = AsyncMock(return_value=True)
     coordinator.async_refresh_from_car = AsyncMock()
+    coordinator.async_get_car_finder_location = AsyncMock()
     coordinator.async_set_updated_data = MagicMock()
     return coordinator
 

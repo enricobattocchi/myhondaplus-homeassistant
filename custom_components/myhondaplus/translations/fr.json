@@ -8,15 +8,13 @@
           "email": "Email",
           "password": "Password",
           "scan_interval": "Intervalle de mise à jour (secondes)",
-          "car_refresh_interval": "Intervalle de mise à jour du véhicule (secondes, 0 pour désactiver)",
-          "location_refresh_interval": "Intervalle de mise à jour de la position (secondes, 0 pour désactiver)"
+          "car_refresh_interval": "Intervalle de mise à jour du véhicule (secondes, 0 pour désactiver)"
         },
         "data_description": {
           "email": "Adresse email utilisée pour se connecter à l'application My Honda+.",
           "password": "Password de votre compte My Honda+.",
           "scan_interval": "Fréquence à laquelle Home Assistant récupère les données stockées par Honda.",
-          "car_refresh_interval": "Fréquence à laquelle Home Assistant réveille le véhicule pour des données à jour. Mettre à 0 pour désactiver.",
-          "location_refresh_interval": "Fréquence à laquelle Home Assistant demande la position GPS au véhicule. Mettre à 0 pour désactiver."
+          "car_refresh_interval": "Fréquence à laquelle Home Assistant réveille le véhicule pour des données à jour. Mettre à 0 pour désactiver."
         }
       },
       "verify": {
@@ -60,13 +58,11 @@
         "title": "Paramètres My Honda+",
         "data": {
           "scan_interval": "Intervalle de mise à jour (secondes)",
-          "car_refresh_interval": "Intervalle de mise à jour du véhicule (secondes, 0 pour désactiver)",
-          "location_refresh_interval": "Intervalle de mise à jour de la position (secondes, 0 pour désactiver)"
+          "car_refresh_interval": "Intervalle de mise à jour du véhicule (secondes, 0 pour désactiver)"
         },
         "data_description": {
           "scan_interval": "Fréquence à laquelle Home Assistant récupère les données stockées par Honda.",
-          "car_refresh_interval": "Fréquence à laquelle Home Assistant réveille le véhicule pour des données à jour. Mettre à 0 pour désactiver.",
-          "location_refresh_interval": "Fréquence à laquelle Home Assistant demande la position GPS au véhicule. Mettre à 0 pour désactiver."
+          "car_refresh_interval": "Fréquence à laquelle Home Assistant réveille le véhicule pour des données à jour. Mettre à 0 pour désactiver."
         }
       }
     }
@@ -77,9 +73,6 @@
     },
     "send_command_failed": {
       "message": "Impossible d'envoyer la commande au véhicule"
-    },
-    "refresh_location_failed": {
-      "message": "Impossible de mettre à jour la position du véhicule"
     },
     "device_required": {
       "message": "Select a vehicle to control."
@@ -93,8 +86,8 @@
     "command_timeout": {
       "message": "Une commande pour {vehicle} a expiré en attendant la réponse du véhicule."
     },
-    "location_timeout": {
-      "message": "L'actualisation de la position pour {vehicle} a expiré en attendant la réponse du véhicule."
+    "car_finder_failed": {
+      "message": "La demande de localisation du véhicule a échoué : le véhicule n'a pas répondu."
     }
   },
   "entity": {
@@ -290,6 +283,18 @@
       },
       "charge_limit_away": {
         "name": "Limite de charge (extérieur)"
+      }
+    }
+  },
+  "services": {
+    "car_finder_location": {
+      "name": "Position du localisateur de véhicule",
+      "description": "Demande la dernière position GPS au point de terminaison de localisation de Honda et la renvoie comme réponse du service. Ne modifie aucun capteur.",
+      "fields": {
+        "device": {
+          "name": "Véhicule",
+          "description": "Sélectionnez le véhicule My Honda+ à interroger."
+        }
       }
     }
   }

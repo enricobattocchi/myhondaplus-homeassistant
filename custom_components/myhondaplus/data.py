@@ -48,7 +48,6 @@ class VehicleData:
     ui_config: UIConfiguration = field(default_factory=UIConfiguration)
     car_refresh_unsub: CALLBACK_TYPE | None = field(default=None)
     car_refresh_enabled: bool = field(default=True)
-    location_refresh_unsub: CALLBACK_TYPE | None = field(default=None)
 
 
 @dataclass

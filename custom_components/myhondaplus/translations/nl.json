@@ -8,15 +8,13 @@
           "email": "Email",
           "password": "Password",
           "scan_interval": "Verversingsinterval (seconden)",
-          "car_refresh_interval": "Voertuig verversingsinterval (seconden, 0 om uit te schakelen)",
-          "location_refresh_interval": "Locatie verversingsinterval (seconden, 0 om uit te schakelen)"
+          "car_refresh_interval": "Voertuig verversingsinterval (seconden, 0 om uit te schakelen)"
         },
         "data_description": {
           "email": "E-mailadres dat je gebruikt om in te loggen in de My Honda+ app.",
           "password": "Password van je My Honda+ account.",
           "scan_interval": "Hoe vaak Home Assistant de opgeslagen gegevens van Honda opvraagt.",
-          "car_refresh_interval": "Hoe vaak Home Assistant het voertuig wekt voor nieuwe gegevens. Stel in op 0 om uit te schakelen.",
-          "location_refresh_interval": "Hoe vaak Home Assistant de GPS-locatie van het voertuig opvraagt. Stel in op 0 om uit te schakelen."
+          "car_refresh_interval": "Hoe vaak Home Assistant het voertuig wekt voor nieuwe gegevens. Stel in op 0 om uit te schakelen."
         }
       },
       "verify": {
@@ -60,13 +58,11 @@
         "title": "My Honda+ instellingen",
         "data": {
           "scan_interval": "Verversingsinterval (seconden)",
-          "car_refresh_interval": "Voertuig verversingsinterval (seconden, 0 om uit te schakelen)",
-          "location_refresh_interval": "Locatie verversingsinterval (seconden, 0 om uit te schakelen)"
+          "car_refresh_interval": "Voertuig verversingsinterval (seconden, 0 om uit te schakelen)"
         },
         "data_description": {
           "scan_interval": "Hoe vaak Home Assistant de opgeslagen gegevens van Honda opvraagt.",
-          "car_refresh_interval": "Hoe vaak Home Assistant het voertuig wekt voor nieuwe gegevens. Stel in op 0 om uit te schakelen.",
-          "location_refresh_interval": "Hoe vaak Home Assistant de GPS-locatie van het voertuig opvraagt. Stel in op 0 om uit te schakelen."
+          "car_refresh_interval": "Hoe vaak Home Assistant het voertuig wekt voor nieuwe gegevens. Stel in op 0 om uit te schakelen."
         }
       }
     }
@@ -77,9 +73,6 @@
     },
     "send_command_failed": {
       "message": "Kan het commando niet naar het voertuig verzenden"
-    },
-    "refresh_location_failed": {
-      "message": "Kan de locatie van het voertuig niet vernieuwen"
     },
     "device_required": {
       "message": "Select a vehicle to control."
@@ -93,8 +86,8 @@
     "command_timeout": {
       "message": "Een opdracht voor {vehicle} is verlopen omdat het voertuig niet reageerde."
     },
-    "location_timeout": {
-      "message": "Het vernieuwen van de locatie voor {vehicle} is verlopen omdat het voertuig niet reageerde."
+    "car_finder_failed": {
+      "message": "Verzoek aan autozoeker mislukt: het voertuig reageerde niet."
     }
   },
   "entity": {
@@ -290,6 +283,18 @@
       },
       "charge_limit_away": {
         "name": "Laadlimiet (weg)"
+      }
+    }
+  },
+  "services": {
+    "car_finder_location": {
+      "name": "Locatie autozoeker",
+      "description": "Vraagt de laatste GPS-locatie op bij Honda's autozoeker-endpoint en geeft deze terug als service-respons. Verandert geen sensoren.",
+      "fields": {
+        "device": {
+          "name": "Voertuig",
+          "description": "Selecteer het My Honda+-voertuig om op te vragen."
+        }
       }
     }
   }

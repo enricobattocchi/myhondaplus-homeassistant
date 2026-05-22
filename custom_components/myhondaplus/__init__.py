@@ -7,7 +7,13 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_EMAIL, Platform
-from homeassistant.core import HomeAssistant, ServiceCall, callback
+from homeassistant.core import (
+    HomeAssistant,
+    ServiceCall,
+    ServiceResponse,
+    SupportsResponse,
+    callback,
+)
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import selector
@@ -19,7 +25,6 @@ from .const import (
     CONF_CAR_REFRESH_INTERVAL,
     CONF_EXPIRES_AT,
     CONF_FUEL_TYPE,
-    CONF_LOCATION_REFRESH_INTERVAL,
     CONF_MODEL,
     CONF_PERSONAL_ID,
     CONF_REFRESH_TOKEN,
@@ -29,7 +34,6 @@ from .const import (
     CONF_VEHICLES,
     CONF_VIN,
     DEFAULT_CAR_REFRESH_INTERVAL,
-    DEFAULT_LOCATION_REFRESH_INTERVAL,
     DOMAIN,
     LOGGER,
 )
@@ -53,6 +57,7 @@ PLATFORMS = [
 SERVICE_SET_CHARGE_SCHEDULE = "set_charge_schedule"
 SERVICE_SET_CLIMATE_SCHEDULE = "set_climate_schedule"
 SERVICE_CLIMATE_ON = "climate_on"
+SERVICE_CAR_FINDER_LOCATION = "car_finder_location"
 ATTR_DEVICE = "device"
 
 
@@ -125,9 +130,12 @@ SERVICE_CLIMATE_SCHEDULE_FIELDS = {
     vol.Required("rules"): vol.All([CLIMATE_RULE_SCHEMA], vol.Length(max=7)),
 }
 
+SERVICE_CAR_FINDER_LOCATION_FIELDS = dict(BASE_SERVICE_FIELDS)
+
 SERVICE_CLIMATE_ON_SCHEMA = vol.Schema(SERVICE_CLIMATE_ON_FIELDS)
 SERVICE_CHARGE_SCHEDULE_SCHEMA = vol.Schema(SERVICE_CHARGE_SCHEDULE_FIELDS)
 SERVICE_CLIMATE_SCHEDULE_SCHEMA = vol.Schema(SERVICE_CLIMATE_SCHEDULE_FIELDS)
+SERVICE_CAR_FINDER_LOCATION_SCHEMA = vol.Schema(SERVICE_CAR_FINDER_LOCATION_FIELDS)
 
 
 class _ConfigEntryTokenStorage:
@@ -182,11 +190,7 @@ async def async_migrate_entry(
 ) -> bool:
     """Migrate old config entries to the latest version."""
     if entry.version == 1:
-        option_keys = (
-            CONF_SCAN_INTERVAL,
-            CONF_CAR_REFRESH_INTERVAL,
-            CONF_LOCATION_REFRESH_INTERVAL,
-        )
+        option_keys = (CONF_SCAN_INTERVAL, CONF_CAR_REFRESH_INTERVAL)
         new_data = dict(entry.data)
         new_options = dict(entry.options)
 
@@ -195,6 +199,10 @@ async def async_migrate_entry(
                 value = new_data.pop(key)
                 if key not in new_options:
                     new_options[key] = value
+        # The deprecated `location_refresh_interval` key (removed in v4) is
+        # discarded here without being preserved; the v3→v4 step strips it
+        # from any existing option/data dict as a defensive cleanup.
+        new_data.pop("location_refresh_interval", None)
 
         hass.config_entries.async_update_entry(
             entry,
@@ -220,6 +228,21 @@ async def async_migrate_entry(
             data=new_data,
             unique_id=email.lower() if email else entry.unique_id,
             version=3,
+        )
+
+    if entry.version == 3:
+        # Drop the deprecated `location_refresh_interval` option; periodic
+        # car-finder polling has been replaced by the on-demand
+        # `myhondaplus.car_finder_location` service.
+        new_data = dict(entry.data)
+        new_options = dict(entry.options)
+        new_data.pop("location_refresh_interval", None)
+        new_options.pop("location_refresh_interval", None)
+        hass.config_entries.async_update_entry(
+            entry,
+            data=new_data,
+            options=new_options,
+            version=4,
         )
 
     return True
@@ -371,7 +394,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
     # Schedule per-vehicle refreshes
     for vd in vehicles.values():
         _schedule_car_refresh(hass, entry, vd)
-        _schedule_location_refresh(hass, entry, vd)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -525,51 +547,6 @@ def _schedule_car_refresh(
     )
 
 
-def _schedule_location_refresh(
-    hass: HomeAssistant,
-    entry: MyHondaPlusConfigEntry,
-    vd: VehicleData,
-) -> None:
-    """Schedule a recurring location refresh if configured."""
-    interval = get_entry_value(
-        entry,
-        CONF_LOCATION_REFRESH_INTERVAL,
-        DEFAULT_LOCATION_REFRESH_INTERVAL,
-    )
-    if not interval or interval <= 0:
-        return
-
-    coordinator = vd.coordinator
-
-    @callback
-    def _do_location_refresh(_now) -> None:
-        """Refresh location and reschedule."""
-
-        async def _refresh():
-            try:
-                await coordinator.async_refresh_location(
-                    notify_on_timeout=False,
-                )
-                LOGGER.debug("Scheduled location refresh completed for %s", vd.vin)
-            except Exception:
-                LOGGER.warning(
-                    "Scheduled location refresh failed for %s", vd.vin, exc_info=True
-                )
-            vd.location_refresh_unsub = async_call_later(
-                hass,
-                interval,
-                _do_location_refresh,
-            )
-
-        hass.async_create_task(_refresh())
-
-    vd.location_refresh_unsub = async_call_later(
-        hass,
-        interval,
-        _do_location_refresh,
-    )
-
-
 def _get_coordinator(
     hass: HomeAssistant,
     call: ServiceCall,
@@ -717,6 +694,33 @@ def _register_services(hass: HomeAssistant) -> None:
         schema=SERVICE_CLIMATE_ON_SCHEMA,
     )
 
+    async def handle_car_finder_location(call: ServiceCall) -> ServiceResponse:
+        """Return the TCU's last GPS fix without updating the device tracker.
+
+        Mirrors the official app's Car Finder feature. The position can
+        differ from the device_tracker entity (which is bound to the
+        dashboard's location); this is intentional.
+        """
+        coordinator = _get_coordinator(hass, call)
+        location = await coordinator.async_get_car_finder_location()
+        return {
+            "latitude": location.latitude,
+            "longitude": location.longitude,
+            "timestamp": location.timestamp,
+            "speed": location.speed,
+            "speed_unit": location.speed_unit,
+            "course_heading": location.course_heading,
+            "ignition": location.ignition,
+        }
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_CAR_FINDER_LOCATION,
+        handle_car_finder_location,
+        schema=SERVICE_CAR_FINDER_LOCATION_SCHEMA,
+        supports_response=SupportsResponse.ONLY,
+    )
+
 
 async def async_unload_entry(
     hass: HomeAssistant, entry: MyHondaPlusConfigEntry
@@ -726,9 +730,6 @@ async def async_unload_entry(
         if vd.car_refresh_unsub:
             vd.car_refresh_unsub()
             vd.car_refresh_unsub = None
-        if vd.location_refresh_unsub:
-            vd.location_refresh_unsub()
-            vd.location_refresh_unsub = None
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 

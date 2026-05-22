@@ -8,15 +8,13 @@
           "email": "Email",
           "password": "Password",
           "scan_interval": "Uppdateringsintervall (sekunder)",
-          "car_refresh_interval": "Fordonsuppdateringsintervall (sekunder, 0 för att inaktivera)",
-          "location_refresh_interval": "Platsuppdateringsintervall (sekunder, 0 för att inaktivera)"
+          "car_refresh_interval": "Fordonsuppdateringsintervall (sekunder, 0 för att inaktivera)"
         },
         "data_description": {
           "email": "E-postadress som används för att logga in i My Honda+ appen.",
           "password": "Password för ditt My Honda+ konto.",
           "scan_interval": "Hur ofta Home Assistant hämtar lagrad data från Honda.",
-          "car_refresh_interval": "Hur ofta Home Assistant väcker fordonet för uppdaterad data. Sätt till 0 för att inaktivera.",
-          "location_refresh_interval": "Hur ofta Home Assistant begär GPS-position från fordonet. Sätt till 0 för att inaktivera."
+          "car_refresh_interval": "Hur ofta Home Assistant väcker fordonet för uppdaterad data. Sätt till 0 för att inaktivera."
         }
       },
       "verify": {
@@ -60,13 +58,11 @@
         "title": "My Honda+ inställningar",
         "data": {
           "scan_interval": "Uppdateringsintervall (sekunder)",
-          "car_refresh_interval": "Fordonsuppdateringsintervall (sekunder, 0 för att inaktivera)",
-          "location_refresh_interval": "Platsuppdateringsintervall (sekunder, 0 för att inaktivera)"
+          "car_refresh_interval": "Fordonsuppdateringsintervall (sekunder, 0 för att inaktivera)"
         },
         "data_description": {
           "scan_interval": "Hur ofta Home Assistant hämtar lagrad data från Honda.",
-          "car_refresh_interval": "Hur ofta Home Assistant väcker fordonet för uppdaterad data. Sätt till 0 för att inaktivera.",
-          "location_refresh_interval": "Hur ofta Home Assistant begär GPS-position från fordonet. Sätt till 0 för att inaktivera."
+          "car_refresh_interval": "Hur ofta Home Assistant väcker fordonet för uppdaterad data. Sätt till 0 för att inaktivera."
         }
       }
     }
@@ -77,9 +73,6 @@
     },
     "send_command_failed": {
       "message": "Kunde inte skicka kommandot till fordonet"
-    },
-    "refresh_location_failed": {
-      "message": "Kunde inte uppdatera positionen från fordonet"
     },
     "device_required": {
       "message": "Select a vehicle to control."
@@ -93,8 +86,8 @@
     "command_timeout": {
       "message": "Ett kommando för {vehicle} överskred tidsgränsen i väntan på svar från fordonet."
     },
-    "location_timeout": {
-      "message": "Uppdatering av positionen för {vehicle} överskred tidsgränsen i väntan på svar från fordonet."
+    "car_finder_failed": {
+      "message": "Bilsökare-förfrågan misslyckades: fordonet svarade inte."
     }
   },
   "entity": {
@@ -290,6 +283,18 @@
       },
       "charge_limit_away": {
         "name": "Laddgräns (borta)"
+      }
+    }
+  },
+  "services": {
+    "car_finder_location": {
+      "name": "Bilsökarens plats",
+      "description": "Begär den senaste GPS-positionen från Hondas bilsökar-slutpunkt och returnerar den som tjänstesvar. Ändrar inga sensorer.",
+      "fields": {
+        "device": {
+          "name": "Fordon",
+          "description": "Välj det My Honda+-fordon som ska frågas."
+        }
       }
     }
   }

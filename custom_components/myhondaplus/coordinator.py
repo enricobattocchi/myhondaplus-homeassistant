@@ -12,6 +12,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.translation import async_get_translations
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pymyhondaplus.api import (
+    CarLocation,
     EVStatus,
     HondaAPI,
     HondaAPIError,
@@ -142,8 +143,9 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
         return data
 
     def _refresh_from_car(self):
-        """Request fresh data from the car and return the command result."""
-        return self.api.refresh_dashboard(self.vin)
+        """Request fresh data from the car and wait for the TCU to respond."""
+        command_id = self.api.refresh_dashboard(self.vin)
+        return self.api.wait_for_command(command_id, timeout=90)
 
     async def async_refresh_from_car(self, *, notify_on_timeout: bool = True) -> None:
         """Request fresh data from the car (wakes TCU, polls until done)."""
@@ -242,11 +244,20 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
                 )
         return result.success
 
-    async def async_refresh_location(self, *, notify_on_timeout: bool = True) -> None:
-        """Request fresh GPS location from the car and update dashboard."""
+    async def async_get_car_finder_location(self) -> CarLocation:
+        """Call Honda's car-location endpoint and return the parsed result.
+
+        This mirrors the official app's Car Finder feature: a one-shot
+        request for the TCU's last GPS fix (with truthful fix-time). The
+        returned coordinates are *not* written into ``self.data`` — the
+        device_tracker entity stays bound to the dashboard's location to
+        avoid jumping between two slightly-different position sources.
+        Use this from a service handler that returns the result to the
+        caller.
+        """
         try:
             command_id = await self.async_send_command(
-                self.api.request_car_location,
+                self.api.refresh_location,
                 self.vin,
             )
             result = await self.hass.async_add_executor_job(
@@ -255,41 +266,33 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
                 90,
             )
             if not result.success:
-                if result.timed_out:
-                    LOGGER.warning(
-                        "Location refresh timed out waiting for the car to respond (id=%s, status=%s, reason=%s)",
-                        command_id,
-                        result.status,
-                        result.reason,
-                    )
-                    if notify_on_timeout:
-                        pn_async_create(
-                            self.hass,
-                            await self._translated_notification("location_timeout"),
-                            title="My Honda+",
-                            notification_id=f"{DOMAIN}_location_timeout",
-                        )
-                else:
-                    LOGGER.warning(
-                        "Location refresh command did not succeed (id=%s, status=%s, reason=%s)",
-                        command_id,
-                        result.status,
-                        result.reason,
-                    )
+                LOGGER.warning(
+                    "Car-finder command did not succeed (id=%s, status=%s, reason=%s)",
+                    command_id,
+                    result.status,
+                    result.reason,
+                )
                 raise HomeAssistantError(
                     translation_domain=DOMAIN,
-                    translation_key="refresh_location_failed",
+                    translation_key="car_finder_failed",
                 )
-            data = await self.hass.async_add_executor_job(self._fetch_data)
+            location = CarLocation.from_command_result(result)
+            if location is None:
+                LOGGER.warning("Car-finder command returned no GPS payload")
+                raise HomeAssistantError(
+                    translation_domain=DOMAIN,
+                    translation_key="car_finder_failed",
+                )
+            return location
         except HondaAPIError as err:
             _handle_api_error(err, self._persist_tokens_if_changed)
-            LOGGER.error("Location refresh failed: %s", err)
+            LOGGER.error("Car-finder request failed: %s", err)
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
-                translation_key="refresh_location_failed",
+                translation_key="car_finder_failed",
             ) from err
-        self._persist_tokens_if_changed()
-        self.async_set_updated_data(data)
+        finally:
+            self._persist_tokens_if_changed()
 
 
 class HondaTripCoordinator(DataUpdateCoordinator[dict]):

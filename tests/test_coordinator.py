@@ -340,88 +340,59 @@ class TestHondaDataUpdateCoordinator:
         pn_create.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_refresh_location_success(self, coordinator):
+    async def test_get_car_finder_location_success(self, coordinator):
+        import json as _json
+        coordinator._persist_tokens_if_changed = MagicMock()
         coordinator.async_send_command = AsyncMock(return_value="cmd-123")
-        coordinator.hass.async_add_executor_job.side_effect = [
-            SimpleNamespace(
-                success=True, status="success", timed_out=False, reason=None
-            ),
-            replace(MOCK_DASHBOARD_DATA),
-        ]
+        wait_result = SimpleNamespace(
+            success=True, status="success", timed_out=False, reason=None,
+            raw={"output": {"Content": _json.dumps({
+                "gpsData": {
+                    "dtTime": "2026-04-26T18:18:01+00:00",
+                    "coordinate": {"latitude": 156791051, "longitude": 37196051},
+                    "velocity": {"unit": "kph", "value": 0},
+                },
+                "ignition": "ignitionOff",
+            })}},
+        )
+        coordinator.hass.async_add_executor_job.side_effect = [wait_result]
 
-        await coordinator.async_refresh_location()
+        location = await coordinator.async_get_car_finder_location()
 
         coordinator.async_send_command.assert_awaited_once_with(
-            coordinator.api.request_car_location,
+            coordinator.api.refresh_location,
             MOCK_VIN,
         )
-        assert coordinator.hass.async_add_executor_job.await_args_list[0].args == (
-            coordinator.api.wait_for_command,
-            "cmd-123",
-            90,
-        )
-        assert coordinator.hass.async_add_executor_job.await_args_list[1].args == (
-            coordinator._fetch_data,
-        )
-        coordinator.async_set_updated_data.assert_called_once_with(
-            replace(MOCK_DASHBOARD_DATA)
-        )
-
-    @pytest.mark.asyncio
-    async def test_refresh_location_command_failure_raises(self, coordinator):
-        coordinator.async_send_command = AsyncMock(return_value="cmd-123")
-        coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
-            success=False,
-            status="timeout",
-            timed_out=True,
-            reason=None,
-        )
-
-        with patch("custom_components.myhondaplus.coordinator.LOGGER") as logger:
-            with patch(
-                "custom_components.myhondaplus.coordinator.pn_async_create"
-            ) as pn_create:
-                with pytest.raises(HomeAssistantError) as exc_info:
-                    await coordinator.async_refresh_location()
-                assert exc_info.value.translation_key == "refresh_location_failed"
-
+        assert abs(location.latitude - 43.553) < 0.001
+        assert abs(location.longitude - 10.332) < 0.001
+        # Service-only path: device tracker / coordinator data unchanged.
         coordinator.async_set_updated_data.assert_not_called()
-        coordinator.hass.async_add_executor_job.assert_awaited_once_with(
-            coordinator.api.wait_for_command,
-            "cmd-123",
-            90,
-        )
-        logger.warning.assert_called_once_with(
-            "Location refresh timed out waiting for the car to respond (id=%s, status=%s, reason=%s)",
-            "cmd-123",
-            "timeout",
-            None,
-        )
-        pn_create.assert_called_once_with(
-            coordinator.hass,
-            f"Location refresh for {MOCK_VEHICLE_NAME} timed out waiting for the car to respond.",
-            title="My Honda+",
-            notification_id="myhondaplus_location_timeout",
-        )
 
     @pytest.mark.asyncio
-    async def test_refresh_location_timeout_without_notification(self, coordinator):
+    async def test_get_car_finder_location_command_failure_raises(self, coordinator):
+        coordinator._persist_tokens_if_changed = MagicMock()
         coordinator.async_send_command = AsyncMock(return_value="cmd-123")
         coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
-            success=False,
-            status="timeout",
-            timed_out=True,
-            reason=None,
+            success=False, status="timeout", timed_out=True, reason=None, raw={},
         )
 
-        with patch(
-            "custom_components.myhondaplus.coordinator.pn_async_create"
-        ) as pn_create:
-            with pytest.raises(HomeAssistantError) as exc_info:
-                await coordinator.async_refresh_location(notify_on_timeout=False)
-            assert exc_info.value.translation_key == "refresh_location_failed"
+        with pytest.raises(HomeAssistantError) as exc_info:
+            await coordinator.async_get_car_finder_location()
+        assert exc_info.value.translation_key == "car_finder_failed"
+        coordinator.async_set_updated_data.assert_not_called()
 
-        pn_create.assert_not_called()
+    @pytest.mark.asyncio
+    async def test_get_car_finder_location_no_payload_raises(self, coordinator):
+        coordinator._persist_tokens_if_changed = MagicMock()
+        coordinator.async_send_command = AsyncMock(return_value="cmd-123")
+        # Success but no Content → parser returns None.
+        coordinator.hass.async_add_executor_job.return_value = SimpleNamespace(
+            success=True, status="success", timed_out=False, reason=None, raw={},
+        )
+
+        with pytest.raises(HomeAssistantError) as exc_info:
+            await coordinator.async_get_car_finder_location()
+        assert exc_info.value.translation_key == "car_finder_failed"
 
 
 class TestHondaTripCoordinator:

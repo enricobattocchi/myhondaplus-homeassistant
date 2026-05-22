@@ -11,7 +11,6 @@ from .const import (
     CONF_CAR_REFRESH_INTERVAL,
     CONF_DEVICE_KEY_PEM,
     CONF_FUEL_TYPE,
-    CONF_LOCATION_REFRESH_INTERVAL,
     CONF_MODEL,
     CONF_PERSONAL_ID,
     CONF_REFRESH_TOKEN,
@@ -20,7 +19,6 @@ from .const import (
     CONF_VEHICLES,
     CONF_VIN,
     DEFAULT_CAR_REFRESH_INTERVAL,
-    DEFAULT_LOCATION_REFRESH_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     LOGGER,
@@ -34,9 +32,6 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
         vol.Optional(
             CONF_CAR_REFRESH_INTERVAL, default=DEFAULT_CAR_REFRESH_INTERVAL
-        ): int,
-        vol.Optional(
-            CONF_LOCATION_REFRESH_INTERVAL, default=DEFAULT_LOCATION_REFRESH_INTERVAL
         ): int,
     }
 )
@@ -83,21 +78,13 @@ class MyHondaPlusOptionsFlow(config_entries.OptionsFlow):
                             DEFAULT_CAR_REFRESH_INTERVAL,
                         ),
                     ): int,
-                    vol.Optional(
-                        CONF_LOCATION_REFRESH_INTERVAL,
-                        default=get_entry_value(
-                            self.config_entry,
-                            CONF_LOCATION_REFRESH_INTERVAL,
-                            DEFAULT_LOCATION_REFRESH_INTERVAL,
-                        ),
-                    ): int,
                 }
             ),
         )
 
 
 class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    VERSION = 3
+    VERSION = 4
 
     @staticmethod
     def async_get_options_flow(config_entry):
@@ -108,7 +95,6 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._password = None
         self._scan_interval = DEFAULT_SCAN_INTERVAL
         self._car_refresh_interval = DEFAULT_CAR_REFRESH_INTERVAL
-        self._location_refresh_interval = DEFAULT_LOCATION_REFRESH_INTERVAL
         self._device_key = None
         self._auth = None
         self._tokens = None
@@ -127,10 +113,6 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
             self._car_refresh_interval = user_input.get(
                 CONF_CAR_REFRESH_INTERVAL, DEFAULT_CAR_REFRESH_INTERVAL
-            )
-            self._location_refresh_interval = user_input.get(
-                CONF_LOCATION_REFRESH_INTERVAL,
-                DEFAULT_LOCATION_REFRESH_INTERVAL,
             )
 
             self._device_key = DeviceKey()
@@ -409,7 +391,6 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             options={
                 CONF_SCAN_INTERVAL: self._scan_interval,
                 CONF_CAR_REFRESH_INTERVAL: self._car_refresh_interval,
-                CONF_LOCATION_REFRESH_INTERVAL: self._location_refresh_interval,
             },
         )
 

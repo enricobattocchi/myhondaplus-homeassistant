@@ -9,6 +9,7 @@ from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.myhondaplus import (
     ATTR_DEVICE,
+    SERVICE_CAR_FINDER_LOCATION,
     SERVICE_CLIMATE_ON,
     SERVICE_CLIMATE_ON_SCHEMA,
     SERVICE_SET_CHARGE_SCHEDULE,
@@ -25,7 +26,6 @@ from custom_components.myhondaplus.const import (
     CONF_ACCESS_TOKEN,
     CONF_CAR_REFRESH_INTERVAL,
     CONF_FUEL_TYPE,
-    CONF_LOCATION_REFRESH_INTERVAL,
     CONF_REFRESH_TOKEN,
     CONF_SCAN_INTERVAL,
     CONF_USER_ID,
@@ -83,11 +83,11 @@ class TestRegisterServices:
     @pytest.mark.asyncio
     async def test_async_setup_registers_services(self, mock_hass_with_services):
         assert await async_setup(mock_hass_with_services, {}) is True
-        assert mock_hass_with_services.services.async_register.call_count == 3
+        assert mock_hass_with_services.services.async_register.call_count == 4
 
-    def test_registers_three_services(self, mock_hass_with_services):
+    def test_registers_four_services(self, mock_hass_with_services):
         _register_services(mock_hass_with_services)
-        assert mock_hass_with_services.services.async_register.call_count == 3
+        assert mock_hass_with_services.services.async_register.call_count == 4
 
         registered = {
             call[0][1]
@@ -97,6 +97,7 @@ class TestRegisterServices:
             SERVICE_SET_CHARGE_SCHEDULE,
             SERVICE_SET_CLIMATE_SCHEDULE,
             SERVICE_CLIMATE_ON,
+            SERVICE_CAR_FINDER_LOCATION,
         }
 
     def test_idempotent_registration(self, mock_hass_with_services):
@@ -104,8 +105,8 @@ class TestRegisterServices:
         _register_services(mock_hass_with_services)
         mock_hass_with_services.services.has_service.return_value = True
         _register_services(mock_hass_with_services)
-        # Still only 3 calls from the first registration
-        assert mock_hass_with_services.services.async_register.call_count == 3
+        # Still only 4 calls from the first registration
+        assert mock_hass_with_services.services.async_register.call_count == 4
 
 
 class TestMigration:
@@ -116,7 +117,7 @@ class TestMigration:
         entry.data = {
             CONF_SCAN_INTERVAL: 300,
             CONF_CAR_REFRESH_INTERVAL: 7200,
-            CONF_LOCATION_REFRESH_INTERVAL: 1800,
+            "location_refresh_interval": 1800,  # legacy v1 field, dropped in v3→v4
             "email": "test@example.com",
             "vin": "VIN123",
             "vehicle_name": "Car",
@@ -133,17 +134,24 @@ class TestMigration:
 
         assert await async_migrate_entry(mock_hass, entry) is True
 
-        # v1→v2 is the first call, v2→v3 is the second
-        assert mock_hass.config_entries.async_update_entry.call_count == 2
+        # Migration walks v1 → v2 → v3 → v4 in three update calls.
+        assert mock_hass.config_entries.async_update_entry.call_count == 3
         first_call = mock_hass.config_entries.async_update_entry.call_args_list[
             0
         ].kwargs
         assert first_call["version"] == 2
+        # v1→v2 discards the deprecated location_refresh_interval entirely.
+        assert "location_refresh_interval" not in first_call["data"]
+        assert "location_refresh_interval" not in first_call["options"]
         second_call = mock_hass.config_entries.async_update_entry.call_args_list[
             1
         ].kwargs
         assert second_call["version"] == 3
         assert CONF_VEHICLES in second_call["data"]
+        third_call = mock_hass.config_entries.async_update_entry.call_args_list[
+            2
+        ].kwargs
+        assert third_call["version"] == 4
 
     @pytest.mark.asyncio
     async def test_migrate_v2_wraps_vehicle_in_list(self, mock_hass):
@@ -170,9 +178,22 @@ class TestMigration:
         assert kwargs["version"] == 3
 
     @pytest.mark.asyncio
-    async def test_migrate_v3_noop(self, mock_hass):
+    async def test_migrate_v3_strips_location_refresh_interval(self, mock_hass):
         entry = MagicMock()
         entry.version = 3
+        entry.data = {}
+        entry.options = {"location_refresh_interval": 3600, "scan_interval": 600}
+
+        assert await async_migrate_entry(mock_hass, entry) is True
+        call = mock_hass.config_entries.async_update_entry.call_args.kwargs
+        assert call["version"] == 4
+        assert "location_refresh_interval" not in call["options"]
+        assert call["options"]["scan_interval"] == 600
+
+    @pytest.mark.asyncio
+    async def test_migrate_v4_noop(self, mock_hass):
+        entry = MagicMock()
+        entry.version = 4
         entry.data = {}
         entry.options = {}
 
@@ -258,7 +279,6 @@ class TestSetupEntry:
             ) as coord_cls,
             patch("custom_components.myhondaplus.HondaTripCoordinator") as trip_cls,
             patch("custom_components.myhondaplus._schedule_car_refresh"),
-            patch("custom_components.myhondaplus._schedule_location_refresh"),
             patch("custom_components.myhondaplus._cleanup_removed_vehicles"),
         ):
             api_cls.return_value = MagicMock()
@@ -326,7 +346,6 @@ class TestSetupEntry:
                 AsyncMock(return_value=api_vehicles),
             ),
             patch("custom_components.myhondaplus._schedule_car_refresh"),
-            patch("custom_components.myhondaplus._schedule_location_refresh"),
             patch("custom_components.myhondaplus._cleanup_removed_vehicles"),
         ):
             api_cls.return_value = MagicMock()

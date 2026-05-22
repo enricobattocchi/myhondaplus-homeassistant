@@ -8,15 +8,13 @@
           "email": "Email",
           "password": "Password",
           "scan_interval": "Interval aktualizace (sekundy)",
-          "car_refresh_interval": "Interval aktualizace z vozidla (sekundy, 0 pro vypnutí)",
-          "location_refresh_interval": "Interval aktualizace polohy (sekundy, 0 pro vypnutí)"
+          "car_refresh_interval": "Interval aktualizace z vozidla (sekundy, 0 pro vypnutí)"
         },
         "data_description": {
           "email": "E-mailová adresa používaná pro přihlášení do aplikace My Honda+.",
           "password": "Password k vašemu účtu My Honda+.",
           "scan_interval": "Jak často Home Assistant požaduje uložená data od Honda.",
-          "car_refresh_interval": "Jak často Home Assistant probudí vozidlo pro aktuální data. Nastavte 0 pro vypnutí.",
-          "location_refresh_interval": "Jak často Home Assistant požaduje GPS polohu z vozidla. Nastavte 0 pro vypnutí."
+          "car_refresh_interval": "Jak často Home Assistant probudí vozidlo pro aktuální data. Nastavte 0 pro vypnutí."
         }
       },
       "verify": {
@@ -60,13 +58,11 @@
         "title": "Nastavení My Honda+",
         "data": {
           "scan_interval": "Interval aktualizace (sekundy)",
-          "car_refresh_interval": "Interval aktualizace z vozidla (sekundy, 0 pro vypnutí)",
-          "location_refresh_interval": "Interval aktualizace polohy (sekundy, 0 pro vypnutí)"
+          "car_refresh_interval": "Interval aktualizace z vozidla (sekundy, 0 pro vypnutí)"
         },
         "data_description": {
           "scan_interval": "Jak často Home Assistant požaduje uložená data od Honda.",
-          "car_refresh_interval": "Jak často Home Assistant probudí vozidlo pro aktuální data. Nastavte 0 pro vypnutí.",
-          "location_refresh_interval": "Jak často Home Assistant požaduje GPS polohu z vozidla. Nastavte 0 pro vypnutí."
+          "car_refresh_interval": "Jak často Home Assistant probudí vozidlo pro aktuální data. Nastavte 0 pro vypnutí."
         }
       }
     }
@@ -77,9 +73,6 @@
     },
     "send_command_failed": {
       "message": "Nepodařilo se odeslat příkaz do vozidla"
-    },
-    "refresh_location_failed": {
-      "message": "Nepodařilo se aktualizovat polohu z vozidla"
     },
     "device_required": {
       "message": "Select a vehicle to control."
@@ -93,8 +86,8 @@
     "command_timeout": {
       "message": "Příkaz pro {vehicle} vypršel při čekání na odpověď vozidla."
     },
-    "location_timeout": {
-      "message": "Aktualizace polohy pro {vehicle} vypršela při čekání na odpověď vozidla."
+    "car_finder_failed": {
+      "message": "Požadavek na vyhledání vozidla selhal: vozidlo neodpovědělo."
     }
   },
   "entity": {
@@ -290,6 +283,18 @@
       },
       "charge_limit_away": {
         "name": "Limit nabíjení (pryč)"
+      }
+    }
+  },
+  "services": {
+    "car_finder_location": {
+      "name": "Poloha vyhledávače vozidla",
+      "description": "Vyžádá poslední GPS pozici od koncového bodu vyhledávače vozidla Honda a vrátí ji jako odpověď služby. Nemění žádné senzory.",
+      "fields": {
+        "device": {
+          "name": "Vozidlo",
+          "description": "Vyberte vozidlo My Honda+ pro dotaz."
+        }
       }
     }
   }

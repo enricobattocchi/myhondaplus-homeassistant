@@ -8,15 +8,13 @@
           "email": "Email",
           "password": "Password",
           "scan_interval": "Interwał odświeżania (sekundy)",
-          "car_refresh_interval": "Interwał odświeżania z pojazdu (sekundy, 0 aby wyłączyć)",
-          "location_refresh_interval": "Interwał odświeżania lokalizacji (sekundy, 0 aby wyłączyć)"
+          "car_refresh_interval": "Interwał odświeżania z pojazdu (sekundy, 0 aby wyłączyć)"
         },
         "data_description": {
           "email": "Adres e-mail używany do logowania w aplikacji My Honda+.",
           "password": "Password do Twojego konta My Honda+.",
           "scan_interval": "Jak często Home Assistant pobiera zapisane dane od Honda.",
-          "car_refresh_interval": "Jak często Home Assistant budzi pojazd w celu pobrania aktualnych danych. Ustaw 0, aby wyłączyć.",
-          "location_refresh_interval": "Jak często Home Assistant pobiera pozycję GPS z pojazdu. Ustaw 0, aby wyłączyć."
+          "car_refresh_interval": "Jak często Home Assistant budzi pojazd w celu pobrania aktualnych danych. Ustaw 0, aby wyłączyć."
         }
       },
       "verify": {
@@ -60,13 +58,11 @@
         "title": "Ustawienia My Honda+",
         "data": {
           "scan_interval": "Interwał odświeżania (sekundy)",
-          "car_refresh_interval": "Interwał odświeżania z pojazdu (sekundy, 0 aby wyłączyć)",
-          "location_refresh_interval": "Interwał odświeżania lokalizacji (sekundy, 0 aby wyłączyć)"
+          "car_refresh_interval": "Interwał odświeżania z pojazdu (sekundy, 0 aby wyłączyć)"
         },
         "data_description": {
           "scan_interval": "Jak często Home Assistant pobiera zapisane dane od Honda.",
-          "car_refresh_interval": "Jak często Home Assistant budzi pojazd w celu pobrania aktualnych danych. Ustaw 0, aby wyłączyć.",
-          "location_refresh_interval": "Jak często Home Assistant pobiera pozycję GPS z pojazdu. Ustaw 0, aby wyłączyć."
+          "car_refresh_interval": "Jak często Home Assistant budzi pojazd w celu pobrania aktualnych danych. Ustaw 0, aby wyłączyć."
         }
       }
     }
@@ -77,9 +73,6 @@
     },
     "send_command_failed": {
       "message": "Nie udało się wysłać polecenia do pojazdu"
-    },
-    "refresh_location_failed": {
-      "message": "Nie udało się odświeżyć lokalizacji z pojazdu"
     },
     "device_required": {
       "message": "Select a vehicle to control."
@@ -93,8 +86,8 @@
     "command_timeout": {
       "message": "Polecenie dla {vehicle} przekroczyło limit czasu oczekiwania na odpowiedź pojazdu."
     },
-    "location_timeout": {
-      "message": "Odświeżanie lokalizacji dla {vehicle} przekroczyło limit czasu oczekiwania na odpowiedź pojazdu."
+    "car_finder_failed": {
+      "message": "Żądanie lokalizatora samochodu nie powiodło się: pojazd nie odpowiedział."
     }
   },
   "entity": {
@@ -290,6 +283,18 @@
       },
       "charge_limit_away": {
         "name": "Limit ładowania (poza domem)"
+      }
+    }
+  },
+  "services": {
+    "car_finder_location": {
+      "name": "Lokalizacja lokalizatora samochodu",
+      "description": "Pobiera ostatnią pozycję GPS z punktu końcowego lokalizatora samochodu Hondy i zwraca jako odpowiedź usługi. Nie modyfikuje żadnych czujników.",
+      "fields": {
+        "device": {
+          "name": "Pojazd",
+          "description": "Wybierz pojazd My Honda+ do zapytania."
+        }
       }
     }
   }

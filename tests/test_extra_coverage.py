@@ -25,7 +25,6 @@ from custom_components.myhondaplus import (
     _cleanup_removed_vehicles,
     _fetch_vehicle_metadata,
     _schedule_car_refresh,
-    _schedule_location_refresh,
     _validate_days,
     _validate_time,
     async_unload_entry,
@@ -43,10 +42,8 @@ from custom_components.myhondaplus.button import (
 from custom_components.myhondaplus.config_flow import MyHondaPlusConfigFlow
 from custom_components.myhondaplus.const import (
     CONF_CAR_REFRESH_INTERVAL,
-    CONF_LOCATION_REFRESH_INTERVAL,
     CONF_SCAN_INTERVAL,
     DEFAULT_CAR_REFRESH_INTERVAL,
-    DEFAULT_LOCATION_REFRESH_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
 )
 from custom_components.myhondaplus.coordinator import (
@@ -641,7 +638,7 @@ class TestCoordinatorCoverage:
         pn_create.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_refresh_location_api_failure_raises(self):
+    async def test_get_car_finder_location_api_failure_raises(self):
         coord = HondaDataUpdateCoordinator.__new__(HondaDataUpdateCoordinator)
         coord.vin = MOCK_VIN
         coord.hass = MagicMock()
@@ -652,7 +649,7 @@ class TestCoordinatorCoverage:
             side_effect=HondaAPIError(500, "boom")
         )
         with pytest.raises(HomeAssistantError):
-            await HondaDataUpdateCoordinator.async_refresh_location(coord)
+            await HondaDataUpdateCoordinator.async_get_car_finder_location(coord)
 
     def test_persist_tokens_is_noop(self):
         """Token persistence is now handled by the library's storage backend."""
@@ -733,7 +730,6 @@ class TestUpdateListenerFiltering:
         entry.options = {
             CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
             CONF_CAR_REFRESH_INTERVAL: DEFAULT_CAR_REFRESH_INTERVAL,
-            CONF_LOCATION_REFRESH_INTERVAL: DEFAULT_LOCATION_REFRESH_INTERVAL,
         }
         # Capture the update listener callback
         listeners = []
@@ -744,7 +740,6 @@ class TestUpdateListenerFiltering:
              patch("custom_components.myhondaplus._fetch_vehicle_metadata", return_value={}), \
              patch("custom_components.myhondaplus._cleanup_removed_vehicles"), \
              patch("custom_components.myhondaplus._schedule_car_refresh"), \
-             patch("custom_components.myhondaplus._schedule_location_refresh"), \
              patch("custom_components.myhondaplus._update_device_models"), \
              patch("custom_components.myhondaplus._consolidate_duplicate_entries"):
             mock_api = MagicMock()
@@ -787,7 +782,6 @@ class TestUpdateListenerFiltering:
         entry.options = {
             CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
             CONF_CAR_REFRESH_INTERVAL: DEFAULT_CAR_REFRESH_INTERVAL,
-            CONF_LOCATION_REFRESH_INTERVAL: DEFAULT_LOCATION_REFRESH_INTERVAL,
         }
         listeners = []
         entry.add_update_listener = MagicMock(side_effect=lambda cb: listeners.append(cb))
@@ -797,7 +791,6 @@ class TestUpdateListenerFiltering:
              patch("custom_components.myhondaplus._fetch_vehicle_metadata", return_value={}), \
              patch("custom_components.myhondaplus._cleanup_removed_vehicles"), \
              patch("custom_components.myhondaplus._schedule_car_refresh"), \
-             patch("custom_components.myhondaplus._schedule_location_refresh"), \
              patch("custom_components.myhondaplus._update_device_models"), \
              patch("custom_components.myhondaplus._consolidate_duplicate_entries"):
             mock_api = MagicMock()
@@ -828,7 +821,6 @@ class TestUpdateListenerFiltering:
         entry.options = {
             CONF_SCAN_INTERVAL: 300,  # changed
             CONF_CAR_REFRESH_INTERVAL: DEFAULT_CAR_REFRESH_INTERVAL,
-            CONF_LOCATION_REFRESH_INTERVAL: DEFAULT_LOCATION_REFRESH_INTERVAL,
         }
         hass.config_entries.async_reload = AsyncMock()
         await on_update(hass, entry)
@@ -858,7 +850,8 @@ class TestCoordinatorCoveragePart2:
             ),
         ):
             coord.api.get_dashboard_cached.return_value = {"dash": 1}
-            coord.api.refresh_dashboard.return_value = SimpleNamespace(success=True)
+            coord.api.refresh_dashboard.return_value = "cmd-123"
+            coord.api.wait_for_command.return_value = SimpleNamespace(success=True)
             result = HondaDataUpdateCoordinator._fetch_data(coord)
             assert isinstance(result, DashboardData)
             assert result.battery_level == 42
@@ -897,20 +890,6 @@ class TestSchedulerCoverage:
         _schedule_car_refresh(hass, entry, vd)
         assert vd.car_refresh_unsub is None
 
-    def test_schedule_location_refresh_disabled(self):
-        hass = MagicMock()
-        entry = MagicMock()
-        entry.options = {"location_refresh_interval": 0}
-        vd = VehicleData(
-            coordinator=MagicMock(),
-            trip_coordinator=MagicMock(),
-            vin=MOCK_VIN,
-            vehicle_name=MOCK_VEHICLE_NAME,
-            fuel_type="E",
-        )
-        _schedule_location_refresh(hass, entry, vd)
-        assert vd.location_refresh_unsub is None
-
     def test_schedule_car_refresh_enabled(self):
         hass = MagicMock()
         entry = MagicMock()
@@ -929,30 +908,11 @@ class TestSchedulerCoverage:
         call_later.assert_called_once()
         assert vd.car_refresh_unsub is not None
 
-    def test_schedule_location_refresh_enabled(self):
-        hass = MagicMock()
-        entry = MagicMock()
-        entry.options = {"location_refresh_interval": 3600}
-        vd = VehicleData(
-            coordinator=MagicMock(),
-            trip_coordinator=MagicMock(),
-            vin=MOCK_VIN,
-            vehicle_name=MOCK_VEHICLE_NAME,
-            fuel_type="E",
-        )
-        with patch(
-            "custom_components.myhondaplus.async_call_later", return_value=MagicMock()
-        ) as call_later:
-            _schedule_location_refresh(hass, entry, vd)
-        call_later.assert_called_once()
-        assert vd.location_refresh_unsub is not None
-
     @pytest.mark.asyncio
     async def test_async_unload_entry_with_unsubs(self):
         hass = MagicMock()
         hass.config_entries.async_unload_platforms = AsyncMock(return_value=True)
         car_unsub = MagicMock()
-        loc_unsub = MagicMock()
         vd = VehicleData(
             coordinator=MagicMock(),
             trip_coordinator=MagicMock(),
@@ -960,7 +920,6 @@ class TestSchedulerCoverage:
             vehicle_name=MOCK_VEHICLE_NAME,
             fuel_type="E",
             car_refresh_unsub=car_unsub,
-            location_refresh_unsub=loc_unsub,
         )
         entry = MagicMock()
         entry.runtime_data = SimpleNamespace(
@@ -969,7 +928,6 @@ class TestSchedulerCoverage:
         )
         assert await async_unload_entry(hass, entry) is True
         car_unsub.assert_called_once()
-        loc_unsub.assert_called_once()
 
 
 class TestCleanupRemovedVehicles:
