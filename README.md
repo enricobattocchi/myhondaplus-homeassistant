@@ -71,7 +71,6 @@ The integration will ask for:
 - **Password**: Your My Honda+ account password
 - **Update interval**: How often to poll Honda's cached data (default: 600 seconds / 10 minutes)
 - **Refresh from car interval**: How often to wake the TCU for fresh data (default: 43200 seconds / 12 hours, 0 to disable)
-- **Location refresh interval**: How often to request fresh GPS data from the car (default: 3600 seconds / 1 hour, 0 to disable)
 
 These refresh settings are stored as integration options and can be changed later from **Settings > Integrations > My Honda+ > Configure**.
 
@@ -184,6 +183,21 @@ data:
       start_time: "07:00"
 ```
 
+### `myhondaplus.car_finder_location`
+
+Wake the TCU and request a fresh GPS fix from Honda's Car Finder endpoint. Returns the coordinates **and** the truthful moment the TCU acquired the fix — distinct from the dashboard-derived device tracker, whose timestamp is the server response time and gets regenerated on every poll.
+
+Returns a service response (does not modify any sensor). Slow: ~30–90s, wakes a sleeping car, costs one command-quota slot. The reported coordinates may differ from the device tracker — TCU-side GPS can drift while the dashboard-cached fix is server-smoothed.
+
+```yaml
+service: myhondaplus.car_finder_location
+data:
+  device: "<vehicle_device_id>"
+response_variable: fix
+```
+
+The response object has `latitude`, `longitude`, `dtTime` (the real TCU fix-time), `speed`, `speed_unit` (`km/h`), `courseHeading`, and `ignition`.
+
 ## Troubleshooting
 
 <details>
@@ -213,7 +227,7 @@ Remote commands require the car's TCU (telematics unit) to be reachable. Command
 <details>
 <summary><strong>Location not updating</strong></summary>
 
-GPS updates depend on the "Refresh from car" interval and the "Location refresh interval" in the integration options. The car must have cellular reception for the TCU to respond. If location is stale, try the **Refresh from car** button.
+GPS updates depend on the "Refresh from car" interval in the integration options. The car must have cellular reception for the TCU to respond. If the dashboard-derived location (the device tracker) is stale, try the **Refresh from car** button. For a fresh on-demand GPS fix straight from the TCU (with the truthful fix-time), call the `myhondaplus.car_finder_location` service.
 </details>
 
 <details>
