@@ -54,3 +54,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/ruff-action@v3
+        with:
+          # The action falls back to the newest ruff when no version is given
+          # and pyproject.toml declares none, so a new minor can add rules to
+          # the E/UP/B families and fail lint on unchanged code.
+          version: "0.16.1"
