@@ -84,7 +84,7 @@ Installation parameters summary:
 
 ## Translations
 
-The integration is fully translated in all Honda Connect Europe languages: Czech, Danish, Dutch, English, French, German, Hungarian, Italian, Norwegian, Polish, Slovak, Spanish, and Swedish.
+The integration is fully translated in all Honda Connect Europe languages: Czech, Danish, Dutch, English, French, Galician, German, Hungarian, Italian, Norwegian, Polish, Slovak, Spanish, and Swedish.
 
 ## Entities
 
