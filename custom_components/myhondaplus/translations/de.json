@@ -251,6 +251,12 @@
       },
       "climate_target_temp": {
         "name": "Solltemperatur"
+      },
+      "fuel_level": {
+        "name": "Kraftstoffstand"
+      },
+      "fuel_range": {
+        "name": "Kraftstoffreichweite"
       }
     },
     "device_tracker": {

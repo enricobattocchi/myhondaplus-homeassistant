@@ -251,6 +251,12 @@
       },
       "climate_target_temp": {
         "name": "Doeltemperatuur"
+      },
+      "fuel_level": {
+        "name": "Brandstofniveau"
+      },
+      "fuel_range": {
+        "name": "Actieradius op brandstof"
       }
     },
     "device_tracker": {

@@ -251,6 +251,12 @@
       },
       "climate_target_temp": {
         "name": "Temperatura docelowa"
+      },
+      "fuel_level": {
+        "name": "Poziom paliwa"
+      },
+      "fuel_range": {
+        "name": "Zasięg na paliwie"
       }
     },
     "device_tracker": {
