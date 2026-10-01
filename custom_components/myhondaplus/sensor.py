@@ -40,10 +40,28 @@ EV_FUEL_TYPES = frozenset({"E", "X"})
 class HondaSensorDescription(SensorEntityDescription):
     dynamic_unit: str = ""
     ev_only: bool = False
+    fuel_only: bool = False
     ui_hide: str = ""
 
 
 SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
+    HondaSensorDescription(
+        key="fuel_level",
+        translation_key="fuel_level",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:gas-station",
+        fuel_only=True,
+    ),
+    HondaSensorDescription(
+        key="fuel_range",
+        translation_key="fuel_range",
+        device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:map-marker-distance",
+        dynamic_unit="fuel_distance",
+        fuel_only=True,
+    ),
     HondaSensorDescription(
         key="battery_level",
         translation_key="battery_level",
@@ -264,6 +282,8 @@ def _sensor_enabled(
     desc: HondaSensorDescription, vehicle,
 ) -> bool:
     """Check if a sensor should be created based on fuel type and UI config."""
+    if desc.fuel_only and vehicle.fuel_type == "E":
+        return False
     if desc.ev_only and vehicle.fuel_type not in EV_FUEL_TYPES:
         return False
     if desc.ui_hide and getattr(vehicle.ui_config, desc.ui_hide, False):
@@ -299,7 +319,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-def _read_unit(data, key: str, default: str) -> str:
+def _read_unit(data, key: str, default: str | None) -> str | None:
     """Read a unit field from either a DashboardData dataclass or a trip dict."""
     if hasattr(data, key):
         return getattr(data, key)
@@ -312,6 +332,8 @@ def _resolve_unit(data, description: HondaSensorDescription) -> str | None:
     """Resolve the unit of measurement from coordinator data."""
     if not description.dynamic_unit or not data:
         return description.native_unit_of_measurement
+    if description.dynamic_unit == "fuel_distance":
+        return _read_unit(data, "fuel_range_unit", None)
     if description.dynamic_unit == "temp":
         temp_unit = _read_unit(data, "temp_unit", "c")
         return TEMP_UNIT_MAP.get(str(temp_unit).lower(), TEMP_UNIT_MAP["c"])

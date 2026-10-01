@@ -239,6 +239,12 @@
           "activating": "Activeren (dit kan tot 2 minuten duren)",
           "deactivating": "Deactiveren (dit kan tot 2 minuten duren)"
         }
+      },
+      "fuel_level": {
+        "name": "Brandstofniveau"
+      },
+      "fuel_range": {
+        "name": "Actieradius op brandstof"
       }
     },
     "device_tracker": {

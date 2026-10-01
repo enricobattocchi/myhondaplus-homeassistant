@@ -239,6 +239,12 @@
           "activating": "Aktiverer (dette kan ta inntil 2 minutter)",
           "deactivating": "Deaktiverer (dette kan ta inntil 2 minutter)"
         }
+      },
+      "fuel_level": {
+        "name": "Drivstoffnivå"
+      },
+      "fuel_range": {
+        "name": "Rekkevidde på drivstoff"
       }
     },
     "device_tracker": {

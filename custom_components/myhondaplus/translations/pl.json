@@ -239,6 +239,12 @@
           "activating": "Trwa aktywacja (może to potrwać do 2 minut)",
           "deactivating": "Trwa dezaktywacja (może to potrwać do 2 minut)"
         }
+      },
+      "fuel_level": {
+        "name": "Poziom paliwa"
+      },
+      "fuel_range": {
+        "name": "Zasięg na paliwie"
       }
     },
     "device_tracker": {

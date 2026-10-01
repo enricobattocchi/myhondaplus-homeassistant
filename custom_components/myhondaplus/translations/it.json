@@ -239,6 +239,12 @@
           "activating": "Attivazione (questa operazione può richiedere fino a 2 minuti)",
           "deactivating": "Disattivazione (questa operazione può richiedere fino a 2 minuti)"
         }
+      },
+      "fuel_level": {
+        "name": "Livello carburante"
+      },
+      "fuel_range": {
+        "name": "Autonomia carburante"
       }
     },
     "device_tracker": {

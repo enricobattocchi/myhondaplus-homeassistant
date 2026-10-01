@@ -239,6 +239,12 @@
           "activating": "Prebieha aktivácia (môže to trvať až 2 minúty)",
           "deactivating": "Prebieha deaktivácia (môže to trvať až 2 minúty)"
         }
+      },
+      "fuel_level": {
+        "name": "Palivo"
+      },
+      "fuel_range": {
+        "name": "Dojazd na palivo"
       }
     },
     "device_tracker": {
