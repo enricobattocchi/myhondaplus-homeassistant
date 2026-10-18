@@ -10,7 +10,6 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
-    MAX_LENGTH_STATE_STATE,
     PERCENTAGE,
     UnitOfTime,
 )
@@ -173,6 +172,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
     HondaSensorDescription(
         key="warning_lamps",
         translation_key="warnings",
+        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:alert",
     ),
     HondaSensorDescription(
@@ -318,14 +318,10 @@ class HondaSensor(MyHondaPlusEntity, SensorEntity):
             if not isinstance(value, list):
                 return 0
             return sum(1 for r in value if r.get("enabled"))
+        if self.entity_description.key == "warning_lamps":
+            return len(value) if isinstance(value, list) else None
         if isinstance(value, list):
-            state = ", ".join(str(v) for v in value) if value else "none"
-            if (
-                self.entity_description.key == "warning_lamps"
-                and len(state) > MAX_LENGTH_STATE_STATE
-            ):
-                return str(len(value))
-            return state
+            return ", ".join(str(v) for v in value) if value else "none"
         if (
             self.entity_description.device_class == SensorDeviceClass.TIMESTAMP
             and isinstance(value, str)
