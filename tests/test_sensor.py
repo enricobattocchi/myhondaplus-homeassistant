@@ -43,10 +43,6 @@ class TestHondaSensor:
         sensor = make_sensor(mock_coordinator, "charge_status")
         assert sensor.native_value == "not_charging"
 
-    def test_doors_locked(self, mock_coordinator):
-        sensor = make_sensor(mock_coordinator, "doors_locked")
-        assert sensor.native_value is True
-
     def test_odometer(self, mock_coordinator):
         sensor = make_sensor(mock_coordinator, "odometer")
         assert sensor.native_value == 12345

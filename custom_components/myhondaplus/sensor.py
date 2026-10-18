@@ -105,11 +105,6 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         ev_only=True,
     ),
     HondaSensorDescription(
-        key="climate_active",
-        translation_key="climate_active",
-        icon="mdi:air-conditioner",
-    ),
-    HondaSensorDescription(
         key="cabin_temp",
         translation_key="cabin_temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
@@ -123,11 +118,6 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
         dynamic_unit="distance",
-    ),
-    HondaSensorDescription(
-        key="doors_locked",
-        translation_key="doors_locked",
-        icon="mdi:car-door-lock",
     ),
     HondaSensorDescription(
         key="ignition",
@@ -220,11 +210,6 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.DURATION,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:timer-outline",
-    ),
-    HondaSensorDescription(
-        key="climate_defrost",
-        translation_key="climate_defrost",
-        icon="mdi:car-defrost-rear",
     ),
     HondaSensorDescription(
         key="charge_schedule",
