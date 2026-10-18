@@ -239,6 +239,12 @@
           "activating": "Activación (puede tardar hasta 2 minutos)",
           "deactivating": "Desactivación (puede tardar hasta 2 minutos)"
         }
+      },
+      "fuel_level": {
+        "name": "Nivel de combustible"
+      },
+      "fuel_range": {
+        "name": "Autonomía con combustible"
       }
     },
     "device_tracker": {

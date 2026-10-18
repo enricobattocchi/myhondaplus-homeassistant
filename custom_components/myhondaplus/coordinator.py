@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field, fields
 from datetime import timedelta
+from math import isfinite
 
 from homeassistant.components.persistent_notification import (
     async_create as pn_async_create,
@@ -41,6 +42,45 @@ class DashboardData(EVStatus):
     charge_schedule: list[dict] = field(default_factory=list)
     climate_schedule: list[dict] = field(default_factory=list)
     geofence: Geofence | None = None
+    fuel_level: float | None = None
+    fuel_range: float | None = None
+    fuel_range_unit: str | None = None
+
+
+def _fuel_number(value, *, maximum: float | None = None) -> float | None:
+    """Parse a nonnegative fuel reading without turning missing data into zero."""
+    if isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if not isfinite(number) or number < 0:
+        return None
+    if maximum is not None and number > maximum:
+        return None
+    return number
+
+
+def _parse_fuel_data(dashboard: dict) -> dict:
+    """Read fuel percentage and range with their own reported units."""
+    fuel = dashboard.get("fuelLevel")
+    fuel = fuel if isinstance(fuel, dict) else {}
+    level = fuel.get("currentLevel")
+    level = level if isinstance(level, dict) else {}
+    drive_range = fuel.get("driveRange")
+    drive_range = drive_range if isinstance(drive_range, dict) else {}
+    level_unit = str(level.get("unit", "")).strip().lower()
+    range_unit = {
+        "km": "km", "mi": "mi", "mile": "mi", "miles": "mi",
+    }.get(str(drive_range.get("unit", "")).strip().lower())
+    return {
+        "fuel_level": _fuel_number(level.get("value"), maximum=100)
+        if level_unit in {"percentage", "%", "percent"} else None,
+        "fuel_range": _fuel_number(drive_range.get("value"))
+        if range_unit is not None else None,
+        "fuel_range_unit": range_unit,
+    }
 
 
 def _handle_api_error(
@@ -111,6 +151,7 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
                 geofence = None
         return DashboardData(
             **ev_values,
+            **_parse_fuel_data(dashboard),
             charge_schedule=parse_charge_schedule(dashboard),
             climate_schedule=parse_climate_schedule(dashboard),
             geofence=geofence,

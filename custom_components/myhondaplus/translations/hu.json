@@ -239,6 +239,12 @@
           "activating": "Aktiválás (ez akár 2 percig is eltarthat)",
           "deactivating": "Kikapcsolás (ez akár 2 percig is eltarthat)"
         }
+      },
+      "fuel_level": {
+        "name": "Üzemanyagszint"
+      },
+      "fuel_range": {
+        "name": "Üzemanyag-hatótávolság"
       }
     },
     "device_tracker": {

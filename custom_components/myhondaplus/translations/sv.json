@@ -239,6 +239,12 @@
           "activating": "Aktivering (det här kan ta upp till 2 minuter)",
           "deactivating": "Avaktivering (det här kan ta upp till 2 minuter)"
         }
+      },
+      "fuel_level": {
+        "name": "Bränslenivå"
+      },
+      "fuel_range": {
+        "name": "Räckvidd på bränsle"
       }
     },
     "device_tracker": {
