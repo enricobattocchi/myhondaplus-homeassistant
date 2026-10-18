@@ -100,6 +100,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.ENUM,
         options=["home", "away", "unknown"],
         icon="mdi:home-map-marker",
+        ev_only=True,
     ),
     HondaSensorDescription(
         key="climate_active",
@@ -130,6 +131,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         key="ignition",
         translation_key="ignition",
         icon="mdi:car-key",
+        ev_only=True,
     ),
     HondaSensorDescription(
         key="speed",
@@ -169,6 +171,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
         dynamic_unit="temp",
         ui_hide="hide_internal_temperature",
+        ev_only=True,
     ),
     HondaSensorDescription(
         key="headlights",
