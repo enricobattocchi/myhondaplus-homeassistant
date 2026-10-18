@@ -109,6 +109,15 @@
       },
       "lights": {
         "name": "Lys"
+      },
+      "climate_active": {
+        "name": "Klimaanlegg aktivt"
+      },
+      "doors_locked": {
+        "name": "Dører låst"
+      },
+      "climate_defrost": {
+        "name": "Automatisk defroster"
       }
     },
     "sensor": {
@@ -152,17 +161,11 @@
           "unknown": "Ukjent"
         }
       },
-      "climate_active": {
-        "name": "Klimaanlegg aktivt"
-      },
       "cabin_temperature": {
         "name": "Kupétemperatur"
       },
       "odometer": {
         "name": "Kilometerstand"
-      },
-      "doors_locked": {
-        "name": "Dører låst"
       },
       "ignition": {
         "name": "Tenning"
@@ -221,9 +224,6 @@
       },
       "climate_duration": {
         "name": "Klimavarighet"
-      },
-      "climate_defrost": {
-        "name": "Automatisk defroster"
       },
       "charge_schedule": {
         "name": "Ladeplan"

@@ -109,6 +109,15 @@
       },
       "lights": {
         "name": "Lampor"
+      },
+      "climate_active": {
+        "name": "Klimatanläggning aktiv"
+      },
+      "doors_locked": {
+        "name": "Dörrar låsta"
+      },
+      "climate_defrost": {
+        "name": "Automatisk avfrostning"
       }
     },
     "sensor": {
@@ -152,17 +161,11 @@
           "unknown": "Okänd"
         }
       },
-      "climate_active": {
-        "name": "Klimatanläggning aktiv"
-      },
       "cabin_temperature": {
         "name": "Kupétemperatur"
       },
       "odometer": {
         "name": "Mätarställning"
-      },
-      "doors_locked": {
-        "name": "Dörrar låsta"
       },
       "ignition": {
         "name": "Tändning"
@@ -221,9 +224,6 @@
       },
       "climate_duration": {
         "name": "Klimatvaraktighet"
-      },
-      "climate_defrost": {
-        "name": "Automatisk avfrostning"
       },
       "charge_schedule": {
         "name": "Laddschema"
