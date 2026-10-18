@@ -96,21 +96,32 @@ Remote commands update the entity state only after the car confirms success. The
 
 ### Sensors
 - **Battery & charging**: Battery level, Range (climate on), Range (climate off), Total range, Charge status, Plug status, Charge mode, Time to full charge
-- **Climate**: Climate active, Climate temperature, Climate duration, Climate defrost, Cabin temperature, Interior temperature, Climate temp setting, Climate duration setting, Climate defrost setting
-- **Vehicle**: Odometer, Speed, Ignition, Doors locked, Headlights, Parking lights
+- **Climate**: Climate temperature, Climate duration, Cabin temperature, Interior temperature, Climate temp setting, Climate duration setting, Climate defrost setting
+- **Vehicle**: Odometer, Speed, Ignition, Headlights, Parking lights
 - **Other**: Warning lamps, Last updated
 - **Trips**: Trips this month, Distance this month, Driving time this month, Avg consumption this month
 - **Schedules**: Charge schedule (active rules count + full rules in attributes), Climate schedule (active rules count + full rules in attributes)
 - **Geofence**: Geofence status (state, plus centre/radius/name in attributes)
 
-Warning lamps expose the complete list of active indicator codes in the `indicators` attribute. The state remains a comma-separated list, or `none` when there are no warnings. If the list exceeds Home Assistant's 255-character state limit, the state shows the number of active indicators instead. Automations can read the full list with `state_attr('sensor.your_vehicle_warning_lamps', 'indicators')`.
+Warning lamps expose the complete list of active indicator codes in the `indicators` attribute. The state is the number of active indicators: `0` when there are no warnings, or unknown when warning data is missing. The complete list is preserved even when it exceeds Home Assistant's 255-character state limit. Automations can read the full list with `state_attr('sensor.your_vehicle_warning_lamps', 'indicators')`.
 
 ### Binary Sensors
+- **Climate active**: running/not running
+- **Climate defrost**: running/not running
+- **Doors locked**: locked/unlocked
 - **Doors** — open/closed
 - **Windows** — open/closed
 - **Hood** — open/closed
 - **Trunk** — open/closed
 - **Lights** — on/off
+
+### Upgrade notes
+
+Climate active, Climate defrost, and Doors locked have moved from `sensor` to `binary_sensor`, with states translated by Home Assistant. Update dashboards, scripts, and automations to use the new `binary_sensor` entity IDs and `on`/`off` states instead of `True`/`False`. For Doors locked, `off` means locked and `on` means unlocked, following Home Assistant's lock binary sensor convention. Check the actual new entity IDs in Home Assistant, especially if you customized the old ones.
+
+The new entities are created automatically when the integration loads. No reauthentication or reconfiguration is needed. After updating references, remove the old, unavailable sensor entities from Home Assistant's entity settings. Historical states remain associated with the old sensor IDs.
+
+Warning lamps now always report a count instead of indicator text or `none`; the entity ID stays the same. Update automations that compare the state to `none` to compare it to `0`. To match a specific indicator, use membership in `state_attr('sensor.your_vehicle_warning_lamps', 'indicators') or []` instead of searching the state text.
 
 ### Device Tracker
 - **Location** — vehicle GPS position, shown on the HA map

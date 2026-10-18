@@ -1,13 +1,17 @@
 """Tests for the binary_sensor platform."""
 
+import json
+from pathlib import Path
 from unittest.mock import MagicMock
 
+import pytest
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from custom_components.myhondaplus.binary_sensor import (
     BINARY_SENSOR_DESCRIPTIONS,
     HondaBinarySensor,
 )
+from custom_components.myhondaplus.sensor import SENSOR_DESCRIPTIONS
 
 from .conftest import MOCK_VEHICLE_NAME, MOCK_VIN
 
@@ -123,3 +127,40 @@ class TestStringCoercion:
         sensor = make_binary_sensor(mock_coordinator, "doors_open")
         mock_coordinator.data.all_doors_closed = "false"
         assert sensor.is_on is True  # inverted: closed=false means open
+
+
+@pytest.mark.parametrize("key", ["climate_active", "climate_defrost", "doors_locked"])
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [(True, True), (False, False), ("true", True), ("false", False),
+     (1, True), (0, False), (None, None)],
+)
+def test_moved_boolean_states(mock_coordinator, key, value, expected):
+    """Keep unknown data unknown and invert lock state for HA semantics."""
+    sensor = make_binary_sensor(mock_coordinator, key)
+    setattr(mock_coordinator.data, key, value)
+    if key == "doors_locked" and expected is not None:
+        expected = not expected
+    assert sensor.is_on is expected
+    assert sensor.unique_id == f"{MOCK_VIN}_{key}"
+    assert sensor.device_class == (
+        BinarySensorDeviceClass.LOCK if key == "doors_locked"
+        else BinarySensorDeviceClass.RUNNING
+    )
+
+
+def test_moved_booleans_are_no_longer_sensors():
+    assert not {"climate_active", "climate_defrost", "doors_locked"}.intersection(
+        desc.key for desc in SENSOR_DESCRIPTIONS
+    )
+
+
+def test_moved_boolean_translations():
+    component = Path(__file__).parent.parent / "custom_components/myhondaplus"
+    locales = sorted((component / "translations").glob("*.json"))
+    assert len(locales) == 13
+    for path in [component / "strings.json", *locales]:
+        entity = json.loads(path.read_text())["entity"]
+        for key in ("climate_active", "climate_defrost", "doors_locked"):
+            assert entity["binary_sensor"][key]["name"]
+            assert key not in entity["sensor"]

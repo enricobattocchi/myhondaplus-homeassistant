@@ -109,6 +109,15 @@
       },
       "lights": {
         "name": "Světla"
+      },
+      "climate_active": {
+        "name": "Klimatizace aktivní"
+      },
+      "doors_locked": {
+        "name": "Zamknuto"
+      },
+      "climate_defrost": {
+        "name": "Automatické odmrazování"
       }
     },
     "sensor": {
@@ -152,17 +161,11 @@
           "unknown": "Neznámé"
         }
       },
-      "climate_active": {
-        "name": "Klimatizace aktivní"
-      },
       "cabin_temperature": {
         "name": "Teplota kabiny"
       },
       "odometer": {
         "name": "Počítadlo kilometrů"
-      },
-      "doors_locked": {
-        "name": "Zamknuto"
       },
       "ignition": {
         "name": "Zapalování"
@@ -221,9 +224,6 @@
       },
       "climate_duration": {
         "name": "Doba klimatizace"
-      },
-      "climate_defrost": {
-        "name": "Automatické odmrazování"
       },
       "charge_schedule": {
         "name": "Plán nabíjení"

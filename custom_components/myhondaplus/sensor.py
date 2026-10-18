@@ -10,7 +10,6 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
-    MAX_LENGTH_STATE_STATE,
     PERCENTAGE,
     UnitOfTime,
 )
@@ -102,11 +101,6 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         icon="mdi:home-map-marker",
     ),
     HondaSensorDescription(
-        key="climate_active",
-        translation_key="climate_active",
-        icon="mdi:air-conditioner",
-    ),
-    HondaSensorDescription(
         key="cabin_temp",
         translation_key="cabin_temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
@@ -120,11 +114,6 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
         dynamic_unit="distance",
-    ),
-    HondaSensorDescription(
-        key="doors_locked",
-        translation_key="doors_locked",
-        icon="mdi:car-door-lock",
     ),
     HondaSensorDescription(
         key="ignition",
@@ -183,6 +172,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
     HondaSensorDescription(
         key="warning_lamps",
         translation_key="warnings",
+        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:alert",
     ),
     HondaSensorDescription(
@@ -206,11 +196,6 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.DURATION,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:timer-outline",
-    ),
-    HondaSensorDescription(
-        key="climate_defrost",
-        translation_key="climate_defrost",
-        icon="mdi:car-defrost-rear",
     ),
     HondaSensorDescription(
         key="charge_schedule",
@@ -333,14 +318,10 @@ class HondaSensor(MyHondaPlusEntity, SensorEntity):
             if not isinstance(value, list):
                 return 0
             return sum(1 for r in value if r.get("enabled"))
+        if self.entity_description.key == "warning_lamps":
+            return len(value) if isinstance(value, list) else None
         if isinstance(value, list):
-            state = ", ".join(str(v) for v in value) if value else "none"
-            if (
-                self.entity_description.key == "warning_lamps"
-                and len(state) > MAX_LENGTH_STATE_STATE
-            ):
-                return str(len(value))
-            return state
+            return ", ".join(str(v) for v in value) if value else "none"
         if (
             self.entity_description.device_class == SensorDeviceClass.TIMESTAMP
             and isinstance(value, str)
