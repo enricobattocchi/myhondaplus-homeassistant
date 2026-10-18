@@ -109,6 +109,15 @@
       },
       "lights": {
         "name": "Verlichting"
+      },
+      "climate_active": {
+        "name": "Airco actief"
+      },
+      "doors_locked": {
+        "name": "Portieren vergrendeld"
+      },
+      "climate_defrost": {
+        "name": "Automatisch ontdooien"
       }
     },
     "sensor": {
@@ -152,17 +161,11 @@
           "unknown": "Onbekend"
         }
       },
-      "climate_active": {
-        "name": "Airco actief"
-      },
       "cabin_temperature": {
         "name": "Cabinetemperatuur"
       },
       "odometer": {
         "name": "Kilometerteller"
-      },
-      "doors_locked": {
-        "name": "Portieren vergrendeld"
       },
       "ignition": {
         "name": "Contact"
@@ -221,9 +224,6 @@
       },
       "climate_duration": {
         "name": "Aircoduur"
-      },
-      "climate_defrost": {
-        "name": "Automatisch ontdooien"
       },
       "charge_schedule": {
         "name": "Laadschema"

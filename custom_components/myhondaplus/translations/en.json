@@ -109,6 +109,15 @@
       },
       "lights": {
         "name": "Lights"
+      },
+      "climate_active": {
+        "name": "Climate active"
+      },
+      "doors_locked": {
+        "name": "Doors locked"
+      },
+      "climate_defrost": {
+        "name": "Auto-Defrost"
       }
     },
     "sensor": {
@@ -152,17 +161,11 @@
           "unknown": "Unknown"
         }
       },
-      "climate_active": {
-        "name": "Climate active"
-      },
       "cabin_temperature": {
         "name": "Cabin temperature"
       },
       "odometer": {
         "name": "Odometer"
-      },
-      "doors_locked": {
-        "name": "Doors locked"
       },
       "ignition": {
         "name": "Ignition"
@@ -221,9 +224,6 @@
       },
       "climate_duration": {
         "name": "Climate duration"
-      },
-      "climate_defrost": {
-        "name": "Auto-Defrost"
       },
       "charge_schedule": {
         "name": "Charge schedule"
