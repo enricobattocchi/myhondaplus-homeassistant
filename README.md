@@ -117,7 +117,7 @@ Remote commands update the entity state only after the car confirms success. The
 
 The integration creates the Home/away, Ignition, and Interior temperature sensors only for BEVs and PHEVs. If you set up a non-plug-in hybrid or petrol vehicle on an earlier release, remove the three leftover entities from Settings > Devices & services > Entities, where they show as no longer provided.
 
-Warning lamps expose the complete list of active indicator codes in the `indicators` attribute. The state remains a comma-separated list, or `none` when there are no warnings. If the list exceeds Home Assistant's 255-character state limit, the state shows the number of active indicators instead. Automations can read the full list with `state_attr('sensor.your_vehicle_warning_lamps', 'indicators')`.
+Warning lamps expose the complete list of active indicator codes in the `indicators` attribute. The state is the number of active indicators: `0` when there are no warnings, or unknown when warning data is missing. The complete list is preserved even when it exceeds Home Assistant's 255-character state limit. Automations can read the full list with `state_attr('sensor.your_vehicle_warning_lamps', 'indicators')`.
 
 ### Binary Sensors
 - **Climate active**: running/not running
@@ -134,6 +134,8 @@ Warning lamps expose the complete list of active indicator codes in the `indicat
 Climate active, Climate defrost, and Doors locked have moved from `sensor` to `binary_sensor`, with states translated by Home Assistant. Update dashboards, scripts, and automations to use the new `binary_sensor` entity IDs and `on`/`off` states instead of `True`/`False`. For Doors locked, `off` means locked and `on` means unlocked, following Home Assistant's lock binary sensor convention. Check the actual new entity IDs in Home Assistant, especially if you customized the old ones.
 
 The new entities are created automatically when the integration loads. No reauthentication or reconfiguration is needed. After updating references, remove the old, unavailable sensor entities from Home Assistant's entity settings. Historical states remain associated with the old sensor IDs.
+
+Warning lamps now always report a count instead of indicator text or `none`; the entity ID stays the same. Update automations that compare the state to `none` to compare it to `0`. To match a specific indicator, use membership in `state_attr('sensor.your_vehicle_warning_lamps', 'indicators') or []` instead of searching the state text.
 
 ### Device Tracker
 - **Location** — vehicle GPS position, shown on the HA map

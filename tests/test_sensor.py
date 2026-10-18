@@ -52,22 +52,22 @@ class TestHondaSensor:
         sensor = make_sensor(mock_coordinator, "battery_level")
         assert sensor.native_value is None
 
-    def test_list_value_joins(self, mock_coordinator):
+    def test_warning_list_returns_count(self, mock_coordinator):
         mock_coordinator.data.warning_lamps = ["oil", "tire"]
         sensor = make_sensor(mock_coordinator, "warning_lamps")
-        assert sensor.native_value == "oil, tire"
+        assert sensor.native_value == 2
 
-    def test_empty_list_returns_none_string(self, mock_coordinator):
+    def test_empty_warning_list_returns_zero(self, mock_coordinator):
         mock_coordinator.data.warning_lamps = []
         sensor = make_sensor(mock_coordinator, "warning_lamps")
-        assert sensor.native_value == "none"
+        assert sensor.native_value == 0
 
     @pytest.mark.parametrize("length", [255, 256])
     def test_warning_state_length_boundary(self, mock_coordinator, length):
         indicators = ["x" * length]
         mock_coordinator.data.warning_lamps = indicators
         sensor = make_sensor(mock_coordinator, "warning_lamps")
-        assert sensor.native_value == (indicators[0] if length == 255 else "1")
+        assert sensor.native_value == 1
         assert sensor.extra_state_attributes == {"indicators": indicators}
 
     def test_many_warning_indicators_are_preserved(self, mock_coordinator):
@@ -82,25 +82,26 @@ class TestHondaSensor:
         mock_coordinator.data.warning_lamps = indicators
         sensor = make_sensor(mock_coordinator, "warning_lamps")
         assert len(", ".join(indicators)) > 255
-        assert sensor.native_value == "17"
+        assert sensor.native_value == 17
         assert sensor.extra_state_attributes == {"indicators": indicators}
 
         mock_coordinator.data.warning_lamps = ["MeterIndicator_Seatbelt"]
-        assert sensor.native_value == "MeterIndicator_Seatbelt"
+        assert sensor.native_value == 1
         assert sensor.extra_state_attributes == {"indicators": ["MeterIndicator_Seatbelt"]}
 
         mock_coordinator.data.warning_lamps = []
-        assert sensor.native_value == "none"
+        assert sensor.native_value == 0
         assert sensor.extra_state_attributes == {"indicators": []}
 
     def test_short_warning_list_has_indicators_attribute(self, mock_coordinator):
         mock_coordinator.data.warning_lamps = ["oil", "tire"]
         sensor = make_sensor(mock_coordinator, "warning_lamps")
-        assert sensor.native_value == "oil, tire"
+        assert sensor.native_value == 2
         assert sensor.extra_state_attributes == {"indicators": ["oil", "tire"]}
 
-    def test_missing_warning_list_has_no_attributes(self, mock_coordinator):
-        mock_coordinator.data.warning_lamps = None
+    @pytest.mark.parametrize("value", [None, "none", "oil", {}, 0])
+    def test_missing_or_invalid_warning_list_is_unknown(self, mock_coordinator, value):
+        mock_coordinator.data.warning_lamps = value
         sensor = make_sensor(mock_coordinator, "warning_lamps")
         assert sensor.native_value is None
         assert sensor.extra_state_attributes is None
