@@ -96,6 +96,7 @@ Remote commands update the entity state only after the car confirms success. The
 
 ### Sensors
 - **Battery & charging**: Battery level, Range (climate on), Range (climate off), Total range, Charge status, Plug status, Charge mode, Time to full charge
+- **Fuel** (hybrid, PHEV and petrol vehicles): Fuel level, Fuel range
 - **Climate**: Climate active, Climate temperature, Climate duration, Climate defrost, Cabin temperature, Interior temperature, Climate temp setting, Climate duration setting, Climate defrost setting
 - **Vehicle**: Odometer, Speed, Ignition, Doors locked, Headlights, Parking lights
 - **Other**: Warning lamps, Last updated

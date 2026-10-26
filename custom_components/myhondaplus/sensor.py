@@ -59,7 +59,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.DISTANCE,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:map-marker-distance",
-        dynamic_unit="fuel_distance",
+        dynamic_unit="distance",
         fuel_only=True,
     ),
     HondaSensorDescription(
@@ -319,7 +319,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-def _read_unit(data, key: str, default: str | None) -> str | None:
+def _read_unit(data, key: str, default: str) -> str:
     """Read a unit field from either a DashboardData dataclass or a trip dict."""
     if hasattr(data, key):
         return getattr(data, key)
@@ -332,8 +332,6 @@ def _resolve_unit(data, description: HondaSensorDescription) -> str | None:
     """Resolve the unit of measurement from coordinator data."""
     if not description.dynamic_unit or not data:
         return description.native_unit_of_measurement
-    if description.dynamic_unit == "fuel_distance":
-        return _read_unit(data, "fuel_range_unit", None)
     if description.dynamic_unit == "temp":
         temp_unit = _read_unit(data, "temp_unit", "c")
         return TEMP_UNIT_MAP.get(str(temp_unit).lower(), TEMP_UNIT_MAP["c"])
@@ -351,6 +349,10 @@ class HondaSensor(MyHondaPlusEntity, SensorEntity):
     @property
     def native_value(self):
         value = getattr(self.coordinator.data, self.entity_description.key, None)
+        if self.entity_description.fuel_only and not getattr(
+            self.coordinator.data, "has_fuel", False
+        ):
+            return None
         if self.entity_description.key in SCHEDULE_KEYS:
             if not isinstance(value, list):
                 return 0

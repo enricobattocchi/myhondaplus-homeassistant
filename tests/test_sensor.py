@@ -51,6 +51,36 @@ class TestHondaSensor:
         sensor = make_sensor(mock_coordinator, "odometer")
         assert sensor.native_value == 12345
 
+    def test_fuel_level(self, mock_coordinator):
+        mock_coordinator.data.has_fuel = True
+        mock_coordinator.data.fuel_level = 24
+        sensor = make_sensor(mock_coordinator, "fuel_level")
+        assert sensor.native_value == 24
+
+    def test_fuel_level_empty_tank(self, mock_coordinator):
+        mock_coordinator.data.has_fuel = True
+        mock_coordinator.data.fuel_level = 0
+        sensor = make_sensor(mock_coordinator, "fuel_level")
+        assert sensor.native_value == 0
+
+    def test_fuel_sensors_unknown_without_fuel_gauge(self, mock_coordinator):
+        mock_coordinator.data.has_fuel = False
+        for key in ("fuel_level", "fuel_range"):
+            assert make_sensor(mock_coordinator, key).native_value is None
+
+    def test_fuel_range(self, mock_coordinator):
+        mock_coordinator.data.has_fuel = True
+        mock_coordinator.data.fuel_range = 153
+        sensor = make_sensor(mock_coordinator, "fuel_range")
+        assert sensor.native_value == 153
+        assert sensor.native_unit_of_measurement == "km"
+
+    def test_fuel_range_unit_follows_distance_unit(self, mock_coordinator):
+        mock_coordinator.data.has_fuel = True
+        mock_coordinator.data.distance_unit = "miles"
+        sensor = make_sensor(mock_coordinator, "fuel_range")
+        assert sensor.native_unit_of_measurement == "mi"
+
     def test_missing_key_returns_none(self, mock_coordinator):
         mock_coordinator.data = {}
         sensor = make_sensor(mock_coordinator, "battery_level")

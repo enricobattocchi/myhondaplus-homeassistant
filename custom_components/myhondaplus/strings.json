@@ -242,6 +242,12 @@
           "activating": "Activating (This can take up to 2 minutes)",
           "deactivating": "De-Activating (This can take up to 2 minutes)"
         }
+      },
+      "fuel_level": {
+        "name": "Fuel level"
+      },
+      "fuel_range": {
+        "name": "Fuel range"
       }
     },
     "device_tracker": {
