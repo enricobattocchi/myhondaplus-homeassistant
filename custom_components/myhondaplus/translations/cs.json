@@ -241,7 +241,7 @@
         }
       },
       "fuel_level": {
-        "name": "Palivo"
+        "name": "Stav paliva"
       },
       "fuel_range": {
         "name": "Dojezd na palivo"

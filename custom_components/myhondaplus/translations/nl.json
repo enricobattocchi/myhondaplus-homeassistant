@@ -244,7 +244,7 @@
         "name": "Brandstofniveau"
       },
       "fuel_range": {
-        "name": "Actieradius op brandstof"
+        "name": "Bereik op brandstof"
       }
     },
     "device_tracker": {

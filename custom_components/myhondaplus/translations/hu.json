@@ -244,7 +244,7 @@
         "name": "Üzemanyagszint"
       },
       "fuel_range": {
-        "name": "Üzemanyag-hatótávolság"
+        "name": "Üzemanyag-hatótáv"
       }
     },
     "device_tracker": {
