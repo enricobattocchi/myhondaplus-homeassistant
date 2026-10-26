@@ -338,12 +338,18 @@ class TestPlatformSetupCoverage:
 
         await sensor_setup_entry(None, entry, added.extend)
 
-        # SENSOR_DESCRIPTIONS + TRIP_SENSOR_DESCRIPTIONS + geofence sensor
-        assert len(added) == len(SENSOR_DESCRIPTIONS) + len(TRIP_SENSOR_DESCRIPTIONS) + 1
+        fuel_only_count = sum(1 for d in SENSOR_DESCRIPTIONS if d.fuel_only)
+        # SENSOR_DESCRIPTIONS - fuel_only + TRIP_SENSOR_DESCRIPTIONS + geofence sensor
+        assert len(added) == (
+            len(SENSOR_DESCRIPTIONS) - fuel_only_count + len(TRIP_SENSOR_DESCRIPTIONS) + 1
+        )
+        added_keys = {e.entity_description.key for e in added}
+        assert "fuel_level" not in added_keys
+        assert "fuel_range" not in added_keys
 
     @pytest.mark.asyncio
     async def test_sensor_platform_setup_entry_phev(self):
-        """PHEV (fuel_type=X) gets the same sensor count as BEV."""
+        """PHEV (fuel_type=X) gets every sensor, EV and fuel ones alike."""
         coordinator = SimpleNamespace(entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA)))
         trip_coordinator = SimpleNamespace(
             entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA))
@@ -380,6 +386,8 @@ class TestPlatformSetupCoverage:
         added_keys = {e.entity_description.key for e in added}
         assert "battery_level" not in added_keys
         assert "charge_status" not in added_keys
+        assert "fuel_level" in added_keys
+        assert "fuel_range" in added_keys
         assert "odometer" in added_keys
         assert "climate_active" in added_keys
 
@@ -399,7 +407,8 @@ class TestPlatformSetupCoverage:
 
         await sensor_setup_entry(None, entry, added.extend)
 
-        assert len(added) == len(SENSOR_DESCRIPTIONS)
+        fuel_only_count = sum(1 for d in SENSOR_DESCRIPTIONS if d.fuel_only)
+        assert len(added) == len(SENSOR_DESCRIPTIONS) - fuel_only_count
         added_keys = {e.entity_description.key for e in added}
         assert "battery_level" in added_keys
         assert "charge_status" in added_keys
@@ -1219,32 +1228,42 @@ class TestSensorEnabled:
         assert EV_FUEL_TYPES == frozenset({"E", "X"})
 
     def test_no_ev_only_always_enabled(self):
-        desc = SimpleNamespace(ev_only=False, ui_hide="")
+        desc = SimpleNamespace(fuel_only=False, ev_only=False, ui_hide="")
         vehicle = SimpleNamespace(fuel_type="G", ui_config=UIConfiguration())
         assert _sensor_enabled(desc, vehicle) is True
 
     def test_ev_only_hidden_for_ice(self):
-        desc = SimpleNamespace(ev_only=True, ui_hide="")
+        desc = SimpleNamespace(fuel_only=False, ev_only=True, ui_hide="")
         vehicle = SimpleNamespace(fuel_type="G", ui_config=UIConfiguration())
         assert _sensor_enabled(desc, vehicle) is False
 
     def test_ev_only_shown_for_bev(self):
-        desc = SimpleNamespace(ev_only=True, ui_hide="")
+        desc = SimpleNamespace(fuel_only=False, ev_only=True, ui_hide="")
         vehicle = SimpleNamespace(fuel_type="E", ui_config=UIConfiguration())
         assert _sensor_enabled(desc, vehicle) is True
 
     def test_ev_only_shown_for_phev(self):
-        desc = SimpleNamespace(ev_only=True, ui_hide="")
+        desc = SimpleNamespace(fuel_only=False, ev_only=True, ui_hide="")
         vehicle = SimpleNamespace(fuel_type="X", ui_config=UIConfiguration())
         assert _sensor_enabled(desc, vehicle) is True
 
     def test_ev_only_hidden_for_empty_fuel_type(self):
-        desc = SimpleNamespace(ev_only=True, ui_hide="")
+        desc = SimpleNamespace(fuel_only=False, ev_only=True, ui_hide="")
         vehicle = SimpleNamespace(fuel_type="", ui_config=UIConfiguration())
         assert _sensor_enabled(desc, vehicle) is False
 
+    def test_fuel_only_hidden_for_bev(self):
+        desc = SimpleNamespace(fuel_only=True, ev_only=False, ui_hide="")
+        vehicle = SimpleNamespace(fuel_type="E", ui_config=UIConfiguration())
+        assert _sensor_enabled(desc, vehicle) is False
+
+    def test_fuel_only_shown_for_phev(self):
+        desc = SimpleNamespace(fuel_only=True, ev_only=False, ui_hide="")
+        vehicle = SimpleNamespace(fuel_type="X", ui_config=UIConfiguration())
+        assert _sensor_enabled(desc, vehicle) is True
+
     def test_ui_hide_true_disables(self):
-        desc = SimpleNamespace(ev_only=False, ui_hide="hide_internal_temperature")
+        desc = SimpleNamespace(fuel_only=False, ev_only=False, ui_hide="hide_internal_temperature")
         vehicle = SimpleNamespace(
             fuel_type="E",
             ui_config=UIConfiguration(hide_internal_temperature=True),

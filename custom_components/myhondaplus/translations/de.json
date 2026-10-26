@@ -239,6 +239,12 @@
           "activating": "Aktivierung (dies kann bis zu zwei Minuten dauern)",
           "deactivating": "Deaktivierung (dies kann bis zu zwei Minuten dauern)"
         }
+      },
+      "fuel_level": {
+        "name": "Kraftstoffstand"
+      },
+      "fuel_range": {
+        "name": "Kraftstoffreichweite"
       }
     },
     "device_tracker": {
