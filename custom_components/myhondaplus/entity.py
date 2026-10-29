@@ -23,6 +23,21 @@ def to_bool(value) -> bool | None:
     return bool(value)
 
 
+def capabilities_allow(description, capabilities) -> bool:
+    """Check a description's required and excluded capabilities.
+
+    ``capability`` names a flag the vehicle must report; ``excluded_capability``
+    names a flag it must not report. Either may be empty.
+    """
+    required = getattr(description, "capability", "")
+    if required and not getattr(capabilities, required, True):
+        return False
+    excluded = getattr(description, "excluded_capability", "")
+    if excluded and getattr(capabilities, excluded, False):
+        return False
+    return True
+
+
 class MyHondaPlusEntity(CoordinatorEntity[DataUpdateCoordinator[DashboardData]]):
     """Base class for My Honda+ entities."""
 

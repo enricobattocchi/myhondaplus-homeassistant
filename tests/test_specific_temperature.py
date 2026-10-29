@@ -246,7 +246,9 @@ class TestSensors:
         vehicle = SimpleNamespace(
             fuel_type="X",
             ui_config=UIConfiguration(),
-            capabilities=VehicleCapabilities(specific_temperature=capable),
+            capabilities=VehicleCapabilities(
+                remote_climate=True, specific_temperature=capable
+            ),
         )
         assert _sensor_enabled(desc, vehicle) is expected
 

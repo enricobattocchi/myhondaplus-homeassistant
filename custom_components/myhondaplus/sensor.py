@@ -19,7 +19,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .data import MyHondaPlusConfigEntry
-from .entity import MyHondaPlusEntity
+from .entity import MyHondaPlusEntity, capabilities_allow
 
 PARALLEL_UPDATES = 0
 
@@ -42,6 +42,8 @@ class HondaSensorDescription(SensorEntityDescription):
     ev_only: bool = False
     ui_hide: str = ""
     specific_temperature: bool | None = None
+    capability: str = ""
+    excluded_capability: str = ""
 
 
 SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
@@ -194,6 +196,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         options=["cooler", "normal", "hotter", "unknown"],
         icon="mdi:thermometer",
         specific_temperature=False,
+        capability="remote_climate",
     ),
     HondaSensorDescription(
         key="climate_target_temp",
@@ -202,6 +205,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         icon="mdi:thermometer",
         specific_temperature=True,
+        capability="remote_climate",
     ),
     HondaSensorDescription(
         key="climate_duration",
@@ -210,6 +214,8 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.DURATION,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:timer-outline",
+        capability="remote_climate",
+        excluded_capability="remote_engine",
     ),
     HondaSensorDescription(
         key="charge_schedule",
@@ -223,6 +229,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         translation_key="climate_schedule",
         icon="mdi:calendar-clock",
         entity_category=EntityCategory.DIAGNOSTIC,
+        capability="climate_schedule",
     ),
 ]
 
@@ -262,7 +269,7 @@ TRIP_SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
 def _sensor_enabled(
     desc: HondaSensorDescription, vehicle,
 ) -> bool:
-    """Check if a sensor should be created based on fuel type and UI config."""
+    """Check if a sensor should be created for the vehicle."""
     if desc.ev_only and vehicle.fuel_type not in EV_FUEL_TYPES:
         return False
     if desc.ui_hide and getattr(vehicle.ui_config, desc.ui_hide, False):
@@ -272,7 +279,7 @@ def _sensor_enabled(
         and desc.specific_temperature != vehicle.capabilities.specific_temperature
     ):
         return False
-    return True
+    return capabilities_allow(desc, vehicle.capabilities)
 
 
 async def async_setup_entry(

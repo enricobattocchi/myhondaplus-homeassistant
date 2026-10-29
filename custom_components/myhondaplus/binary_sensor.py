@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .data import MyHondaPlusConfigEntry
-from .entity import MyHondaPlusEntity, to_bool
+from .entity import MyHondaPlusEntity, capabilities_allow, to_bool
 
 PARALLEL_UPDATES = 0
 
@@ -21,6 +21,7 @@ class HondaBinarySensorDescription(BinarySensorEntityDescription):
     data_key: str = ""
     invert: bool = False
     ui_hide: str = ""
+    capability: str = ""
 
 
 BINARY_SENSOR_DESCRIPTIONS: list[HondaBinarySensorDescription] = [
@@ -30,6 +31,7 @@ BINARY_SENSOR_DESCRIPTIONS: list[HondaBinarySensorDescription] = [
         device_class=BinarySensorDeviceClass.RUNNING,
         icon="mdi:air-conditioner",
         data_key="climate_active",
+        capability="remote_climate",
     ),
     HondaBinarySensorDescription(
         key="doors_locked",
@@ -44,6 +46,7 @@ BINARY_SENSOR_DESCRIPTIONS: list[HondaBinarySensorDescription] = [
         translation_key="climate_defrost",
         icon="mdi:car-defrost-rear",
         data_key="climate_defrost",
+        capability="remote_climate",
     ),
     HondaBinarySensorDescription(
         key="doors_open",
@@ -86,6 +89,13 @@ BINARY_SENSOR_DESCRIPTIONS: list[HondaBinarySensorDescription] = [
 ]
 
 
+def _binary_sensor_enabled(desc: HondaBinarySensorDescription, vehicle) -> bool:
+    """Check if a binary sensor should be created for the vehicle."""
+    if desc.ui_hide and getattr(vehicle.ui_config, desc.ui_hide, False):
+        return False
+    return capabilities_allow(desc, vehicle.capabilities)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: MyHondaPlusConfigEntry,
@@ -103,8 +113,7 @@ async def async_setup_entry(
                 vehicle.fuel_type,
             )
             for desc in BINARY_SENSOR_DESCRIPTIONS
-            if not desc.ui_hide
-            or not getattr(vehicle.ui_config, desc.ui_hide, False)
+            if _binary_sensor_enabled(desc, vehicle)
         )
     async_add_entities(entities)
 
