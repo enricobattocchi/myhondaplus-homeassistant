@@ -41,6 +41,8 @@ class HondaSensorDescription(SensorEntityDescription):
     dynamic_unit: str = ""
     ev_only: bool = False
     ui_hide: str = ""
+    capability: str = ""
+    excluded_capability: str = ""
 
 
 SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
@@ -105,6 +107,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         key="climate_active",
         translation_key="climate_active",
         icon="mdi:air-conditioner",
+        capability="remote_climate",
     ),
     HondaSensorDescription(
         key="cabin_temp",
@@ -198,6 +201,8 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.ENUM,
         options=["cooler", "normal", "hotter", "unknown"],
         icon="mdi:thermometer",
+        capability="remote_climate",
+        excluded_capability="remote_engine",
     ),
     HondaSensorDescription(
         key="climate_duration",
@@ -206,11 +211,15 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.DURATION,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:timer-outline",
+        capability="remote_climate",
+        excluded_capability="remote_engine",
     ),
     HondaSensorDescription(
         key="climate_defrost",
         translation_key="climate_defrost",
         icon="mdi:car-defrost-rear",
+        capability="remote_climate",
+        excluded_capability="remote_engine",
     ),
     HondaSensorDescription(
         key="charge_schedule",
@@ -224,6 +233,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         translation_key="climate_schedule",
         icon="mdi:calendar-clock",
         entity_category=EntityCategory.DIAGNOSTIC,
+        capability="climate_schedule",
     ),
 ]
 
@@ -263,10 +273,16 @@ TRIP_SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
 def _sensor_enabled(
     desc: HondaSensorDescription, vehicle,
 ) -> bool:
-    """Check if a sensor should be created based on fuel type and UI config."""
+    """Check if a sensor should be created for the vehicle."""
     if desc.ev_only and vehicle.fuel_type not in EV_FUEL_TYPES:
         return False
     if desc.ui_hide and getattr(vehicle.ui_config, desc.ui_hide, False):
+        return False
+    if desc.capability and not getattr(vehicle.capabilities, desc.capability, True):
+        return False
+    if desc.excluded_capability and getattr(
+        vehicle.capabilities, desc.excluded_capability, False
+    ):
         return False
     return True
 
