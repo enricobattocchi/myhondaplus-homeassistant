@@ -139,7 +139,7 @@ Warning lamps expose the complete list of active indicator codes in the `indicat
 
 ## Services
 
-Each service call requires selecting the vehicle to control via the **config_entry** field, shown as a **Vehicle** dropdown in the Home Assistant UI.
+Each service call requires selecting the vehicle to control via the **device** field, shown as a **Vehicle** dropdown in the Home Assistant UI.
 
 ### `myhondaplus.climate_on`
 
@@ -148,7 +148,7 @@ Apply the requested climate settings and then send the remote climate-start comm
 ```yaml
 service: myhondaplus.climate_on
 data:
-  config_entry: "<config_entry_id>"
+  device: "<vehicle_device_id>"
   temp: "normal"      # cooler, normal, hotter
   duration: 30         # 10, 20, 30
   defrost: true
@@ -163,7 +163,7 @@ Days must be a comma-separated list of `mon,tue,wed,thu,fri,sat,sun`. Times must
 ```yaml
 service: myhondaplus.set_charge_schedule
 data:
-  config_entry: "<config_entry_id>"
+  device: "<vehicle_device_id>"
   rules:
     - days: "mon,tue,wed,thu,fri"
       location: "home"       # home, all
@@ -180,7 +180,7 @@ Days must be a comma-separated list of `mon,tue,wed,thu,fri,sat,sun`. Times must
 ```yaml
 service: myhondaplus.set_climate_schedule
 data:
-  config_entry: "<config_entry_id>"
+  device: "<vehicle_device_id>"
   rules:
     - days: "mon,tue,wed,thu,fri"
       start_time: "07:00"
@@ -199,7 +199,7 @@ data:
 response_variable: fix
 ```
 
-The response object has `latitude`, `longitude`, `dtTime` (the real TCU fix-time), `speed`, `speed_unit` (`km/h`), `courseHeading`, and `ignition`.
+The response object has `latitude`, `longitude`, `timestamp` (the real TCU fix-time), `speed`, `speed_unit` (`km/h`), `course_heading`, and `ignition`.
 
 ### `myhondaplus.set_geofence`
 
