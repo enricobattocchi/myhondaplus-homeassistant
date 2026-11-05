@@ -27,18 +27,30 @@ This project is **unofficial** and **not affiliated with, endorsed by, or connec
 - A supported Honda Connect Europe / My Honda+ vehicle
 - A working My Honda+ account with email and password
 - Access to the verification email Honda sends during first setup
-- Home Assistant with either HACS or manual custom-component installation access
+- Home Assistant with access to the Marketplace (2026.11 and later), HACS (earlier versions), or manual custom-component installation
 
-### HACS (recommended)
+### Marketplace or HACS (recommended)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=enricobattocchi&repository=myhondaplus-homeassistant&category=integration)
+
+**Home Assistant 2026.11 and later (Marketplace)**
+
+1. Click the button above to open this repository in the Marketplace
+2. If the Marketplace asks for a GitHub connection, approve it. Custom repositories require this connection
+3. Install "My Honda+" and complete the setup flow that opens. This step doesn't require a restart
+
+Updates appear under **Settings > Updates**. After an update, a repair tells you when to restart Home Assistant.
+
+If you installed the integration through HACS, Home Assistant migrates it to the Marketplace when it starts after the upgrade to 2026.11.
+
+**Earlier Home Assistant versions (HACS)**
 
 1. Click the button above to open this repository in HACS
 2. Install "My Honda+"
 3. Restart Home Assistant
 4. Add the integration via Settings > Integrations > Add Integration > "My Honda+"
 
-HACS will track updates automatically, making it easy to upgrade.
+HACS tracks updates automatically.
 
 ### Manual installation
 
@@ -61,7 +73,7 @@ To remove the integration cleanly:
 3. Use the menu and choose **Delete**
 4. Restart Home Assistant if you installed the integration manually and want to remove the files from disk
 
-If you installed through HACS, uninstall it from HACS after removing the integration entry.
+If you installed through the Marketplace or HACS, uninstall it from there after removing the integration entry.
 If you installed manually, delete the `custom_components/myhondaplus` directory from your Home Assistant `config/custom_components/` folder.
 
 ## Configuration
@@ -79,7 +91,7 @@ All vehicles on your account are auto-detected and set up as separate devices un
 On first setup, Honda will send a verification email. Copy the link URL (don't click it) and paste it in the verification step.
 
 Installation parameters summary:
-- **Integration source**: HACS or manual installation
+- **Integration source**: Marketplace, HACS, or manual installation
 - **Verification link**: Required only when Honda asks to register the device authenticator
 
 ## Translations

@@ -55,7 +55,9 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
-          python-version: "3.13"
+          # Keep this at the minimum Python version of the current Home Assistant
+          # release. With an older Python, pip resolves an older Home Assistant.
+          python-version: "3.14"
       - name: Install dependencies
         # homeassistant and pymyhondaplus stay unpinned on purpose: this is an
         # integration, so a break against the current release is real news, not

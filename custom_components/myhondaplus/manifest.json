@@ -1,6 +1,7 @@
 {
   "domain": "myhondaplus",
   "name": "My Honda+",
+  "categories": ["vehicles_transport.cars_evs"],
   "codeowners": ["@enricobattocchi"],
   "config_flow": true,
   "dependencies": [],
