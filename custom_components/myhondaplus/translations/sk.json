@@ -109,6 +109,15 @@
       },
       "lights": {
         "name": "Svetlá"
+      },
+      "climate_active": {
+        "name": "Klimatizácia aktívna"
+      },
+      "doors_locked": {
+        "name": "Zamknuté"
+      },
+      "climate_defrost": {
+        "name": "Automatické odmrazovanie"
       }
     },
     "sensor": {
@@ -152,17 +161,11 @@
           "unknown": "Neznáme"
         }
       },
-      "climate_active": {
-        "name": "Klimatizácia aktívna"
-      },
       "cabin_temperature": {
         "name": "Teplota kabíny"
       },
       "odometer": {
         "name": "Počítadlo kilometrov"
-      },
-      "doors_locked": {
-        "name": "Zamknuté"
       },
       "ignition": {
         "name": "Zapaľovanie"
@@ -221,9 +224,6 @@
       },
       "climate_duration": {
         "name": "Trvanie klimatizácie"
-      },
-      "climate_defrost": {
-        "name": "Automatické odmrazovanie"
       },
       "charge_schedule": {
         "name": "Plán nabíjania"

@@ -109,6 +109,15 @@
       },
       "lights": {
         "name": "Światła"
+      },
+      "climate_active": {
+        "name": "Klimatyzacja aktywna"
+      },
+      "doors_locked": {
+        "name": "Zamknięte"
+      },
+      "climate_defrost": {
+        "name": "Automatyczne ogrzewanie szyby"
       }
     },
     "sensor": {
@@ -152,17 +161,11 @@
           "unknown": "Nieznany"
         }
       },
-      "climate_active": {
-        "name": "Klimatyzacja aktywna"
-      },
       "cabin_temperature": {
         "name": "Temperatura kabiny"
       },
       "odometer": {
         "name": "Licznik kilometrów"
-      },
-      "doors_locked": {
-        "name": "Zamknięte"
       },
       "ignition": {
         "name": "Zapłon"
@@ -221,9 +224,6 @@
       },
       "climate_duration": {
         "name": "Czas klimatyzacji"
-      },
-      "climate_defrost": {
-        "name": "Automatyczne ogrzewanie szyby"
       },
       "charge_schedule": {
         "name": "Harmonogram ładowania"

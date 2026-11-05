@@ -25,6 +25,28 @@ class HondaBinarySensorDescription(BinarySensorEntityDescription):
 
 BINARY_SENSOR_DESCRIPTIONS: list[HondaBinarySensorDescription] = [
     HondaBinarySensorDescription(
+        key="climate_active",
+        translation_key="climate_active",
+        device_class=BinarySensorDeviceClass.RUNNING,
+        icon="mdi:air-conditioner",
+        data_key="climate_active",
+    ),
+    HondaBinarySensorDescription(
+        key="doors_locked",
+        translation_key="doors_locked",
+        device_class=BinarySensorDeviceClass.LOCK,
+        icon="mdi:car-door-lock",
+        data_key="doors_locked",
+        invert=True,
+    ),
+    HondaBinarySensorDescription(
+        key="climate_defrost",
+        translation_key="climate_defrost",
+        device_class=BinarySensorDeviceClass.RUNNING,
+        icon="mdi:car-defrost-rear",
+        data_key="climate_defrost",
+    ),
+    HondaBinarySensorDescription(
         key="doors_open",
         translation_key="doors_open",
         device_class=BinarySensorDeviceClass.DOOR,

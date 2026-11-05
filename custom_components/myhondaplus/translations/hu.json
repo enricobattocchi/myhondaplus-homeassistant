@@ -109,6 +109,15 @@
       },
       "lights": {
         "name": "Lámpák"
+      },
+      "climate_active": {
+        "name": "Klíma aktív"
+      },
+      "doors_locked": {
+        "name": "Ajtók zárva"
+      },
+      "climate_defrost": {
+        "name": "Automatikus jégtelenítés"
       }
     },
     "sensor": {
@@ -152,17 +161,11 @@
           "unknown": "Ismeretlen"
         }
       },
-      "climate_active": {
-        "name": "Klíma aktív"
-      },
       "cabin_temperature": {
         "name": "Utastér hőmérséklet"
       },
       "odometer": {
         "name": "Kilométeróra"
-      },
-      "doors_locked": {
-        "name": "Ajtók zárva"
       },
       "ignition": {
         "name": "Gyújtás"
@@ -221,9 +224,6 @@
       },
       "climate_duration": {
         "name": "Klíma időtartam"
-      },
-      "climate_defrost": {
-        "name": "Automatikus jégtelenítés"
       },
       "charge_schedule": {
         "name": "Töltés ütemezés"

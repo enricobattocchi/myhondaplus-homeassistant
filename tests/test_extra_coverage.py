@@ -270,7 +270,22 @@ class TestPlatformSetupCoverage:
 
         await binary_sensor_setup_entry(None, entry, added.extend)
 
-        assert len(added) == 5
+        assert len(added) == 8
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("fuel_type", ["E", "X", "G"])
+    async def test_binary_sensor_status_without_remote_capabilities(self, fuel_type):
+        coordinator = SimpleNamespace(entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA)))
+        entry = _make_entry_with_vehicles(
+            coordinator, fuel_type=fuel_type, capabilities=VehicleCapabilities()
+        )
+        added = []
+
+        await binary_sensor_setup_entry(None, entry, added.extend)
+
+        assert {"climate_active", "climate_defrost", "doors_locked"}.issubset(
+            entity.entity_description.key for entity in added
+        )
 
     @pytest.mark.asyncio
     async def test_device_tracker_platform_setup_entry(self):
@@ -381,7 +396,7 @@ class TestPlatformSetupCoverage:
         assert "battery_level" not in added_keys
         assert "charge_status" not in added_keys
         assert "odometer" in added_keys
-        assert "climate_active" in added_keys
+        assert "cabin_temp" in added_keys
 
     @pytest.mark.asyncio
     async def test_sensor_platform_setup_entry_expired_subscription(self):
@@ -403,7 +418,7 @@ class TestPlatformSetupCoverage:
         added_keys = {e.entity_description.key for e in added}
         assert "battery_level" in added_keys
         assert "charge_status" in added_keys
-        assert "climate_active" in added_keys
+        assert "cabin_temp" in added_keys
         assert "charge_schedule" in added_keys
         # Trip sensors not registered when trip_coordinator is None
         assert "trips" not in added_keys
