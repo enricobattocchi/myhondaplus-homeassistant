@@ -357,6 +357,10 @@ class TestPlatformSetupCoverage:
 
         # SENSOR_DESCRIPTIONS + TRIP_SENSOR_DESCRIPTIONS + geofence sensor
         assert len(added) == len(SENSOR_DESCRIPTIONS) + len(TRIP_SENSOR_DESCRIPTIONS) + 1
+        added_keys = {e.entity_description.key for e in added}
+        assert "home_away" in added_keys
+        assert "ignition" in added_keys
+        assert "interior_temp" in added_keys
 
     @pytest.mark.asyncio
     async def test_sensor_platform_setup_entry_ice_hides_ev_only(self):
@@ -380,6 +384,10 @@ class TestPlatformSetupCoverage:
         added_keys = {e.entity_description.key for e in added}
         assert "battery_level" not in added_keys
         assert "charge_status" not in added_keys
+        assert "home_away" not in added_keys
+        assert "ignition" not in added_keys
+        assert "interior_temp" not in added_keys
+        assert "cabin_temp" in added_keys
         assert "odometer" in added_keys
         assert "climate_active" in added_keys
 

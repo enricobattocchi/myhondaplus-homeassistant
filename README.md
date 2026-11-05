@@ -115,6 +115,8 @@ Remote commands update the entity state only after the car confirms success. The
 - **Schedules**: Charge schedule (active rules count + full rules in attributes), Climate schedule (active rules count + full rules in attributes)
 - **Geofence**: Geofence status (state, plus centre/radius/name in attributes)
 
+The integration creates the Home/away, Ignition, and Interior temperature sensors only for BEVs and PHEVs. If you set up a non-plug-in hybrid or petrol vehicle on an earlier release, remove the three leftover entities from Settings > Devices & services > Entities, where they show as no longer provided.
+
 Warning lamps expose the complete list of active indicator codes in the `indicators` attribute. The state remains a comma-separated list, or `none` when there are no warnings. If the list exceeds Home Assistant's 255-character state limit, the state shows the number of active indicators instead. Automations can read the full list with `state_attr('sensor.your_vehicle_warning_lamps', 'indicators')`.
 
 ### Binary Sensors
