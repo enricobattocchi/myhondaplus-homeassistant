@@ -80,8 +80,9 @@ When updating a translation on either side, run the drift test. If a key crosses
 - Dynamic units in `sensor.py`: distance and speed (km/miles, km/h/mph) come from `data.distance_unit` via `UNIT_MAP`; temperature (°C/°F) comes from `data.temp_unit` via `TEMP_UNIT_MAP`. The two are independent because some locales mix metric and imperial (UK uses miles + °C).
 - Optimistic updates: entity commands mutate `coordinator.data` before API confirmation, revert on failure.
 - Entity gating policy:
-  - Read-only entities (sensor, binary_sensor, device_tracker) are **not** gated on `VehicleCapabilities`. They check `_sensor_enabled()` against `ev_only` (filtered by vehicle `fuel_type`, where `"E"`=BEV and `"X"`=PHEV) and `ui_hide` flags. This is so dashboard data stays visible when Honda's capability map flips to all-`notSupported` (e.g. lapsed subscription) but the data still flows.
+  - Read-only entities (sensor, binary_sensor, device_tracker) generally are **not** gated on `VehicleCapabilities`. They check `_sensor_enabled()` against `ev_only` (filtered by vehicle `fuel_type`, where `"E"`=BEV and `"X"`=PHEV) and `ui_hide` flags. This is so dashboard data stays visible when Honda's capability map flips to all-`notSupported` (e.g. lapsed subscription) but the data still flows. Climate sensors are an exception: `climate_active` requires `remote_climate`; `climate_temp`, `climate_duration`, and `climate_defrost` also require `remote_engine` to be false; `climate_schedule` requires `climate_schedule`.
   - Command entities (switch, button, select, number, lock) **keep** their `VehicleCapabilities` gates because Honda rejects those API calls when the corresponding feature is `notSupported`.
+  - Climate settings controls require `remote_climate`, no `remote_engine`, and no `hide_climate_settings` UI flag. The climate start/stop switch only requires `remote_climate`.
 
 ## Translations
 

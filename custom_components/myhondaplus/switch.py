@@ -33,7 +33,7 @@ async def async_setup_entry(
         ui = vehicle.ui_config
         if caps.remote_climate:
             entities.append(HondaClimateSwitch(c, vin, name, fuel_type))
-            if not ui.hide_climate_settings:
+            if not caps.remote_engine and not ui.hide_climate_settings:
                 entities.append(HondaDefrostSwitch(c, vin, name, fuel_type))
         if caps.remote_charge:
             entities.append(HondaChargeSwitch(c, vin, name, fuel_type))
