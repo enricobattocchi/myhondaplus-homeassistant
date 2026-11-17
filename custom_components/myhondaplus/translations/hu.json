@@ -74,6 +74,9 @@
     "send_command_failed": {
       "message": "Nem sikerült elküldeni a parancsot a járműnek"
     },
+    "capability_not_supported": {
+      "message": "This vehicle does not support the requested feature"
+    },
     "device_required": {
       "message": "Select a vehicle to control."
     },
@@ -91,6 +94,12 @@
     },
     "geofence_location_unknown": {
       "message": "Helyzet ismeretlen"
+    },
+    "climate_temperature_out_of_range": {
+      "message": "A hőmérséklet kívül esik a jármű által támogatott tartományon"
+    },
+    "climate_temperature_unavailable": {
+      "message": "A jármű nem jelez kívánt hőmérsékletet. Először válasszon hőmérsékletet"
     }
   },
   "entity": {
@@ -239,6 +248,9 @@
           "activating": "Aktiválás (ez akár 2 percig is eltarthat)",
           "deactivating": "Kikapcsolás (ez akár 2 percig is eltarthat)"
         }
+      },
+      "climate_target_temp": {
+        "name": "Kívánt hőmérséklet"
       }
     },
     "device_tracker": {
@@ -295,6 +307,9 @@
       },
       "charge_limit_away": {
         "name": "Töltési limit (távol)"
+      },
+      "climate_temperature": {
+        "name": "Klíma hőmérséklet"
       }
     }
   },
