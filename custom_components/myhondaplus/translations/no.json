@@ -74,6 +74,9 @@
     "send_command_failed": {
       "message": "Kunne ikke sende kommando til kjøretøyet"
     },
+    "capability_not_supported": {
+      "message": "This vehicle does not support the requested feature"
+    },
     "device_required": {
       "message": "Select a vehicle to control."
     },
@@ -91,6 +94,12 @@
     },
     "geofence_location_unknown": {
       "message": "Posisjon ukjent"
+    },
+    "climate_temperature_out_of_range": {
+      "message": "Temperaturen er utenfor området dette kjøretøyet støtter"
+    },
+    "climate_temperature_unavailable": {
+      "message": "Dette kjøretøyet oppgir ingen ønsket temperatur. Velg en temperatur først"
     }
   },
   "entity": {
@@ -239,6 +248,9 @@
           "activating": "Aktiverer (dette kan ta inntil 2 minutter)",
           "deactivating": "Deaktiverer (dette kan ta inntil 2 minutter)"
         }
+      },
+      "climate_target_temp": {
+        "name": "Ønsket temperatur"
       }
     },
     "device_tracker": {
@@ -295,6 +307,9 @@
       },
       "charge_limit_away": {
         "name": "Ladegrense (borte)"
+      },
+      "climate_temperature": {
+        "name": "Klimatemperatur"
       }
     }
   },

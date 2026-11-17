@@ -188,6 +188,8 @@ def mock_coordinator(mock_api, mock_config_entry):
     coordinator.api = mock_api
     coordinator.entry = mock_config_entry
     coordinator.vin = MOCK_VIN
+    coordinator.specific_temperature = False
+    coordinator.climate_start_temperature.return_value = None
     coordinator.async_request_refresh = AsyncMock()
     coordinator.async_send_command = AsyncMock()
     coordinator.async_send_command_and_wait = AsyncMock(return_value=True)

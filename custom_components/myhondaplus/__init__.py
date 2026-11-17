@@ -121,6 +121,7 @@ BASE_SERVICE_FIELDS = {
 SERVICE_CLIMATE_ON_FIELDS = {
     **BASE_SERVICE_FIELDS,
     vol.Optional("temp", default="normal"): vol.In(["cooler", "normal", "hotter"]),
+    vol.Optional("temperature"): vol.Coerce(float),
     vol.Optional("duration", default=30): vol.All(
         vol.Coerce(int), vol.In([10, 20, 30])
     ),
@@ -385,6 +386,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
             vin,
             vehicle_name,
             geofence_enabled=geofence_available,
+            specific_temperature=bool(
+                api_vehicle and api_vehicle.capabilities.specific_temperature
+            ),
+            ui_config=api_vehicle.ui_config if api_vehicle else None,
         )
         await coordinator.async_config_entry_first_refresh()
 
@@ -696,9 +701,31 @@ def _register_services(hass: HomeAssistant) -> None:
 
     async def handle_climate_on(call: ServiceCall) -> None:
         coordinator = _get_coordinator(hass, call)
+        defrost = call.data.get("defrost", True)
+        temperature = call.data.get("temperature")
+        if temperature is not None:
+            temperature = coordinator.validated_climate_temperature(temperature)
+        if coordinator.specific_temperature:
+            if temperature is None:
+                temperature = coordinator.climate_start_temperature()
+            confirmed = await coordinator.async_send_command_and_wait(
+                coordinator.api.remote_climate_start,
+                coordinator.vin,
+                temperature,
+                defrost,
+            )
+            if confirmed:
+                coordinator.async_set_updated_data(
+                    replace(
+                        coordinator.data,
+                        climate_active=True,
+                        climate_target_temp=temperature,
+                        climate_defrost=defrost,
+                    )
+                )
+            return
         temp = call.data.get("temp", "normal")
         duration = call.data.get("duration", 30)
-        defrost = call.data.get("defrost", True)
         await coordinator.async_send_command_and_wait(
             coordinator.api.set_climate_settings,
             coordinator.vin,
