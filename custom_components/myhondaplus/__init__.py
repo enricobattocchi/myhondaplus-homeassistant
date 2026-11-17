@@ -772,6 +772,8 @@ def _register_services(hass: HomeAssistant) -> None:
         confirmed = await coordinator.async_send_command_and_wait(
             coordinator.api.remote_climate_start,
             coordinator.vin,
+            None,
+            defrost,
         )
         if confirmed:
             coordinator.async_set_updated_data(
