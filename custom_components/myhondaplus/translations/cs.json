@@ -74,6 +74,9 @@
     "send_command_failed": {
       "message": "Nepodařilo se odeslat příkaz do vozidla"
     },
+    "capability_not_supported": {
+      "message": "This vehicle does not support the requested feature"
+    },
     "device_required": {
       "message": "Select a vehicle to control."
     },
@@ -91,6 +94,12 @@
     },
     "geofence_location_unknown": {
       "message": "Poloha neznámá"
+    },
+    "climate_temperature_out_of_range": {
+      "message": "Teplota je mimo rozsah podporovaný tímto vozidlem"
+    },
+    "climate_temperature_unavailable": {
+      "message": "Toto vozidlo nehlásí cílovou teplotu. Nejprve zvolte teplotu"
     }
   },
   "entity": {
@@ -239,6 +248,9 @@
           "activating": "Aktivace (tato akce může trvat až 2 minuty)",
           "deactivating": "Deaktivace (tato akce může trvat až 2 minuty)"
         }
+      },
+      "climate_target_temp": {
+        "name": "Cílová teplota"
       }
     },
     "device_tracker": {
@@ -295,6 +307,9 @@
       },
       "charge_limit_away": {
         "name": "Limit nabíjení (pryč)"
+      },
+      "climate_temperature": {
+        "name": "Teplota klimatizace"
       }
     }
   },

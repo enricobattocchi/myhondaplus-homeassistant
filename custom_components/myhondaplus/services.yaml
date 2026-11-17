@@ -23,7 +23,9 @@ set_charge_schedule:
 
 climate_on:
   name: Start climate with settings
-  description: Apply the requested climate settings and then send the remote climate-start command to the vehicle.
+  description: >
+    Start climate control on the vehicle with the requested settings. Vehicles with numeric
+    climate control use temperature and defrost, and ignore temp and duration.
 
   fields:
     device:
@@ -35,7 +37,7 @@ climate_on:
           integration: myhondaplus
     temp:
       name: Temperature
-      description: Climate temperature preset.
+      description: Climate temperature preset, for vehicles without numeric climate control.
       required: false
       default: "normal"
       example: "normal"
@@ -45,6 +47,21 @@ climate_on:
             - "cooler"
             - "normal"
             - "hotter"
+    temperature:
+      name: Target temperature
+      description: >
+        Target temperature in degrees Celsius, for vehicles with numeric climate control.
+        If you leave this empty, the vehicle uses the temperature set in Home Assistant, then
+        the target it reports, then its default.
+      required: false
+      example: 21.5
+      selector:
+        number:
+          min: 0
+          max: 50
+          step: 0.5
+          unit_of_measurement: "°C"
+          mode: box
     duration:
       name: Duration
       description: Climate run time in minutes.

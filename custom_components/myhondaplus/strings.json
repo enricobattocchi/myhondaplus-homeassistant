@@ -94,6 +94,12 @@
     },
     "geofence_location_unknown": {
       "message": "Location unknown"
+    },
+    "climate_temperature_out_of_range": {
+      "message": "The temperature is outside the range this vehicle supports"
+    },
+    "climate_temperature_unavailable": {
+      "message": "This vehicle reports no target temperature. Choose a temperature first"
     }
   },
   "entity": {
@@ -242,6 +248,9 @@
           "activating": "Activating (This can take up to 2 minutes)",
           "deactivating": "De-Activating (This can take up to 2 minutes)"
         }
+      },
+      "climate_target_temp": {
+        "name": "Target temperature"
       }
     },
     "device_tracker": {
@@ -298,6 +307,9 @@
       },
       "charge_limit_away": {
         "name": "Charge limit (away)"
+      },
+      "climate_temperature": {
+        "name": "Climate temperature"
       }
     }
   },

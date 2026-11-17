@@ -1,9 +1,14 @@
-"""Number platform for My Honda+ (charge limits)."""
+"""Number platform for My Honda+ (charge limits and climate temperature)."""
 
 from dataclasses import dataclass, replace
 
-from homeassistant.components.number import NumberEntity, NumberEntityDescription
-from homeassistant.const import PERCENTAGE
+from homeassistant.components.number import (
+    NumberDeviceClass,
+    NumberEntity,
+    NumberEntityDescription,
+    RestoreNumber,
+)
+from homeassistant.const import PERCENTAGE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -48,7 +53,7 @@ async def async_setup_entry(
     entry: MyHondaPlusConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up My Honda+ charge limit numbers."""
+    """Set up My Honda+ numbers."""
     entities = []
     for v in entry.runtime_data.vehicles.values():
         if v.capabilities.remote_charge and v.capabilities.max_charge:
@@ -57,6 +62,32 @@ async def async_setup_entry(
                     v.coordinator, desc, v.vin, v.vehicle_name, v.fuel_type
                 )
                 for desc in NUMBER_DESCRIPTIONS
+            )
+        low = v.ui_config.climate_temp_min
+        high = v.ui_config.climate_temp_max
+        if (
+            v.capabilities.remote_climate
+            and v.capabilities.specific_temperature
+            and low is not None
+            and high is not None
+        ):
+            entities.append(
+                HondaClimateTemperatureNumber(
+                    v.coordinator,
+                    NumberEntityDescription(
+                        key="climate_temperature",
+                        translation_key="climate_temperature",
+                        icon="mdi:thermometer",
+                        device_class=NumberDeviceClass.TEMPERATURE,
+                        native_min_value=low,
+                        native_max_value=high,
+                        native_step=v.ui_config.climate_temp_step,
+                        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                    ),
+                    v.vin,
+                    v.vehicle_name,
+                    v.fuel_type,
+                )
             )
     async_add_entities(entities)
 
@@ -95,3 +126,33 @@ class HondaChargeLimitNumber(MyHondaPlusEntity, NumberEntity):
             self.coordinator.async_set_updated_data(
                 replace(data, **{self.entity_description.key: int(value)})
             )
+
+
+class HondaClimateTemperatureNumber(MyHondaPlusEntity, RestoreNumber):
+    """Temperature that Home Assistant sends when it starts climate control."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the temperature chosen before the last restart."""
+        await super().async_added_to_hass()
+        last = await self.async_get_last_number_data()
+        if (
+            last is not None
+            and last.native_value is not None
+            and self.native_min_value <= last.native_value <= self.native_max_value
+        ):
+            self.coordinator.climate_temperature = last.native_value
+
+    @property
+    def native_value(self) -> float | None:
+        chosen = self.coordinator.climate_temperature
+        if chosen is not None:
+            return chosen
+        return self.coordinator.default_climate_temperature()
+
+    async def async_set_native_value(self, value: float) -> None:
+        self.coordinator.climate_temperature = (
+            self.coordinator.validated_climate_temperature(value)
+        )
+        self.async_write_ha_state()

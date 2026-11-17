@@ -12,6 +12,7 @@ from homeassistant.components.sensor import (
 from homeassistant.const import (
     MAX_LENGTH_STATE_STATE,
     PERCENTAGE,
+    UnitOfTemperature,
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant
@@ -41,6 +42,7 @@ class HondaSensorDescription(SensorEntityDescription):
     dynamic_unit: str = ""
     ev_only: bool = False
     ui_hide: str = ""
+    specific_temperature: bool | None = None
 
 
 SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
@@ -198,6 +200,15 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.ENUM,
         options=["cooler", "normal", "hotter", "unknown"],
         icon="mdi:thermometer",
+        specific_temperature=False,
+    ),
+    HondaSensorDescription(
+        key="climate_target_temp",
+        translation_key="climate_target_temp",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        icon="mdi:thermometer",
+        specific_temperature=True,
     ),
     HondaSensorDescription(
         key="climate_duration",
@@ -267,6 +278,11 @@ def _sensor_enabled(
     if desc.ev_only and vehicle.fuel_type not in EV_FUEL_TYPES:
         return False
     if desc.ui_hide and getattr(vehicle.ui_config, desc.ui_hide, False):
+        return False
+    if (
+        desc.specific_temperature is not None
+        and desc.specific_temperature != vehicle.capabilities.specific_temperature
+    ):
         return False
     return True
 

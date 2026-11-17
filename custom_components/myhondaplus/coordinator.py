@@ -1,5 +1,6 @@
 """Data coordinator for My Honda+."""
 
+import math
 from dataclasses import dataclass, field, fields
 from datetime import timedelta
 
@@ -8,7 +9,11 @@ from homeassistant.components.persistent_notification import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
+from homeassistant.exceptions import (
+    ConfigEntryAuthFailed,
+    HomeAssistantError,
+    ServiceValidationError,
+)
 from homeassistant.helpers.translation import async_get_translations
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pymyhondaplus.api import (
@@ -18,6 +23,7 @@ from pymyhondaplus.api import (
     HondaAPI,
     HondaAPIError,
     HondaAuthError,
+    UIConfiguration,
     compute_trip_stats,
     parse_charge_schedule,
     parse_climate_schedule,
@@ -70,12 +76,17 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
         vin: str,
         vehicle_name: str = "",
         geofence_enabled: bool = False,
+        specific_temperature: bool = False,
+        ui_config: UIConfiguration | None = None,
     ) -> None:
         self.entry = entry
         self.vin: str = vin
         self._vehicle_name: str = vehicle_name
         self.api = api
         self.geofence_enabled = geofence_enabled
+        self.specific_temperature = specific_temperature
+        self.ui_config = ui_config or UIConfiguration()
+        self.climate_temperature: float | None = None
         self._service_available = True
 
         interval = get_entry_value(entry, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
@@ -85,6 +96,53 @@ class HondaDataUpdateCoordinator(DataUpdateCoordinator[DashboardData]):
             name=f"{DOMAIN}_{vin[-6:]}",
             update_interval=timedelta(seconds=interval),
         )
+
+    def validated_climate_temperature(self, value: float) -> float:
+        """Return value aligned to the vehicle's step, or raise if it's invalid."""
+        if not self.specific_temperature:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="capability_not_supported",
+            )
+        low = self.ui_config.climate_temp_min
+        step = self.ui_config.climate_temp_step
+        # Fahrenheit conversions leave values such as 15.999999 or 21.11111.
+        if math.isfinite(value):
+            value = round(value, 3)
+            if low is not None and step is not None:
+                value = round(low + round((value - low) / step) * step, 3)
+        try:
+            self.ui_config.validate_climate_temperature(value)
+        except ValueError as err:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="climate_temperature_out_of_range",
+            ) from err
+        return value
+
+    def default_climate_temperature(self) -> float | None:
+        """Return the reported or vehicle default target, if there is one."""
+        target = self.data.climate_target_temp
+        return target if target is not None else self.ui_config.climate_temp_default
+
+    def climate_start_temperature(self) -> float | None:
+        """Return the temperature for a climate start.
+
+        Vehicles without numeric climate control return None and keep their
+        configured settings. Other vehicles use the temperature chosen in Home
+        Assistant, then the target they report, then their default.
+        """
+        if not self.specific_temperature:
+            return None
+        temperature = self.climate_temperature
+        if temperature is None:
+            temperature = self.default_climate_temperature()
+        if temperature is None:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="climate_temperature_unavailable",
+            )
+        return temperature
 
     def _persist_tokens_if_changed(self) -> None:
         """No-op: tokens are now persisted by the library's storage backend."""

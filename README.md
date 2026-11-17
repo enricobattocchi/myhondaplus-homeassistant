@@ -108,7 +108,7 @@ Remote commands update the entity state only after the car confirms success. The
 
 ### Sensors
 - **Battery & charging**: Battery level, Range (climate on), Range (climate off), Total range, Charge status, Plug status, Charge mode, Time to full charge
-- **Climate**: Climate active, Climate temperature, Climate duration, Climate defrost, Cabin temperature, Interior temperature, Climate temp setting, Climate duration setting, Climate defrost setting
+- **Climate**: Climate active, Climate temperature (preset vehicles), Target temperature (vehicles with numeric climate control), Climate duration, Climate defrost, Cabin temperature, Interior temperature, Climate temp setting, Climate duration setting, Climate defrost setting
 - **Vehicle**: Odometer, Speed, Ignition, Doors locked, Headlights, Parking lights
 - **Other**: Warning lamps, Last updated
 - **Trips**: Trips this month, Distance this month, Driving time this month, Avg consumption this month
@@ -148,6 +148,7 @@ Warning lamps expose the complete list of active indicator codes in the `indicat
 ### Numbers
 - **Charge limit (home)** — 80-100% in steps of 5
 - **Charge limit (away)** — 80-100% in steps of 5
+- **Climate temperature**: temperature in degrees that Home Assistant sends at the next climate start, on vehicles with numeric climate control that report their temperature limits
 
 ## Services
 
@@ -155,7 +156,7 @@ Each service call requires selecting the vehicle to control via the **device** f
 
 ### `myhondaplus.climate_on`
 
-Apply the requested climate settings and then send the remote climate-start command to the vehicle.
+Start climate control on the vehicle with the requested settings.
 
 ```yaml
 service: myhondaplus.climate_on
@@ -163,6 +164,16 @@ data:
   device: "<vehicle_device_id>"
   temp: "normal"      # cooler, normal, hotter
   duration: 30         # 10, 20, 30
+  defrost: true
+```
+
+Vehicles with numeric climate control use `temperature` in degrees Celsius and `defrost`, and ignore `temp` and `duration`. If you leave `temperature` empty, the vehicle uses the **Climate temperature** number, then the target it reports, then its default.
+
+```yaml
+service: myhondaplus.climate_on
+data:
+  device: "<vehicle_device_id>"
+  temperature: 21.5
   defrost: true
 ```
 
