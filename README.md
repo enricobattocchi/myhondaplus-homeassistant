@@ -133,7 +133,7 @@ Warning lamps expose the complete list of active indicator codes in the `indicat
 - **Doors** — lock/unlock with state from vehicle
 
 ### Switches
-- **Climate** — start/stop pre-conditioning, with the defrost setting the vehicle reports (auto defrost on if it reports none)
+- **Climate** — start/stop pre-conditioning, with the defrost setting the vehicle reports (auto defrost off if it reports none)
 - **Charging** — start/stop charging (reflects both manually and externally started charging)
 - **Climate defrost** — enable/disable defrost setting on the vehicle
 - **Auto refresh from car** — enable/disable the recurring refresh from car

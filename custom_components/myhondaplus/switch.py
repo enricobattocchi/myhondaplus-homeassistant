@@ -68,9 +68,7 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
     async def async_turn_on(self, **kwargs) -> None:
         """Start climate pre-conditioning with the vehicle's defrost setting."""
         temperature = self.coordinator.climate_start_temperature()
-        defrost = self.coordinator.data.climate_defrost
-        if defrost is None:
-            defrost = True
+        defrost = self.coordinator.data.climate_defrost is True
         confirmed = await self.coordinator.async_send_command_and_wait(
             self.coordinator.api.remote_climate_start,
             self._vin,
