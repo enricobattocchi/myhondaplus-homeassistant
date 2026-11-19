@@ -81,6 +81,7 @@ When updating a translation on either side, run the drift test. If a key crosses
 - Optimistic updates: entity commands mutate `coordinator.data` before API confirmation, revert on failure.
 - Entity gating policy:
   - Read-only entities (sensor, binary_sensor, device_tracker) are **not** gated on `VehicleCapabilities`. They check `_sensor_enabled()` against `ev_only` (filtered by vehicle `fuel_type`, where `"E"`=BEV and `"X"`=PHEV) and `ui_hide` flags. This is so dashboard data stays visible when Honda's capability map flips to all-`notSupported` (e.g. lapsed subscription) but the data still flows.
+    - Exception: the climate temperature sensors follow `specific_temperature`. A vehicle shows either the numeric target (`climate_target_temp`) or the preset (`climate_temp`), never both.
   - Command entities (switch, button, select, number, lock) **keep** their `VehicleCapabilities` gates because Honda rejects those API calls when the corresponding feature is `notSupported`.
 
 ## Translations

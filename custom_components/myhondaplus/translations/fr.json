@@ -74,6 +74,9 @@
     "send_command_failed": {
       "message": "Impossible d'envoyer la commande au véhicule"
     },
+    "capability_not_supported": {
+      "message": "This vehicle does not support the requested feature"
+    },
     "device_required": {
       "message": "Select a vehicle to control."
     },
@@ -91,6 +94,12 @@
     },
     "geofence_location_unknown": {
       "message": "Position inconnue"
+    },
+    "climate_temperature_out_of_range": {
+      "message": "La température est en dehors de la plage prise en charge par ce véhicule"
+    },
+    "climate_temperature_unavailable": {
+      "message": "Ce véhicule n'indique aucune température cible. Choisissez d'abord une température"
     }
   },
   "entity": {
@@ -239,6 +248,9 @@
           "activating": "Activation (cela peut prendre jusqu'à 2 minutes)",
           "deactivating": "Désactivation (cela peut prendre jusqu'à 2 minutes)"
         }
+      },
+      "climate_target_temp": {
+        "name": "Température cible"
       }
     },
     "device_tracker": {
@@ -295,6 +307,9 @@
       },
       "charge_limit_away": {
         "name": "Limite de charge (extérieur)"
+      },
+      "climate_temperature": {
+        "name": "Température climatisation"
       }
     }
   },
