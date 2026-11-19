@@ -120,7 +120,7 @@ class TestClimateSwitch:
         switch = HondaClimateSwitch(coordinator, MOCK_VIN, MOCK_VEHICLE_NAME)
         await switch.async_turn_on()
         coordinator.async_send_command_and_wait.assert_awaited_once_with(
-            coordinator.api.remote_climate_start, MOCK_VIN, 20.0
+            coordinator.api.remote_climate_start, MOCK_VIN, 20.0, True
         )
         updated = coordinator.async_set_updated_data.call_args[0][0]
         assert updated.climate_active is True
@@ -145,7 +145,7 @@ class TestClimateSwitch:
         switch = HondaClimateSwitch(coordinator, MOCK_VIN, MOCK_VEHICLE_NAME)
         await switch.async_turn_on()
         coordinator.async_send_command_and_wait.assert_awaited_once_with(
-            coordinator.api.remote_climate_start, MOCK_VIN
+            coordinator.api.remote_climate_start, MOCK_VIN, None, True
         )
 
 
