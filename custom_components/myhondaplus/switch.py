@@ -66,22 +66,19 @@ class HondaClimateSwitch(MyHondaPlusEntity, SwitchEntity):
         return to_bool(value)
 
     async def async_turn_on(self, **kwargs) -> None:
-        """Start climate pre-conditioning."""
+        """Start climate pre-conditioning with the vehicle's defrost setting."""
         temperature = self.coordinator.climate_start_temperature()
-        if temperature is None:
-            confirmed = await self.coordinator.async_send_command_and_wait(
-                self.coordinator.api.remote_climate_start,
-                self._vin,
-            )
-            changes = {"climate_active": True}
-        else:
-            confirmed = await self.coordinator.async_send_command_and_wait(
-                self.coordinator.api.remote_climate_start,
-                self._vin,
-                temperature,
-            )
-            changes = {"climate_active": True, "climate_target_temp": temperature}
+        defrost = self.coordinator.data.climate_defrost is True
+        confirmed = await self.coordinator.async_send_command_and_wait(
+            self.coordinator.api.remote_climate_start,
+            self._vin,
+            temperature,
+            defrost,
+        )
         if confirmed:
+            changes = {"climate_active": True}
+            if temperature is not None:
+                changes["climate_target_temp"] = temperature
             self.coordinator.async_set_updated_data(
                 replace(self.coordinator.data, **changes)
             )

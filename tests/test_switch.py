@@ -64,10 +64,34 @@ class TestClimateSwitch:
         climate_switch.coordinator.async_send_command_and_wait.assert_awaited_once_with(
             climate_switch.coordinator.api.remote_climate_start,
             MOCK_VIN,
+            None,
+            True,
         )
         climate_switch.coordinator.async_set_updated_data.assert_called_once()
         data = climate_switch.coordinator.async_set_updated_data.call_args[0][0]
         assert data["climate_active"] is True
+
+    @pytest.mark.asyncio
+    async def test_turn_on_uses_defrost_setting(self, climate_switch):
+        climate_switch.coordinator.data.climate_defrost = False
+        await climate_switch.async_turn_on()
+        climate_switch.coordinator.async_send_command_and_wait.assert_awaited_once_with(
+            climate_switch.coordinator.api.remote_climate_start,
+            MOCK_VIN,
+            None,
+            False,
+        )
+
+    @pytest.mark.asyncio
+    async def test_turn_on_defrost_defaults_off_when_unreported(self, climate_switch):
+        climate_switch.coordinator.data.climate_defrost = None
+        await climate_switch.async_turn_on()
+        climate_switch.coordinator.async_send_command_and_wait.assert_awaited_once_with(
+            climate_switch.coordinator.api.remote_climate_start,
+            MOCK_VIN,
+            None,
+            False,
+        )
 
     @pytest.mark.asyncio
     async def test_turn_off(self, climate_switch):

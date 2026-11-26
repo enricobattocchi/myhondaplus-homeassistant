@@ -776,7 +776,12 @@ class TestServiceHandlers:
         assert mock_coordinator.async_send_command_and_wait.await_count == 2
         calls = mock_coordinator.async_send_command_and_wait.call_args_list
         assert calls[0][0][0] is mock_coordinator.api.set_climate_settings
-        assert calls[1][0][0] is mock_coordinator.api.remote_climate_start
+        assert calls[1][0] == (
+            mock_coordinator.api.remote_climate_start,
+            mock_coordinator.vin,
+            None,
+            False,
+        )
         # Verify optimistic update
         mock_coordinator.async_set_updated_data.assert_called_once()
         updated = mock_coordinator.async_set_updated_data.call_args[0][0]
