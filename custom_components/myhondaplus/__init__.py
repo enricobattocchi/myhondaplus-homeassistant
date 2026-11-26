@@ -20,11 +20,14 @@ from homeassistant.helpers import selector
 from homeassistant.helpers.event import async_call_later
 from pymyhondaplus.api import (
     HondaAPI,
+    UIConfiguration,
     Vehicle,
+    VehicleCapabilities,
 )
 
 from .const import (
     CONF_ACCESS_TOKEN,
+    CONF_CAPABILITIES,
     CONF_CAR_REFRESH_INTERVAL,
     CONF_EXPIRES_AT,
     CONF_FUEL_TYPE,
@@ -32,6 +35,7 @@ from .const import (
     CONF_PERSONAL_ID,
     CONF_REFRESH_TOKEN,
     CONF_SCAN_INTERVAL,
+    CONF_UI_CONFIG,
     CONF_USER_ID,
     CONF_VEHICLE_NAME,
     CONF_VEHICLES,
@@ -121,6 +125,7 @@ BASE_SERVICE_FIELDS = {
 SERVICE_CLIMATE_ON_FIELDS = {
     **BASE_SERVICE_FIELDS,
     vol.Optional("temp", default="normal"): vol.In(["cooler", "normal", "hotter"]),
+    vol.Optional("temperature"): vol.Coerce(float),
     vol.Optional("duration", default=30): vol.All(
         vol.Coerce(int), vol.In([10, 20, 30])
     ),
@@ -385,6 +390,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: MyHondaPlusConfigEntry) 
             vin,
             vehicle_name,
             geofence_enabled=geofence_available,
+            specific_temperature=bool(
+                api_vehicle and api_vehicle.capabilities.specific_temperature
+            ),
+            ui_config=api_vehicle.ui_config if api_vehicle else None,
         )
         await coordinator.async_config_entry_first_refresh()
 
@@ -446,12 +455,18 @@ async def _fetch_vehicle_metadata(
 
     Also backfills model names for vehicles that don't have them (upgrade path).
     Returns a dict of VIN → Vehicle for capability/UI config extraction.
+
+    Capabilities and UI configuration are saved in the entry. When Honda
+    doesn't answer, or doesn't list a vehicle, the last saved copy is used,
+    so a failed lookup doesn't change how climate control works.
     """
     try:
         api_vehicles = await hass.async_add_executor_job(api.get_vehicles)
     except Exception:
-        LOGGER.debug("Could not fetch vehicle metadata", exc_info=True)
-        return {}
+        LOGGER.debug(
+            "Could not fetch vehicle metadata, using the saved copy", exc_info=True
+        )
+        return _saved_vehicle_metadata(entry, {})
 
     vehicles_by_vin = {v.vin: v for v in api_vehicles}
 
@@ -483,6 +498,14 @@ async def _fetch_vehicle_metadata(
         if new_v.get("manual"):
             del new_v["manual"]
             changed = True
+        capabilities = dict(api_v.capabilities.raw)
+        if new_v.get(CONF_CAPABILITIES) != capabilities:
+            new_v[CONF_CAPABILITIES] = capabilities
+            changed = True
+        ui_config = api_v.ui_config.to_dict()
+        if new_v.get(CONF_UI_CONFIG) != ui_config:
+            new_v[CONF_UI_CONFIG] = ui_config
+            changed = True
         if changed:
             patches[v[CONF_VIN]] = new_v
 
@@ -493,7 +516,25 @@ async def _fetch_vehicle_metadata(
             data={**entry.data, CONF_VEHICLES: updated},
         )
 
-    return vehicles_by_vin
+    return _saved_vehicle_metadata(entry, vehicles_by_vin)
+
+
+def _saved_vehicle_metadata(
+    entry: MyHondaPlusConfigEntry,
+    vehicles_by_vin: dict[str, Vehicle],
+) -> dict[str, Vehicle]:
+    """Add the saved metadata of vehicles missing from vehicles_by_vin."""
+    result = dict(vehicles_by_vin)
+    for v in entry.data.get(CONF_VEHICLES, []):
+        vin = v[CONF_VIN]
+        if vin in result or CONF_CAPABILITIES not in v:
+            continue
+        result[vin] = Vehicle(
+            vin=vin,
+            capabilities=VehicleCapabilities(raw=v[CONF_CAPABILITIES]),
+            ui_config=UIConfiguration.from_dict(v.get(CONF_UI_CONFIG, {})),
+        )
+    return result
 
 
 def _build_model_name_from_vehicle(vehicle: Vehicle) -> str:
@@ -696,9 +737,31 @@ def _register_services(hass: HomeAssistant) -> None:
 
     async def handle_climate_on(call: ServiceCall) -> None:
         coordinator = _get_coordinator(hass, call)
+        defrost = call.data.get("defrost", True)
+        temperature = call.data.get("temperature")
+        if temperature is not None:
+            temperature = coordinator.validated_climate_temperature(temperature)
+        if coordinator.specific_temperature:
+            if temperature is None:
+                temperature = coordinator.climate_start_temperature()
+            confirmed = await coordinator.async_send_command_and_wait(
+                coordinator.api.remote_climate_start,
+                coordinator.vin,
+                temperature,
+                defrost,
+            )
+            if confirmed:
+                coordinator.async_set_updated_data(
+                    replace(
+                        coordinator.data,
+                        climate_active=True,
+                        climate_target_temp=temperature,
+                        climate_defrost=defrost,
+                    )
+                )
+            return
         temp = call.data.get("temp", "normal")
         duration = call.data.get("duration", 30)
-        defrost = call.data.get("defrost", True)
         await coordinator.async_send_command_and_wait(
             coordinator.api.set_climate_settings,
             coordinator.vin,

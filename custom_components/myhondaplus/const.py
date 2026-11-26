@@ -16,6 +16,8 @@ CONF_FUEL_TYPE = "fuel_type"
 CONF_EXPIRES_AT = "token_expires_at"
 CONF_MODEL = "model"
 CONF_VEHICLES = "vehicles"
+CONF_CAPABILITIES = "capabilities"
+CONF_UI_CONFIG = "ui_config"
 
 CONF_CAR_REFRESH_INTERVAL = "car_refresh_interval"
 
