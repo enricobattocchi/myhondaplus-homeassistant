@@ -24,7 +24,11 @@ async def async_setup_entry(
     """Set up My Honda+ select entities."""
     entities = []
     for v in entry.runtime_data.vehicles.values():
-        if v.capabilities.remote_climate and not v.ui_config.hide_climate_settings:
+        if (
+            v.capabilities.remote_climate
+            and not v.capabilities.remote_engine
+            and not v.ui_config.hide_climate_settings
+        ):
             entities.extend(
                 [
                     HondaClimateTempSelect(

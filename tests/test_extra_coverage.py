@@ -76,6 +76,7 @@ from custom_components.myhondaplus.sensor import (
     TRIP_SENSOR_DESCRIPTIONS,
     HondaGeofenceSensor,
     HondaSensor,
+    HondaSensorDescription,
     HondaTripSensor,
     _resolve_unit,
     _sensor_enabled,
@@ -288,9 +289,10 @@ class TestPlatformSetupCoverage:
 
         await binary_sensor_setup_entry(None, entry, added.extend)
 
-        assert {"climate_active", "climate_defrost", "doors_locked"}.issubset(
-            entity.entity_description.key for entity in added
-        )
+        added_keys = {entity.entity_description.key for entity in added}
+        assert {"doors_locked", "doors_open", "hood", "trunk"} <= added_keys
+        # Issue #68: climate readings are placeholders without remote climate.
+        assert not {"climate_active", "climate_defrost"} & added_keys
 
     @pytest.mark.asyncio
     async def test_device_tracker_platform_setup_entry(self):
@@ -413,7 +415,7 @@ class TestPlatformSetupCoverage:
 
     @pytest.mark.asyncio
     async def test_sensor_platform_setup_entry_expired_subscription(self):
-        """Issue #25: read sensors register even when all capabilities are False.
+        """Non-climate read sensors register when all capabilities are False.
 
         Trip sensors are gated separately on ``trip_coordinator is None``,
         which simulates the ``journey_history=False`` setup path in
@@ -427,11 +429,13 @@ class TestPlatformSetupCoverage:
 
         await sensor_setup_entry(None, entry, added.extend)
 
-        assert len(added) == len(_preset_sensors())
+        climate_keys = {"climate_temp", "climate_duration", "climate_schedule"}
+        assert len(added) == len(_preset_sensors()) - len(climate_keys)
         added_keys = {e.entity_description.key for e in added}
         assert "battery_level" in added_keys
         assert "charge_status" in added_keys
         assert "cabin_temp" in added_keys
+        assert not climate_keys & added_keys
         assert "charge_schedule" in added_keys
         # Trip sensors not registered when trip_coordinator is None
         assert "trips" not in added_keys
@@ -446,6 +450,80 @@ class TestPlatformSetupCoverage:
         await switch_setup_entry(None, entry, added.extend)
 
         assert len(added) == 4
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("fuel_type", ["E", "X", "G"])
+    @pytest.mark.parametrize("remote_climate", [False, True])
+    @pytest.mark.parametrize("remote_engine", [False, True])
+    @pytest.mark.parametrize("specific_temperature", [False, True])
+    @pytest.mark.parametrize("climate_schedule", [False, True])
+    @pytest.mark.parametrize("hide_climate_settings", [False, True])
+    async def test_climate_capability_gating(
+        self,
+        fuel_type,
+        remote_climate,
+        remote_engine,
+        specific_temperature,
+        climate_schedule,
+        hide_climate_settings,
+    ):
+        """Issue #68: climate entities follow the climate capabilities."""
+        coordinator = SimpleNamespace(entry=SimpleNamespace(data=dict(MOCK_ENTRY_DATA)))
+        entry = _make_entry_with_vehicles(
+            coordinator,
+            fuel_type=fuel_type,
+            capabilities=VehicleCapabilities(
+                remote_climate=remote_climate,
+                remote_engine=remote_engine,
+                specific_temperature=specific_temperature,
+                climate_schedule=climate_schedule,
+            ),
+        )
+        entry.runtime_data.vehicles[MOCK_VIN].ui_config = UIConfiguration(
+            hide_climate_settings=hide_climate_settings,
+            climate_temp_min=16.0,
+            climate_temp_max=30.0,
+            climate_temp_step=0.5,
+        )
+        sensors, binary_sensors, selects, switches, numbers = [], [], [], [], []
+
+        await sensor_setup_entry(None, entry, sensors.extend)
+        await binary_sensor_setup_entry(None, entry, binary_sensors.extend)
+        await select_setup_entry(None, entry, selects.extend)
+        await switch_setup_entry(None, entry, switches.extend)
+        await number_setup_entry(None, entry, numbers.extend)
+
+        sensor_keys = {e.entity_description.key for e in sensors}
+        binary_keys = {e.entity_description.key for e in binary_sensors}
+        assert ("climate_active" in binary_keys) is remote_climate
+        assert ("climate_defrost" in binary_keys) is remote_climate
+        assert {"doors_locked", "doors_open", "hood", "trunk"} <= binary_keys
+        assert ("climate_temp" in sensor_keys) is (
+            remote_climate and not specific_temperature
+        )
+        assert ("climate_target_temp" in sensor_keys) is (
+            remote_climate and specific_temperature
+        )
+        settings_supported = remote_climate and not remote_engine
+        assert ("climate_duration" in sensor_keys) is settings_supported
+        assert ("climate_schedule" in sensor_keys) is climate_schedule
+        assert {"cabin_temp", "odometer"} <= sensor_keys
+        assert ("battery_level" in sensor_keys) is (fuel_type in {"E", "X"})
+
+        settings_visible = settings_supported and not hide_climate_settings
+        assert {e.entity_description.key for e in selects} == (
+            {"climate_temp_setting", "climate_duration_setting"}
+            if settings_visible
+            else set()
+        )
+        switch_keys = {e.entity_description.key for e in switches}
+        assert ("climate_defrost_setting" in switch_keys) is settings_visible
+        assert ("climate" in switch_keys) is remote_climate
+        assert "auto_refresh" in switch_keys
+        number_keys = {e.entity_description.key for e in numbers}
+        assert ("climate_temperature" in number_keys) is (
+            remote_climate and specific_temperature
+        )
 
 
 class TestNumberCoverage:
@@ -1308,37 +1386,89 @@ class TestSensorEnabled:
         assert EV_FUEL_TYPES == frozenset({"E", "X"})
 
     def test_no_ev_only_always_enabled(self):
-        desc = SimpleNamespace(specific_temperature=None, ev_only=False, ui_hide="")
-        vehicle = SimpleNamespace(fuel_type="G", ui_config=UIConfiguration())
+        desc = HondaSensorDescription(key="test")
+        vehicle = SimpleNamespace(
+            fuel_type="G",
+            ui_config=UIConfiguration(),
+            capabilities=VehicleCapabilities(),
+        )
         assert _sensor_enabled(desc, vehicle) is True
 
     def test_ev_only_hidden_for_ice(self):
-        desc = SimpleNamespace(specific_temperature=None, ev_only=True, ui_hide="")
-        vehicle = SimpleNamespace(fuel_type="G", ui_config=UIConfiguration())
+        desc = HondaSensorDescription(key="test", ev_only=True)
+        vehicle = SimpleNamespace(
+            fuel_type="G",
+            ui_config=UIConfiguration(),
+            capabilities=VehicleCapabilities(),
+        )
         assert _sensor_enabled(desc, vehicle) is False
 
     def test_ev_only_shown_for_bev(self):
-        desc = SimpleNamespace(specific_temperature=None, ev_only=True, ui_hide="")
-        vehicle = SimpleNamespace(fuel_type="E", ui_config=UIConfiguration())
+        desc = HondaSensorDescription(key="test", ev_only=True)
+        vehicle = SimpleNamespace(
+            fuel_type="E",
+            ui_config=UIConfiguration(),
+            capabilities=VehicleCapabilities(),
+        )
         assert _sensor_enabled(desc, vehicle) is True
 
     def test_ev_only_shown_for_phev(self):
-        desc = SimpleNamespace(specific_temperature=None, ev_only=True, ui_hide="")
-        vehicle = SimpleNamespace(fuel_type="X", ui_config=UIConfiguration())
+        desc = HondaSensorDescription(key="test", ev_only=True)
+        vehicle = SimpleNamespace(
+            fuel_type="X",
+            ui_config=UIConfiguration(),
+            capabilities=VehicleCapabilities(),
+        )
         assert _sensor_enabled(desc, vehicle) is True
 
     def test_ev_only_hidden_for_empty_fuel_type(self):
-        desc = SimpleNamespace(specific_temperature=None, ev_only=True, ui_hide="")
-        vehicle = SimpleNamespace(fuel_type="", ui_config=UIConfiguration())
+        desc = HondaSensorDescription(key="test", ev_only=True)
+        vehicle = SimpleNamespace(
+            fuel_type="",
+            ui_config=UIConfiguration(),
+            capabilities=VehicleCapabilities(),
+        )
         assert _sensor_enabled(desc, vehicle) is False
 
     def test_ui_hide_true_disables(self):
-        desc = SimpleNamespace(specific_temperature=None, ev_only=False, ui_hide="hide_internal_temperature")
+        desc = HondaSensorDescription(key="test", ui_hide="hide_internal_temperature")
         vehicle = SimpleNamespace(
             fuel_type="E",
             ui_config=UIConfiguration(hide_internal_temperature=True),
         )
         assert _sensor_enabled(desc, vehicle) is False
+
+    @pytest.mark.parametrize(
+        "caps, expected",
+        [
+            (VehicleCapabilities(), False),
+            (VehicleCapabilities(remote_climate=True), True),
+            (VehicleCapabilities(remote_climate=True, remote_engine=True), False),
+        ],
+    )
+    def test_required_and_excluded_capability(self, caps, expected):
+        desc = HondaSensorDescription(
+            key="test",
+            capability="remote_climate",
+            excluded_capability="remote_engine",
+        )
+        vehicle = SimpleNamespace(
+            fuel_type="G", ui_config=UIConfiguration(), capabilities=caps
+        )
+        assert _sensor_enabled(desc, vehicle) is expected
+
+    def test_unknown_capability_names_fall_through(self):
+        desc = HondaSensorDescription(
+            key="test",
+            capability="not_a_capability",
+            excluded_capability="also_not_a_capability",
+        )
+        vehicle = SimpleNamespace(
+            fuel_type="G",
+            ui_config=UIConfiguration(),
+            capabilities=VehicleCapabilities(),
+        )
+        assert _sensor_enabled(desc, vehicle) is True
 
 
 class TestCommandValueError:

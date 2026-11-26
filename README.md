@@ -102,6 +102,8 @@ The integration is fully translated in all Honda Connect Europe languages: Czech
 
 Entities are filtered based on the vehicle's capabilities — only features the vehicle actually supports are created (e.g., no EV charging entities on petrol cars, no climate controls if remote climate is not available). Honda's UI configuration hints are also respected (e.g., hiding window status or interior temperature where applicable).
 
+Climate entities are created only for vehicles that support remote climate, since other vehicles report placeholder values. Vehicles that use remote engine start for climate control get no climate duration sensor and no climate temp, duration or defrost settings. The settings also respect Honda's hint to hide climate settings, which does not hide the sensors. The climate schedule sensor requires climate scheduling support. If a vehicle lost climate entities after an update, remove the leftovers from Settings > Devices & services > Entities, where they show as no longer provided.
+
 Units are dynamic — the integration uses whatever the vehicle reports (km/miles, °C/°F).
 
 Remote commands update the entity state only after the car confirms success. The lock entity shows "Locking..."/"Unlocking..." while waiting for confirmation. If a command times out, a persistent notification is created.
