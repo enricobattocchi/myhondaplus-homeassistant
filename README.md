@@ -121,7 +121,7 @@ Warning lamps expose the complete list of active indicator codes in the `indicat
 
 ### Binary Sensors
 - **Climate active**: running/not running
-- **Climate defrost**: running/not running
+- **Climate defrost**: on/off
 - **Doors locked**: locked/unlocked
 - **Doors** — open/closed
 - **Windows** — open/closed

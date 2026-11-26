@@ -143,10 +143,12 @@ def test_moved_boolean_states(mock_coordinator, key, value, expected):
         expected = not expected
     assert sensor.is_on is expected
     assert sensor.unique_id == f"{MOCK_VIN}_{key}"
-    assert sensor.device_class == (
-        BinarySensorDeviceClass.LOCK if key == "doors_locked"
-        else BinarySensorDeviceClass.RUNNING
-    )
+    # climate_defrost is a setting, not something running: plain on/off.
+    assert sensor.device_class == {
+        "climate_active": BinarySensorDeviceClass.RUNNING,
+        "climate_defrost": None,
+        "doors_locked": BinarySensorDeviceClass.LOCK,
+    }[key]
 
 
 def test_moved_booleans_are_no_longer_sensors():

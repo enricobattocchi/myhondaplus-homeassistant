@@ -42,7 +42,6 @@ BINARY_SENSOR_DESCRIPTIONS: list[HondaBinarySensorDescription] = [
     HondaBinarySensorDescription(
         key="climate_defrost",
         translation_key="climate_defrost",
-        device_class=BinarySensorDeviceClass.RUNNING,
         icon="mdi:car-defrost-rear",
         data_key="climate_defrost",
     ),
