@@ -512,6 +512,9 @@ class TestReauthFlow:
             )
 
         reauth_flow.hass.config_entries.async_update_entry.assert_called_once()
+        reauth_flow.hass.config_entries.async_schedule_reload.assert_called_once_with(
+            reauth_flow._reauth_entry.entry_id
+        )
         reauth_flow.async_abort.assert_called_once_with(reason="reauth_successful")
 
     @pytest.mark.parametrize(

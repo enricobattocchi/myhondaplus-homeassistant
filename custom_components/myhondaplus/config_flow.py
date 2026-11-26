@@ -274,6 +274,10 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._reauth_entry,
             data=new_data,
         )
+        # The entry failed to set up when reauth started: reload it so it
+        # comes back without a restart. The update listener reloads only on
+        # options changes.
+        self.hass.config_entries.async_schedule_reload(self._reauth_entry.entry_id)
         return self.async_abort(reason="reauth_successful")
 
     def _show_user_form(self, errors=None):
