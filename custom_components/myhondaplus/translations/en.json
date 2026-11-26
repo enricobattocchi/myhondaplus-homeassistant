@@ -251,6 +251,12 @@
       },
       "climate_target_temp": {
         "name": "Target temperature"
+      },
+      "fuel_level": {
+        "name": "Fuel level"
+      },
+      "fuel_range": {
+        "name": "Fuel range"
       }
     },
     "device_tracker": {

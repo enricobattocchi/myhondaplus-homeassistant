@@ -251,6 +251,12 @@
       },
       "climate_target_temp": {
         "name": "Måltemperatur"
+      },
+      "fuel_level": {
+        "name": "Brændstofniveau"
+      },
+      "fuel_range": {
+        "name": "Rækkevidde på brændstof"
       }
     },
     "device_tracker": {

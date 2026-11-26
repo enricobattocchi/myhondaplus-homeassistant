@@ -251,6 +251,12 @@
       },
       "climate_target_temp": {
         "name": "Cieľová teplota"
+      },
+      "fuel_level": {
+        "name": "Stav paliva"
+      },
+      "fuel_range": {
+        "name": "Dojazd na palivo"
       }
     },
     "device_tracker": {

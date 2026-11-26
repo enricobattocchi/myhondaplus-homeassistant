@@ -251,6 +251,12 @@
       },
       "climate_target_temp": {
         "name": "Kívánt hőmérséklet"
+      },
+      "fuel_level": {
+        "name": "Üzemanyagszint"
+      },
+      "fuel_range": {
+        "name": "Üzemanyag-hatótáv"
       }
     },
     "device_tracker": {
