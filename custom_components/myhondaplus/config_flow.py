@@ -173,7 +173,7 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._email = user_input[CONF_EMAIL]
             self._password = user_input[CONF_PASSWORD]
-            self._device_key = DeviceKey()
+            self._device_key = self._stored_device_key()
             self._auth = HondaAuth(device_key=self._device_key)
 
             try:
@@ -228,6 +228,19 @@ class MyHondaPlusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=STEP_REAUTH_SCHEMA,
             errors=errors,
         )
+
+    def _stored_device_key(self) -> DeviceKey:
+        """Return the entry's device key, so reauth doesn't need device verification.
+
+        Create a new key only when the entry has none or it can't be loaded.
+        """
+        pem = self._reauth_entry.data.get(CONF_DEVICE_KEY_PEM) if self._reauth_entry else None
+        if pem:
+            try:
+                return DeviceKey(pem_data=pem.encode())
+            except (ValueError, TypeError):
+                LOGGER.warning("Stored device key can't be loaded, creating a new one")
+        return DeviceKey()
 
     async def _update_reauth_entry(self):
         """Update the existing config entry with new tokens and refreshed vehicle list."""

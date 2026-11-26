@@ -12,6 +12,7 @@ from custom_components.myhondaplus.config_flow import (
 )
 from custom_components.myhondaplus.const import (
     CONF_CAR_REFRESH_INTERVAL,
+    CONF_DEVICE_KEY_PEM,
     CONF_FUEL_TYPE,
     CONF_SCAN_INTERVAL,
     CONF_VEHICLE_NAME,
@@ -512,6 +513,63 @@ class TestReauthFlow:
 
         reauth_flow.hass.config_entries.async_update_entry.assert_called_once()
         reauth_flow.async_abort.assert_called_once_with(reason="reauth_successful")
+
+    @pytest.mark.parametrize(
+        ("stored_pem", "load_error", "expected_calls"),
+        [
+            ("STORED-PEM", None, [((), {"pem_data": b"STORED-PEM"})]),
+            (None, None, [((), {})]),
+            ("BROKEN-PEM", ValueError("bad key"), [((), {"pem_data": b"BROKEN-PEM"}), ((), {})]),
+        ],
+        ids=["stored", "missing", "unreadable"],
+    )
+    @pytest.mark.asyncio
+    async def test_reauth_reuses_stored_device_key(
+        self, reauth_flow, stored_pem, load_error, expected_calls
+    ):
+        """Reauth logs in with the entry's device key, creating one only if needed."""
+        entry = reauth_flow.hass.config_entries.async_get_entry.return_value
+        if stored_pem:
+            entry.data[CONF_DEVICE_KEY_PEM] = stored_pem
+        reauth_flow.context = {"entry_id": "test_entry"}
+        await reauth_flow.async_step_reauth({})
+
+        new_key = MagicMock()
+        new_key.pem_bytes = b"NEW-PEM"
+
+        def fake_device_key(**kwargs):
+            if "pem_data" in kwargs:
+                if load_error:
+                    raise load_error
+                key = MagicMock()
+                key.pem_bytes = kwargs["pem_data"]
+                return key
+            return new_key
+
+        with (
+            patch(
+                "custom_components.myhondaplus.config_flow.DeviceKey",
+                side_effect=fake_device_key,
+            ) as mock_key_cls,
+            patch(
+                "custom_components.myhondaplus.config_flow.HondaAuth"
+            ) as mock_auth_cls,
+            patch("custom_components.myhondaplus.config_flow.HondaAPI"),
+        ):
+            mock_auth_cls.extract_user_id.return_value = "fake-user-id"
+            reauth_flow.hass.async_add_executor_job.side_effect = [
+                MOCK_TOKENS,
+                MOCK_USER_INFO,
+            ]
+
+            await reauth_flow.async_step_reauth_confirm(
+                {"email": "test@test.com", "password": "newpass"}
+            )
+
+        assert [tuple(c) for c in mock_key_cls.call_args_list] == expected_calls
+        saved = reauth_flow.hass.config_entries.async_update_entry.call_args[1]["data"]
+        expected_pem = "STORED-PEM" if stored_pem and not load_error else "NEW-PEM"
+        assert saved[CONF_DEVICE_KEY_PEM] == expected_pem
 
     @pytest.mark.asyncio
     async def test_reauth_invalid_credentials(self, reauth_flow):
