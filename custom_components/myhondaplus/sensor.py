@@ -109,6 +109,7 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
         dynamic_unit="temp",
+        ui_hide="hide_internal_temperature",
     ),
     HondaSensorDescription(
         key="odometer",
@@ -161,7 +162,6 @@ SENSOR_DESCRIPTIONS: list[HondaSensorDescription] = [
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
         dynamic_unit="temp",
-        ui_hide="hide_internal_temperature",
         ev_only=True,
     ),
     HondaSensorDescription(

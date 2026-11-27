@@ -100,7 +100,7 @@ The integration is fully translated in all Honda Connect Europe languages: Czech
 
 ## Entities
 
-Entities are filtered based on the vehicle's capabilities — only features the vehicle actually supports are created (e.g., no EV charging entities on petrol cars, no climate controls if remote climate is not available). Honda's UI configuration hints are also respected (e.g., hiding window status or interior temperature where applicable).
+Entities are filtered based on the vehicle's capabilities — only features the vehicle actually supports are created (e.g., no EV charging entities on petrol cars, no climate controls if remote climate is not available). Honda's UI configuration hints are also respected (e.g., hiding window status or cabin temperature where applicable).
 
 Units are dynamic — the integration uses whatever the vehicle reports (km/miles, °C/°F).
 
